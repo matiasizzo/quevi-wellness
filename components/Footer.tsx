@@ -70,11 +70,11 @@ export default function Footer() {
             </h5>
             <ul className="list-none p-0 m-0 flex flex-col gap-3">
               {[
-                { label: 'Diagnóstico BIO-SCAN', href: '#diagnostico' },
-                { label: 'Tratamientos médicos', href: '#treatments' },
-                { label: 'Equipo médico', href: '#about' },
-                { label: 'Editorial · Blog', href: '#blog' },
-                { label: 'FAQ', href: '#faq' },
+                { label: 'Diagnóstico BIO-SCAN', href: '/#diagnostico' },
+                { label: 'Tratamientos médicos', href: '/tratamientos' },
+                { label: 'Rituales de Firma', href: '/rituales' },
+                { label: 'Reservar cita', href: '/#booking' },
+                { label: 'FAQ', href: '/#faq' },
               ].map((l) => (
                 <li key={l.label}>
                   <a href={l.href} className="text-[13px] transition-colors duration-[250ms] hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.72)' }}>
@@ -95,7 +95,7 @@ export default function Footer() {
                 { label: 'Envíos y devoluciones', href: '#' },
                 { label: 'Suscripciones', href: '#' },
                 { label: 'Mi cuenta', href: '#' },
-                { label: 'Contacto', href: '#booking' },
+                { label: 'Contacto', href: '/#booking' },
                 { label: '+34 900 000 000', href: 'tel:+34900000000' },
               ].map((l) => (
                 <li key={l.label}>

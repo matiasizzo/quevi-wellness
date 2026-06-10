@@ -237,7 +237,7 @@ export default function Treatments() {
                       directamente — sin necesidad de seña.
                     </p>
                     <a
-                      href="#rituales"
+                      href="/rituales"
                       className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-600 hover:text-cream-50 whitespace-nowrap"
                     >
                       Ver rituales

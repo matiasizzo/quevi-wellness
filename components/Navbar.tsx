@@ -72,18 +72,18 @@ export default function Navbar() {
 
             {/* Desktop nav links */}
             <nav className="hidden md:flex gap-[30px] text-[13px] items-center">
-              <a href="#treatments" className="py-1.5 text-carbon-700 hover:text-brand-600 transition-colors duration-200 tracking-[0.01em]" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
+              <Link href="/tratamientos" className="py-1.5 text-carbon-700 hover:text-brand-600 transition-colors duration-200 tracking-[0.01em]" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
                 Tratamientos
-              </a>
-              <a href="#rituales" className="py-1.5 text-carbon-700 hover:text-brand-600 transition-colors duration-200 tracking-[0.01em]" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
+              </Link>
+              <Link href="/rituales" className="py-1.5 text-carbon-700 hover:text-brand-600 transition-colors duration-200 tracking-[0.01em]" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
                 Rituales
-              </a>
+              </Link>
               <Link href="/shop" className="py-1.5 text-carbon-700 hover:text-brand-600 transition-colors duration-200 tracking-[0.01em]" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
                 Tienda
               </Link>
-              <a href="#booking" className="inline-flex items-center px-5 py-2 rounded-full bg-brand-600 text-cream-50 font-medium tracking-[0.02em] transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
+              <Link href="/#booking" className="inline-flex items-center px-5 py-2 rounded-full bg-brand-600 text-cream-50 font-medium tracking-[0.02em] transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
                 Reservar cita
-              </a>
+              </Link>
             </nav>
           </div>
 
@@ -155,18 +155,18 @@ export default function Navbar() {
             style={{ background: 'rgba(245,242,236,0.98)' }}
           >
             <nav className="px-4 py-5 flex flex-col gap-1">
-              <a href="#treatments" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-carbon-700 hover:text-brand-600 hover:bg-cream-300 rounded-xl transition-colors">
+              <Link href="/tratamientos" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-carbon-700 hover:text-brand-600 hover:bg-cream-300 rounded-xl transition-colors">
                 Tratamientos
-              </a>
-              <a href="#rituales" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-carbon-700 hover:text-brand-600 hover:bg-cream-300 rounded-xl transition-colors">
+              </Link>
+              <Link href="/rituales" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-carbon-700 hover:text-brand-600 hover:bg-cream-300 rounded-xl transition-colors">
                 Rituales
-              </a>
+              </Link>
               <Link href="/shop" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-carbon-700 hover:text-brand-600 hover:bg-cream-300 rounded-xl transition-colors">
                 Tienda
               </Link>
-              <a href="#booking" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-cream-50 bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors text-center mt-1">
+              <Link href="/#booking" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-cream-50 bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors text-center mt-1">
                 Reservar cita
-              </a>
+              </Link>
             </nav>
           </motion.div>
         )}
