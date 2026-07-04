@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useCart } from '@/lib/cartContext'
 import { formatPrice } from '@/lib/format'
@@ -20,6 +21,7 @@ interface Props {
 export default function PaymentForm({ clientSecret, shipping, onEditShipping, totalCentsFromServer }: Props) {
   const stripe = useStripe()
   const elements = useElements()
+  const router = useRouter()
   const { items } = useCart()
   const [error, setError] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
@@ -40,7 +42,9 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
         return
       }
 
-      const { error: confirmError } = await stripe.confirmPayment({
+      // redirect: 'if_required' keeps us on this page (and in control of navigation)
+      // whenever Stripe doesn't strictly need a redirect (e.g. plain card payments).
+      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
         elements,
         clientSecret,
         confirmParams: {
@@ -54,15 +58,24 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
             },
           },
         },
+        redirect: 'if_required',
       })
 
-      // confirmPayment only returns here if it did NOT redirect (i.e. it failed).
-      // On success the browser navigates away to return_url and this line never runs.
       if (confirmError) {
         console.error('[stripe] confirmPayment error:', confirmError)
         setError(confirmError.message ?? 'Error al confirmar el pago')
         setPaying(false)
+        return
       }
+
+      if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
+        router.push('/checkout/success')
+        return
+      }
+
+      // Any other status (requires_action, etc.) — Stripe already redirected
+      // the customer for extra steps (3D Secure) if it was needed.
+      setPaying(false)
     } catch (err) {
       console.error('[stripe] Unexpected error confirming payment:', err)
       setError('Ocurrió un error inesperado al procesar el pago. Revisa la consola o inténtalo de nuevo.')
