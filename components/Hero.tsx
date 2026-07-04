@@ -19,7 +19,7 @@ export default function Hero() {
           src="/images/hero.png"
           alt="QUEVI Wellness Clinic"
           fill
-          className="object-cover object-center"
+          className="object-contain object-right"
           priority
           sizes="100vw"
         />
