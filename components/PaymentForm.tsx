@@ -32,26 +32,42 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
     setPaying(true)
     setError(null)
 
-    const { error: submitError } = await elements.submit()
-    if (submitError) { setError(submitError.message ?? 'Error'); setPaying(false); return }
+    try {
+      const { error: submitError } = await elements.submit()
+      if (submitError) {
+        setError(submitError.message ?? 'Error al validar los datos de la tarjeta')
+        setPaying(false)
+        return
+      }
 
-    const { error: confirmError } = await stripe.confirmPayment({
-      elements,
-      clientSecret,
-      confirmParams: {
-        return_url: `${window.location.origin}/checkout/success`,
-        payment_method_data: {
-          billing_details: {
-            name: shipping.name,
-            email: shipping.email,
-            phone: shipping.phone || undefined,
-            address: { line1: shipping.address, city: shipping.city, postal_code: shipping.postalCode, country: shipping.country },
+      const { error: confirmError } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/checkout/success`,
+          payment_method_data: {
+            billing_details: {
+              name: shipping.name,
+              email: shipping.email,
+              phone: shipping.phone || undefined,
+              address: { line1: shipping.address, city: shipping.city, postal_code: shipping.postalCode, country: shipping.country },
+            },
           },
         },
-      },
-    })
+      })
 
-    if (confirmError) { setError(confirmError.message ?? 'Error al confirmar el pago'); setPaying(false) }
+      // confirmPayment only returns here if it did NOT redirect (i.e. it failed).
+      // On success the browser navigates away to return_url and this line never runs.
+      if (confirmError) {
+        console.error('[stripe] confirmPayment error:', confirmError)
+        setError(confirmError.message ?? 'Error al confirmar el pago')
+        setPaying(false)
+      }
+    } catch (err) {
+      console.error('[stripe] Unexpected error confirming payment:', err)
+      setError('Ocurrió un error inesperado al procesar el pago. Revisa la consola o inténtalo de nuevo.')
+      setPaying(false)
+    }
   }
 
   return (
