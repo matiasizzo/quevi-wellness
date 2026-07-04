@@ -1,11 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { SITE } from '@/content'
 
-// Se puede sobreescribir con NEXT_PUBLIC_WHATSAPP_NUMBER (formato internacional, solo dígitos, ej: 34600000000)
-const WHATSAPP_NUMBER =
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? SITE.phone.replace(/\D/g, '')
+// Se puede sobreescribir con NEXT_PUBLIC_WHATSAPP_NUMBER (formato internacional, solo dígitos)
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '34683462705'
 
 export default function WhatsAppButton() {
   const message = encodeURIComponent('Hola, me gustaría más información sobre QUEVI Wellness Clinic.')
