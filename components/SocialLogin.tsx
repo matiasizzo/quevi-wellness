@@ -6,6 +6,11 @@ interface Props {
   redirectTo?: string
 }
 
+// Apple Sign In no está activado todavía en el proyecto de Supabase
+// (requiere credenciales de Apple Developer). Ocultar hasta configurarlo
+// evita que los usuarios choquen con "provider is not enabled".
+const APPLE_ENABLED = false
+
 export default function SocialLogin({ redirectTo = '/cuenta' }: Props) {
   async function loginWith(provider: 'google' | 'apple') {
     const supabase = createSupabaseBrowserClient()
@@ -27,13 +32,15 @@ export default function SocialLogin({ redirectTo = '/cuenta' }: Props) {
         Continuar con Google
       </button>
 
-      <button
-        onClick={() => loginWith('apple')}
-        className="w-full flex items-center justify-center gap-3 rounded-full bg-carbon-900 px-4 py-3 text-[12px] tracking-[0.06em] uppercase text-cream-50 hover:bg-carbon-800 transition-colors"
-      >
-        <AppleIcon />
-        Continuar con Apple
-      </button>
+      {APPLE_ENABLED && (
+        <button
+          onClick={() => loginWith('apple')}
+          className="w-full flex items-center justify-center gap-3 rounded-full bg-carbon-900 px-4 py-3 text-[12px] tracking-[0.06em] uppercase text-cream-50 hover:bg-carbon-800 transition-colors"
+        >
+          <AppleIcon />
+          Continuar con Apple
+        </button>
+      )}
     </div>
   )
 }
