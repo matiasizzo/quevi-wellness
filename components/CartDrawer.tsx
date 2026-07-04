@@ -190,7 +190,7 @@ export default function CartDrawer() {
                   Envío gratuito a partir de 80 €. Impuestos incluidos.
                 </p>
                 <Link
-                  href="/shop"
+                  href="/checkout"
                   onClick={closeCart}
                   className="w-full inline-flex items-center justify-center gap-2 py-4 rounded-full bg-brand-600 text-cream-50 font-medium text-[14px] tracking-[0.02em] transition-all hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.98] will-change-transform"
                   style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}

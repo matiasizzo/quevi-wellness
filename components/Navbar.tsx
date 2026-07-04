@@ -107,12 +107,12 @@ export default function Navbar() {
               </svg>
             </button>
             {/* Account — desktop only */}
-            <button aria-label="Cuenta" className="hidden md:flex group">
+            <Link href="/cuenta" aria-label="Mi cuenta" className="hidden md:flex group">
               <svg className="w-[18px] h-[18px] group-hover:[stroke:#355539] transition-colors" viewBox="0 0 24 24" fill="none" stroke="#1e1e1e" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />
               </svg>
-            </button>
+            </Link>
             {/* Cart — always visible */}
             <button
               onClick={openCart}
@@ -166,6 +166,9 @@ export default function Navbar() {
               </Link>
               <Link href="/#booking" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-cream-50 bg-brand-600 hover:bg-brand-700 rounded-xl transition-colors text-center mt-1">
                 Reservar cita
+              </Link>
+              <Link href="/cuenta" onClick={() => setMenuOpen(false)} className="px-4 py-3.5 text-base font-medium text-carbon-700 hover:text-brand-600 hover:bg-cream-300 rounded-xl transition-colors">
+                Mi cuenta
               </Link>
             </nav>
           </motion.div>

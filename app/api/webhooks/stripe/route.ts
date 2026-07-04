@@ -69,5 +69,42 @@ export async function POST(request: Request) {
     }
   }
 
+  if (event.type === 'payment_intent.succeeded') {
+    const pi = event.data.object as Stripe.PaymentIntent
+    const meta = pi.metadata ?? {}
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let items: any[] = []
+    try { items = JSON.parse(meta.items ?? '[]') } catch { items = [] }
+
+    const supabase = getSupabaseServiceClient()
+    if (supabase) {
+      const { data: existing } = await supabase
+        .from('orders').select('id')
+        .eq('stripe_payment_intent_id', pi.id).maybeSingle()
+
+      if (!existing) {
+        const { error } = await supabase.from('orders').insert({
+          status: 'paid',
+          subtotal_cents: Number(meta.subtotal_cents ?? 0),
+          shipping_cents: Number(meta.shipping_cents ?? 0),
+          total_cents: pi.amount,
+          stripe_payment_intent_id: pi.id,
+          shipping_address: {
+            name: meta.shipping_name ?? '',
+            email: meta.shipping_email ?? '',
+            phone: meta.shipping_phone ?? '',
+            address: meta.shipping_address ?? '',
+            city: meta.shipping_city ?? '',
+            postalCode: meta.shipping_postal_code ?? '',
+            country: meta.shipping_country ?? '',
+            items,
+          },
+        })
+        if (error) console.error('[webhook/stripe] Order insert error:', error)
+      }
+    }
+  }
+
   return NextResponse.json({ received: true })
 }
