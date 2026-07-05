@@ -123,8 +123,8 @@ function ServiciosTab() {
   const allItems = TREATMENTS.flatMap(cat => cat.items)
 
   return (
-    <section className="max-w-[1600px] mx-auto px-9 pt-10 pb-20">
-      <div className="grid gap-[14px]" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
+    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 pt-10 pb-20">
+      <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {allItems.map((item) => (
           <div
             key={item.name}
@@ -260,7 +260,7 @@ function ProductosTab() {
 
   if (loading) {
     return (
-      <section className="max-w-[1600px] mx-auto px-9 pt-10 pb-20">
+      <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 pt-10 pb-20">
         <div className="flex items-center justify-center py-20">
           <span className="text-[14px] text-carbon-400 tracking-[0.06em]">Cargando productos…</span>
         </div>
@@ -280,7 +280,7 @@ function ProductosTab() {
           borderBottom: '1px solid #ddd8cc',
         }}
       >
-        <div className="max-w-[1600px] mx-auto px-9 py-[18px] flex items-center gap-6 flex-wrap">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 py-[14px] sm:py-[18px] flex items-center gap-3 sm:gap-6 flex-wrap">
           <div className="flex gap-2 flex-wrap flex-1 min-w-0">
             {[
               { filter: '', label: 'Todos' },
@@ -336,7 +336,7 @@ function ProductosTab() {
       </div>
 
       {/* Product grid */}
-      <section className="max-w-[1600px] mx-auto px-9 pt-10 pb-20">
+      <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 pt-10 pb-20">
         <div className="flex justify-between items-center mb-6 pb-4" style={{ borderBottom: '1px solid #ddd8cc' }}>
           <span className="text-[13px] text-carbon-500">
             <strong className="text-carbon-900 font-semibold">{filteredProducts.length}</strong> productos
@@ -358,8 +358,7 @@ function ProductosTab() {
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
-          className="grid gap-[14px]"
-          style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}
+          className="grid gap-[14px] grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
         >
           {filteredProducts.map((p) => (
             <motion.article
@@ -396,7 +395,7 @@ function ProductosTab() {
                     e.preventDefault()
                     addItem({ id: p.id, slug: p.slug, name: p.name, price: p.price, vol: p.vol, image_url: p.image_url, stripe: p.stripe })
                   }}
-                  className="absolute bottom-4 left-4 right-4 bg-cream-100 text-carbon-900 border border-cream-400 rounded-full py-3 px-[18px] text-[12px] font-medium tracking-[0.04em] flex items-center justify-center gap-2 opacity-0 translate-y-[10px] group-hover/card:opacity-100 group-hover/card:translate-y-0 transition-all duration-[350ms] hover:bg-brand-600 hover:text-cream-100 hover:border-brand-600 will-change-transform"
+                  className="absolute bottom-4 left-4 right-4 bg-cream-100 text-carbon-900 border border-cream-400 rounded-full py-3 px-[18px] text-[12px] font-medium tracking-[0.04em] flex items-center justify-center gap-2 opacity-100 translate-y-0 lg:opacity-0 lg:translate-y-[10px] lg:group-hover/card:opacity-100 lg:group-hover/card:translate-y-0 transition-all duration-[350ms] hover:bg-brand-600 hover:text-cream-100 hover:border-brand-600 will-change-transform"
                   style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -438,11 +437,8 @@ export default function ShopPage() {
 
       {/* Collection Hero */}
       <section
-        className="relative overflow-hidden border-b border-cream-400"
-        style={{
-          background: '#ede9e0',
-          padding: '80px 36px 78px',
-        }}
+        className="relative overflow-hidden border-b border-cream-400 px-4 sm:px-6 lg:px-9 py-12 sm:py-16 lg:py-20"
+        style={{ background: '#ede9e0' }}
       >
         {/* Radial glows */}
         <div
@@ -472,7 +468,7 @@ export default function ShopPage() {
             Cosmética médica de precisión · Dall&apos;O Skin
           </p>
 
-          <div className="flex gap-12 pt-6 max-w-[620px]" style={{ borderTop: '1px solid #ddd8cc' }}>
+          <div className="flex flex-wrap gap-6 sm:gap-12 pt-6 max-w-[620px]" style={{ borderTop: '1px solid #ddd8cc' }}>
             {[
               { v: '7', l: 'Fórmulas magistrales' },
               { v: '3', l: 'Líneas clínicas' },
@@ -499,7 +495,7 @@ export default function ShopPage() {
           borderBottom: '1px solid #ddd8cc',
         }}
       >
-        <div className="max-w-[1600px] mx-auto px-9 py-[14px] flex items-center gap-2">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 py-[14px] flex items-center gap-2">
           {(['productos', 'servicios'] as const).map((tab) => (
             <button
               key={tab}
@@ -523,8 +519,8 @@ export default function ShopPage() {
       {/* CTA strip */}
       <section
         id="diagnostico"
-        className="relative overflow-hidden text-center"
-        style={{ background: '#355539', color: '#f9f7f3', padding: '90px 36px' }}
+        className="relative overflow-hidden text-center px-4 sm:px-6 lg:px-9 py-16 sm:py-20 lg:py-24"
+        style={{ background: '#355539', color: '#f9f7f3' }}
       >
         <div className="absolute pointer-events-none" style={{ top: '-120px', left: '-120px', width: '500px', height: '500px', borderRadius: '50%', background: 'rgba(213,226,214,0.10)', filter: 'blur(80px)' }} />
         <div className="absolute pointer-events-none" style={{ bottom: '-120px', right: '-120px', width: '500px', height: '500px', borderRadius: '50%', background: 'rgba(196,135,106,0.18)', filter: 'blur(80px)' }} />

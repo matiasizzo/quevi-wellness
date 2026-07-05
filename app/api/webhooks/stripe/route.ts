@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
+import { sendOrderEmails } from '@/lib/orderEmails'
 import type Stripe from 'stripe'
 
 export const dynamic = 'force-dynamic'
@@ -102,6 +103,28 @@ export async function POST(request: Request) {
           },
         })
         if (error) console.error('[webhook/stripe] Order insert error:', error)
+
+        // Emails de confirmación (comprador + clínica) — solo en pedidos nuevos
+        if (meta.shipping_email) {
+          try {
+            await sendOrderEmails({
+              orderRef: pi.id.replace('pi_', '').slice(-8).toUpperCase(),
+              customerName: meta.shipping_name ?? '',
+              customerEmail: meta.shipping_email,
+              items,
+              subtotalCents: Number(meta.subtotal_cents ?? 0),
+              shippingCents: Number(meta.shipping_cents ?? 0),
+              totalCents: pi.amount,
+              address: meta.shipping_address ?? '',
+              city: meta.shipping_city ?? '',
+              postalCode: meta.shipping_postal_code ?? '',
+              country: meta.shipping_country ?? '',
+              phone: meta.shipping_phone || undefined,
+            })
+          } catch (err) {
+            console.error('[webhook/stripe] Failed sending order emails:', err)
+          }
+        }
       }
     }
   }
