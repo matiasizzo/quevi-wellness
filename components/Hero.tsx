@@ -17,8 +17,8 @@ export default function Hero() {
         <Image
           src="/images/hero-desktop.png"
           alt="QUEVI Wellness Clinic"
-          width={1652}
-          height={510}
+          width={1678}
+          height={532}
           className="w-full h-auto block"
           priority
           sizes="100vw"
