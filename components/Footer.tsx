@@ -109,20 +109,10 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Large QUEVI watermark — hidden on small mobile to avoid overflow */}
-      <div className="hidden sm:flex max-w-[1600px] mx-auto mt-[30px] items-end justify-center overflow-hidden select-none relative">
-        <span
-          className="font-serif font-normal text-brand-700 leading-[0.82] tracking-[0.02em]"
-          style={{ fontSize: 'clamp(160px, 26vw, 420px)' }}
-        >
-          QUEVI
-        </span>
-        <span
-          className="absolute font-serif italic text-brand-300 font-normal tracking-[0.04em]"
-          style={{ bottom: '18%', right: '8%', fontSize: 'clamp(20px, 2vw, 32px)' }}
-        >
-          QUEVI
-        </span>
+      {/* Minimal brand mark */}
+      <div className="max-w-[1600px] mx-auto mt-2 mb-8 flex flex-col items-center justify-center gap-5 select-none px-6">
+        <span className="block w-14 h-px" style={{ background: 'rgba(245,242,236,0.22)' }} />
+        <QueviLogo variant="light" width={190} height={66} />
       </div>
 
       {/* Bottom bar */}
