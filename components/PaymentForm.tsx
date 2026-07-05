@@ -22,11 +22,12 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
   const stripe = useStripe()
   const elements = useElements()
   const router = useRouter()
-  const { items } = useCart()
+  const { items, coupon } = useCart()
   const [error, setError] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
   const subtotal = Math.round(items.reduce((sum, i) => sum + i.price * 100 * i.quantity, 0))
   const shippingCents = getShippingCents(subtotal)
+  const discountCents = coupon ? Math.round((subtotal * coupon.percent) / 100) : 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -161,6 +162,12 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
           <div className="flex justify-between text-sm text-carbon-400">
             <span>Subtotal</span><span>{formatPrice(subtotal)}</span>
           </div>
+          {coupon && discountCents > 0 && (
+            <div className="flex justify-between text-sm text-brand-600">
+              <span>{coupon.code} (−{coupon.percent}%)</span>
+              <span>−{formatPrice(discountCents)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-sm text-carbon-400">
             <span>Envío</span>
             <span>{shippingCents === 0 ? <span className="text-brand-600">Gratis</span> : formatPrice(shippingCents)}</span>

@@ -3,15 +3,16 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import QueviLogo from '@/components/QueviLogo'
+import { SITE } from '@/content'
 
 export default function Footer() {
   const [email, setEmail] = useState('')
 
   return (
-    <footer className="bg-carbon-900 text-cream-100 pt-20 pb-0">
+    <footer className="bg-carbon-900 text-cream-100 pt-16 pb-0">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9">
         {/* Top grid */}
-        <div className="grid gap-10 sm:gap-[40px] lg:gap-[60px] pb-[60px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 lg:gap-[60px] pb-[50px] grid-cols-1 md:grid-cols-[1.6fr_1fr_1fr]">
           {/* Newsletter col */}
           <div>
             <QueviLogo variant="light" width={170} height={60} className="mb-3 -ml-1" />
@@ -41,18 +42,19 @@ export default function Footer() {
             </form>
           </div>
 
-          {/* Tienda */}
+          {/* Explora */}
           <div>
             <h5 className="font-sans font-medium text-[11px] tracking-[0.22em] uppercase m-0 mb-5 text-cream-100">
-              Tienda
+              Explora
             </h5>
             <ul className="list-none p-0 m-0 flex flex-col gap-3">
               {[
-                { label: 'Todos los productos', href: '/shop' },
-                { label: 'SHIELD · Bio-Protección', href: '/shop#shield' },
-                { label: 'REPAIR · Regeneración', href: '/shop#repair' },
-                { label: 'BOOST · Optimización', href: '/shop#boost' },
-                { label: 'RESET / SOUL · Equilibrio', href: '/shop#reset' },
+                { label: 'Tienda', href: '/shop' },
+                { label: 'Tratamientos', href: '/tratamientos' },
+                { label: 'Rituales de Firma', href: '/rituales' },
+                { label: 'Reservar cita', href: '/#booking' },
+                { label: 'Mi cuenta', href: '/cuenta' },
+                { label: 'Journal', href: '/blog' },
               ].map((l) => (
                 <li key={l.label}>
                   <Link href={l.href} className="text-[13px] transition-colors duration-[250ms] hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.72)' }}>
@@ -63,47 +65,24 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Clínica */}
+          {/* Contacto */}
           <div>
             <h5 className="font-sans font-medium text-[11px] tracking-[0.22em] uppercase m-0 mb-5 text-cream-100">
-              Clínica
+              Contacto
             </h5>
-            <ul className="list-none p-0 m-0 flex flex-col gap-3">
-              {[
-                { label: 'Diagnóstico BIO-SCAN', href: '/#diagnostico' },
-                { label: 'Tratamientos médicos', href: '/tratamientos' },
-                { label: 'Rituales de Firma', href: '/rituales' },
-                { label: 'Reservar cita', href: '/#booking' },
-                { label: 'FAQ', href: '/#faq' },
-              ].map((l) => (
-                <li key={l.label}>
-                  <a href={l.href} className="text-[13px] transition-colors duration-[250ms] hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.72)' }}>
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Ayuda */}
-          <div>
-            <h5 className="font-sans font-medium text-[11px] tracking-[0.22em] uppercase m-0 mb-5 text-cream-100">
-              Ayuda
-            </h5>
-            <ul className="list-none p-0 m-0 flex flex-col gap-3">
-              {[
-                { label: 'Envíos y devoluciones', href: '#' },
-                { label: 'Suscripciones', href: '#' },
-                { label: 'Mi cuenta', href: '#' },
-                { label: 'Contacto', href: '/#booking' },
-                { label: '+34 900 000 000', href: 'tel:+34900000000' },
-              ].map((l) => (
-                <li key={l.label}>
-                  <a href={l.href} className="text-[13px] transition-colors duration-[250ms] hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.72)' }}>
-                    {l.label}
-                  </a>
-                </li>
-              ))}
+            <ul className="list-none p-0 m-0 flex flex-col gap-3 text-[13px]" style={{ color: 'rgba(245,242,236,0.72)' }}>
+              <li>
+                <a href={`https://wa.me/${SITE.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="transition-colors duration-[250ms] hover:text-cream-100">
+                  {SITE.phone} · WhatsApp
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${SITE.email}`} className="transition-colors duration-[250ms] hover:text-cream-100">
+                  {SITE.email}
+                </a>
+              </li>
+              <li className="leading-[1.6]">{SITE.address}</li>
+              <li>Lun – Vie · 09:00 – 20:00</li>
             </ul>
           </div>
         </div>
@@ -121,9 +100,23 @@ export default function Footer() {
           className="flex flex-col sm:flex-row justify-between items-center py-[26px] gap-4 sm:gap-6"
           style={{ borderTop: '1px solid rgba(245,242,236,0.12)' }}
         >
-          <span className="text-[11px] tracking-[0.02em]" style={{ color: 'rgba(245,242,236,0.55)' }}>
-            © 2026 QUEVI Wellness Clinic · Cosmética médica de precisión · Todos los derechos reservados.
-          </span>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+            <span className="text-[11px] tracking-[0.02em]" style={{ color: 'rgba(245,242,236,0.55)' }}>
+              © 2026 QUEVI Wellness Clinic
+            </span>
+            <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
+              {[
+                { label: 'Privacidad', href: '/privacidad' },
+                { label: 'Cookies', href: '/politica-cookies' },
+                { label: 'Aviso legal', href: '/aviso-legal' },
+                { label: 'Términos de compra', href: '/terminos' },
+              ].map((l) => (
+                <Link key={l.href} href={l.href} className="text-[11px] underline underline-offset-2 transition-colors hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </div>
           <div className="flex gap-2">
             {['VISA', 'MASTERCARD', 'AMEX', 'APPLE PAY', 'BIZUM'].map((p) => (
               <span key={p} className="px-[10px] py-1 rounded-[6px] text-[10px] tracking-[0.12em]" style={{ background: 'rgba(245,242,236,0.08)', color: 'rgba(245,242,236,0.65)' }}>
@@ -132,21 +125,16 @@ export default function Footer() {
             ))}
           </div>
           <div className="flex gap-[14px]">
-            <a href="#" aria-label="Instagram" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
+            <a href="https://www.instagram.com/queviwellness" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <circle cx="12" cy="12" r="4" />
                 <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
               </svg>
             </a>
-            <a href="#" aria-label="Facebook" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
+            <a href="https://www.facebook.com/queviwellness" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
                 <path d="M14 9h3V6h-3a3 3 0 0 0-3 3v3H8v3h3v6h3v-6h3l1-3h-4V9z" />
-              </svg>
-            </a>
-            <a href="#" aria-label="TikTok" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <path d="M16 4c0 3 2 5 5 5v3a8 8 0 0 1-5-2v7a6 6 0 1 1-6-6v3a3 3 0 1 0 3 3V4h3z" />
               </svg>
             </a>
           </div>

@@ -13,10 +13,16 @@ export type CartItem = {
   quantity: number
 }
 
+export type Coupon = {
+  code: string
+  percent: number
+}
+
 type CartContextType = {
   items: CartItem[]
   count: number
   total: number
+  coupon: Coupon | null
   isOpen: boolean
   openCart: () => void
   closeCart: () => void
@@ -24,14 +30,18 @@ type CartContextType = {
   removeItem: (id: string) => void
   updateQty: (id: string, qty: number) => void
   clearCart: () => void
+  setCoupon: (coupon: Coupon | null) => void
 }
 
 const CartContext = createContext<CartContextType | null>(null)
 
 const STORAGE_KEY = 'quevi-cart'
 
+const COUPON_KEY = 'quevi-coupon'
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [coupon, setCouponState] = useState<Coupon | null>(null)
   const [isOpen, setIsOpen] = useState(false)
   const [hydrated, setHydrated] = useState(false)
 
@@ -39,6 +49,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) setItems(JSON.parse(stored))
+      const storedCoupon = localStorage.getItem(COUPON_KEY)
+      if (storedCoupon) setCouponState(JSON.parse(storedCoupon))
     } catch {
       // ignore
     }
@@ -53,6 +65,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, [items, hydrated])
+
+  useEffect(() => {
+    if (!hydrated) return
+    try {
+      if (coupon) localStorage.setItem(COUPON_KEY, JSON.stringify(coupon))
+      else localStorage.removeItem(COUPON_KEY)
+    } catch {
+      // ignore
+    }
+  }, [coupon, hydrated])
+
+  const setCoupon = useCallback((c: Coupon | null) => setCouponState(c), [])
 
   const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
     setItems(prev => {
@@ -77,7 +101,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  const clearCart = useCallback(() => setItems([]), [])
+  const clearCart = useCallback(() => { setItems([]); setCouponState(null) }, [])
   const openCart = useCallback(() => setIsOpen(true), [])
   const closeCart = useCallback(() => setIsOpen(false), [])
 
@@ -85,7 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const total = items.reduce((s, i) => s + i.price * i.quantity, 0)
 
   return (
-    <CartContext.Provider value={{ items, count, total, isOpen, openCart, closeCart, addItem, removeItem, updateQty, clearCart }}>
+    <CartContext.Provider value={{ items, count, total, coupon, isOpen, openCart, closeCart, addItem, removeItem, updateQty, clearCart, setCoupon }}>
       {children}
     </CartContext.Provider>
   )

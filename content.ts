@@ -7,9 +7,9 @@ export const SITE = {
   tagline: 'Tu nueva historia de vida de piel',
   description:
     'No analizamos datos, entendemos tu historia clínica para diseñar tu mejor versión con tecnología de precisión.',
-  phone: '+34 900 000 000',
-  email: 'info@quevi.com',
-  address: 'Málaga, España',
+  phone: '+34 683 462 705',
+  email: 'info@queviwellnessclinic.es',
+  address: 'Calle Gibraltar 2, 29680 Estepona, Málaga',
   bookingUrl: '#booking',
 }
 

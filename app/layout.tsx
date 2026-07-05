@@ -82,8 +82,8 @@ const jsonLd = {
   '@type': 'MedicalBusiness',
   name: 'QUEVI Wellness Clinic',
   url: 'https://queviwellnessclinic.es',
-  telephone: '+34 900 000 000',
-  email: 'info@quevi.com',
+  telephone: '+34 683 462 705',
+  email: 'info@queviwellnessclinic.es',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Calle Gibraltar 2',

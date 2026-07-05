@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { getStripe } from '@/lib/stripe'
 import { getShippingCents } from '@/lib/shipping'
 import type { CartItem } from '@/lib/cartContext'
@@ -14,9 +15,10 @@ interface ShippingDetails {
 }
 
 export async function POST(req: NextRequest) {
-  const { items, shippingDetails } = await req.json() as {
+  const { items, shippingDetails, couponCode } = await req.json() as {
     items: CartItem[]
     shippingDetails: ShippingDetails
+    couponCode?: string
   }
 
   if (!items?.length) {
@@ -32,7 +34,30 @@ export async function POST(req: NextRequest) {
   }
 
   const shippingCents = getShippingCents(subtotalCents)
-  const totalCents = subtotalCents + shippingCents
+
+  // Cupón — se revalida SIEMPRE en servidor, nunca se confía en el % del cliente
+  let discountCents = 0
+  let appliedCoupon = ''
+  if (couponCode?.trim()) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (url && key) {
+      const supabase = createClient(url, key, { auth: { persistSession: false } })
+      const { data } = await supabase
+        .from('discount_codes')
+        .select('code, discount_percent, max_uses, uses')
+        .eq('code', couponCode.trim().toUpperCase())
+        .eq('active', true)
+        .single()
+
+      if (data && (data.max_uses === null || data.uses < data.max_uses)) {
+        discountCents = Math.round((subtotalCents * data.discount_percent) / 100)
+        appliedCoupon = data.code
+      }
+    }
+  }
+
+  const totalCents = Math.max(50, subtotalCents + shippingCents - discountCents)
 
   const stripe = getStripe()
   const paymentIntent = await stripe.paymentIntents.create({
@@ -52,6 +77,8 @@ export async function POST(req: NextRequest) {
       ),
       subtotal_cents: String(subtotalCents),
       shipping_cents: String(shippingCents),
+      discount_cents: String(discountCents),
+      coupon_code: appliedCoupon,
       shipping_name: shippingDetails.name,
       shipping_email: shippingDetails.email,
       shipping_phone: shippingDetails.phone ?? '',
@@ -66,5 +93,6 @@ export async function POST(req: NextRequest) {
     clientSecret: paymentIntent.client_secret,
     totalCents,
     shippingCents,
+    discountCents,
   })
 }

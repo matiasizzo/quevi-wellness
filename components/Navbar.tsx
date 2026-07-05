@@ -99,15 +99,8 @@ export default function Navbar() {
 
           {/* Right icons */}
           <div className="flex items-center gap-4 justify-end">
-            {/* Search — desktop only */}
-            <button aria-label="Buscar" className="hidden md:flex group">
-              <svg className="w-[18px] h-[18px] group-hover:[stroke:#355539] transition-colors" viewBox="0 0 24 24" fill="none" stroke="#1e1e1e" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-3.5-3.5" />
-              </svg>
-            </button>
-            {/* Account — desktop only */}
-            <Link href="/cuenta" aria-label="Mi cuenta" className="hidden md:flex group">
+            {/* Account */}
+            <Link href="/cuenta" aria-label="Mi cuenta" className="flex group p-1">
               <svg className="w-[18px] h-[18px] group-hover:[stroke:#355539] transition-colors" viewBox="0 0 24 24" fill="none" stroke="#1e1e1e" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="8" r="4" />
                 <path d="M4 21c0-4 4-7 8-7s8 3 8 7" />

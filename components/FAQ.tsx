@@ -80,11 +80,12 @@ function FAQItem({
   )
 }
 
-export default function FAQ() {
+export default function FAQ({ limit }: { limit?: number }) {
   const { ref, isInView } = useScrollAnimation()
   const [openIndex, setOpenIndex] = useState<number | null>(0)
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
+  const faqs = limit ? FAQS.slice(0, limit) : FAQS
 
   return (
     <section id="faq" className="py-28 bg-cream-200">
@@ -133,7 +134,7 @@ export default function FAQ() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="flex flex-col gap-3"
           >
-            {FAQS.map((faq, i) => (
+            {faqs.map((faq, i) => (
               <FAQItem
                 key={i}
                 item={faq}

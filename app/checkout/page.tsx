@@ -22,7 +22,7 @@ export interface ShippingDetails {
 }
 
 export default function CheckoutPage() {
-  const { items } = useCart()
+  const { items, coupon } = useCart()
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [shipping, setShipping] = useState<ShippingDetails | null>(null)
   const [serverTotal, setServerTotal] = useState<number>(0)
@@ -36,7 +36,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, shippingDetails: details }),
+        body: JSON.stringify({ items, shippingDetails: details, couponCode: coupon?.code }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error del servidor')

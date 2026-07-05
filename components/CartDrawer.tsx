@@ -1,17 +1,51 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/lib/cartContext'
+import { FREE_SHIPPING_THRESHOLD_CENTS } from '@/lib/shipping'
 
 function priceFmt(n: number) {
   return n.toFixed(2).replace('.', ',') + ' €'
 }
 
 export default function CartDrawer() {
-  const { items, count, total, isOpen, closeCart, removeItem, updateQty } = useCart()
+  const { items, count, total, coupon, setCoupon, isOpen, closeCart, removeItem, updateQty } = useCart()
+  const [couponInput, setCouponInput] = useState('')
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
+
+  const freeShippingThreshold = FREE_SHIPPING_THRESHOLD_CENTS / 100
+  const remainingForFree = Math.max(0, freeShippingThreshold - total)
+  const shippingProgress = Math.min(100, (total / freeShippingThreshold) * 100)
+  const discount = coupon ? (total * coupon.percent) / 100 : 0
+
+  async function applyCoupon(e: React.FormEvent) {
+    e.preventDefault()
+    if (!couponInput.trim()) return
+    setCouponLoading(true)
+    setCouponError(null)
+    try {
+      const res = await fetch('/api/checkout/validate-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput }),
+      })
+      const data = await res.json()
+      if (data.valid) {
+        setCoupon({ code: data.code, percent: data.discountPercent })
+        setCouponInput('')
+      } else {
+        setCouponError(data.error ?? 'Código no válido')
+      }
+    } catch {
+      setCouponError('Error de conexión')
+    } finally {
+      setCouponLoading(false)
+    }
+  }
 
   // Lock body scroll when open
   useEffect(() => {
@@ -180,14 +214,75 @@ export default function CartDrawer() {
             {/* Footer */}
             {items.length > 0 && (
               <div className="border-t border-cream-400 px-6 py-5 flex flex-col gap-4">
+                {/* Free shipping progress */}
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-[12px] text-carbon-500 leading-[1.4] m-0">
+                    {remainingForFree > 0 ? (
+                      <>Te faltan <strong className="text-brand-700">{priceFmt(remainingForFree)}</strong> para el envío gratuito</>
+                    ) : (
+                      <strong className="text-brand-700">🎉 ¡Tienes envío gratuito!</strong>
+                    )}
+                  </p>
+                  <div className="h-1.5 rounded-full bg-cream-400 overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full bg-brand-600"
+                      initial={false}
+                      animate={{ width: `${shippingProgress}%` }}
+                      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  </div>
+                </div>
+
+                {/* Coupon */}
+                {coupon ? (
+                  <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200">
+                    <span className="text-[12px] text-brand-700">
+                      <strong>{coupon.code}</strong> · −{coupon.percent}%
+                    </span>
+                    <button
+                      onClick={() => setCoupon(null)}
+                      className="text-[11px] text-carbon-400 underline underline-offset-2 hover:text-carbon-700 transition-colors"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={applyCoupon} className="flex flex-col gap-1.5">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponInput}
+                        onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(null) }}
+                        placeholder="Código de descuento"
+                        className="flex-1 border border-cream-400 bg-cream-50 rounded-full px-4 py-2 text-[12px] text-carbon-900 placeholder:text-carbon-400 outline-none focus:border-brand-500 transition-colors uppercase tracking-[0.06em]"
+                      />
+                      <button
+                        type="submit"
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="px-4 py-2 rounded-full border border-carbon-300 text-[11px] font-medium text-carbon-700 hover:border-brand-600 hover:text-brand-600 transition-colors disabled:opacity-40"
+                      >
+                        {couponLoading ? '...' : 'Aplicar'}
+                      </button>
+                    </div>
+                    {couponError && <p className="text-[11px] text-red-600 m-0">{couponError}</p>}
+                  </form>
+                )}
+
+                {/* Totals */}
+                {coupon && discount > 0 && (
+                  <div className="flex justify-between items-baseline -mb-2">
+                    <span className="text-[12px] text-brand-700">Descuento ({coupon.code})</span>
+                    <span className="text-[13px] text-brand-700">−{priceFmt(discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-baseline">
                   <span className="text-[13px] text-carbon-500 tracking-[0.04em]">Subtotal</span>
                   <span className="font-serif text-[20px] text-carbon-900 font-normal">
-                    {total > 0 ? priceFmt(total) : 'Precio a consultar'}
+                    {total > 0 ? priceFmt(Math.max(0, total - discount)) : 'Precio a consultar'}
                   </span>
                 </div>
                 <p className="text-[11px] text-carbon-400 leading-[1.5] -mt-1">
-                  Envío gratuito a partir de 80 €. Impuestos incluidos.
+                  Impuestos incluidos. Envío calculado al finalizar la compra.
                 </p>
                 <Link
                   href="/checkout"
