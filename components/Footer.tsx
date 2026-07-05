@@ -7,6 +7,24 @@ import { SITE } from '@/content'
 
 export default function Footer() {
   const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle')
+
+  async function handleSubscribe(e: React.FormEvent) {
+    e.preventDefault()
+    setStatus('loading')
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) throw new Error()
+      setStatus('ok')
+      setEmail('')
+    } catch {
+      setStatus('error')
+    }
+  }
 
   return (
     <footer className="bg-carbon-900 text-cream-100 pt-16 pb-0">
@@ -19,27 +37,41 @@ export default function Footer() {
             <p className="text-[13px] mb-[22px] max-w-[380px] leading-[1.6]" style={{ color: 'rgba(245,242,236,0.65)' }}>
               Una vez al mes, un texto largo. Sin descuentos, sin urgencia. Solo ciencia que se entiende y rituales que se sostienen.
             </p>
-            <form onSubmit={(e) => { e.preventDefault(); setEmail('') }} className="flex gap-2 max-w-[460px]">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                required
-                className="flex-1 bg-transparent rounded-full px-[22px] py-3 font-sans text-[13px] text-cream-100 outline-none transition-colors duration-200"
-                style={{
-                  border: '1px solid rgba(245,242,236,0.32)',
-                }}
-                onFocus={(e) => { e.target.style.borderColor = '#f9f7f3' }}
-                onBlur={(e) => { e.target.style.borderColor = 'rgba(245,242,236,0.32)' }}
-              />
-              <button
-                type="submit"
-                className="bg-cream-100 text-carbon-900 border border-cream-100 rounded-full px-[26px] py-3 text-[13px] font-medium transition-all duration-[250ms] hover:bg-transparent hover:text-cream-100"
-              >
-                Suscribirme
-              </button>
-            </form>
+            {status === 'ok' ? (
+              <p className="text-[13px] max-w-[460px] leading-[1.6] m-0 px-[22px] py-3 rounded-full" style={{ color: '#adc5af', border: '1px solid rgba(173,197,175,0.4)' }}>
+                ✓ ¡Listo! Te has suscrito correctamente.
+              </p>
+            ) : (
+              <>
+                <form onSubmit={handleSubscribe} className="flex gap-2 max-w-[460px]">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    required
+                    className="flex-1 bg-transparent rounded-full px-[22px] py-3 font-sans text-[13px] text-cream-100 outline-none transition-colors duration-200"
+                    style={{
+                      border: '1px solid rgba(245,242,236,0.32)',
+                    }}
+                    onFocus={(e) => { e.target.style.borderColor = '#f9f7f3' }}
+                    onBlur={(e) => { e.target.style.borderColor = 'rgba(245,242,236,0.32)' }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="bg-cream-100 text-carbon-900 border border-cream-100 rounded-full px-[26px] py-3 text-[13px] font-medium transition-all duration-[250ms] hover:bg-transparent hover:text-cream-100 disabled:opacity-60"
+                  >
+                    {status === 'loading' ? 'Enviando…' : 'Suscribirme'}
+                  </button>
+                </form>
+                {status === 'error' && (
+                  <p className="text-[12px] mt-2 m-0" style={{ color: '#e0a98e' }}>
+                    No se pudo completar la suscripción. Inténtalo de nuevo.
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           {/* Explora */}

@@ -99,7 +99,7 @@ function ServiciosTab() {
                 Consultar precio
               </span>
               <a
-                href="#booking"
+                href="/#booking"
                 className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-brand-600 text-cream-50 text-[12px] font-medium tracking-[0.02em] transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5"
                 style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
               >
@@ -422,7 +422,7 @@ export default function ShopPage() {
             className="font-serif font-bold leading-[0.98] tracking-[-0.022em] m-0 mb-[22px] text-carbon-900 text-balance"
             style={{ fontSize: 'clamp(48px, 7vw, 96px)', maxWidth: '14ch' }}
           >
-            Tienda <em className="italic font-normal text-brand-600">QUEVI</em>
+            Tienda
           </h1>
           <p className="text-[17px] text-carbon-500 max-w-[620px] m-0 mb-8 leading-[1.6]">
             Cosmética médica de precisión · Dall&apos;O Skin
