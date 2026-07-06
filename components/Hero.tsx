@@ -38,16 +38,16 @@ export default function Hero() {
               </span>
 
               <h1
-                className="font-serif font-bold leading-[0.96] tracking-[-0.022em] m-0 text-carbon-900 text-balance"
-                style={{ fontSize: 'clamp(38px, 4.6vw, 76px)', maxWidth: '13ch' }}
+                className="font-serif font-bold leading-[1.04] tracking-[-0.022em] m-0 text-carbon-900 text-balance"
+                style={{ fontSize: 'clamp(34px, 3.9vw, 64px)', maxWidth: '15ch' }}
               >
-                Tu rutina, <em className="not-italic font-normal text-brand-600">prescrita</em>.
-                <br />No vendida.
+                Primero <em className="not-italic font-normal text-brand-600">entendemos</em> tu piel.
+                <br />Después la transformamos.
               </h1>
 
-              <p className="text-[15px] xl:text-[17px] text-carbon-500 max-w-[420px] leading-[1.65]">
-                Una clínica de bienestar que cruza diagnóstico médico, terapia regenerativa y
-                cosmética magistral de precisión — porque tu piel no necesita una novedad, necesita tu historia.
+              <p className="text-[15px] xl:text-[17px] text-carbon-500 max-w-[440px] leading-[1.65]">
+                Diagnóstico genético, tecnologías high-tech y rituales de firma.
+                Sin promesas vacías: protocolos medibles.
               </p>
 
               <div className="flex gap-3 flex-wrap pt-1">
@@ -98,12 +98,17 @@ export default function Hero() {
           </span>
 
           <h1
-            className="font-serif font-bold leading-[0.96] tracking-[-0.022em] m-0 text-carbon-900 text-balance"
-            style={{ fontSize: 'clamp(34px, 8.4vw, 56px)', maxWidth: '13ch' }}
+            className="font-serif font-bold leading-[1.06] tracking-[-0.022em] m-0 text-carbon-900 text-balance"
+            style={{ fontSize: 'clamp(30px, 7.4vw, 50px)', maxWidth: '15ch' }}
           >
-            Tu rutina, <em className="not-italic font-normal text-brand-600">prescrita</em>.
-            <br />No vendida.
+            Primero <em className="not-italic font-normal text-brand-600">entendemos</em> tu piel.
+            <br />Después la transformamos.
           </h1>
+
+          <p className="text-[14px] text-carbon-500 max-w-[440px] leading-[1.6]">
+            Diagnóstico genético, tecnologías high-tech y rituales de firma.
+            Sin promesas vacías: protocolos medibles.
+          </p>
 
           <div className="flex gap-3 flex-wrap pt-1">
             <a
