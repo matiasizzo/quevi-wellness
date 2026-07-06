@@ -16,9 +16,9 @@ export default function AvisoLegalPage() {
         <strong>queviwellnessclinic.es</strong>, es titularidad de:
       </p>
       <ul>
-        <li><strong>Titular:</strong> QUEVI Wellness Clinic [completar razón social]</li>
-        <li><strong>NIF/CIF:</strong> [completar]</li>
-        <li><strong>Domicilio:</strong> Calle Gibraltar 2, 29680 Estepona, Málaga (España)</li>
+        <li><strong>Titular:</strong> QUEVI WELLNESS CLINIC SL</li>
+        <li><strong>NIF:</strong> B88657044</li>
+        <li><strong>Domicilio:</strong> Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga (España)</li>
         <li><strong>Email de contacto:</strong> info@queviwellnessclinic.es</li>
         <li><strong>Teléfono:</strong> +34 683 462 705</li>
       </ul>

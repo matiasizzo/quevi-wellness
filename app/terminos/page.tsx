@@ -12,8 +12,9 @@ export default function TerminosPage() {
       <h2>1. Ámbito</h2>
       <p>
         Estas condiciones regulan la compra de productos cosméticos, rituales de bienestar y la reserva
-        de citas con seña a través de <strong>queviwellnessclinic.es</strong>. Al completar un pedido,
-        aceptas estas condiciones.
+        de citas con seña a través de <strong>queviwellnessclinic.es</strong>, titularidad de{' '}
+        <strong>QUEVI WELLNESS CLINIC SL</strong> (NIF B88657044), con domicilio en Calle Gibraltar 2,
+        Local Bajo, 29680 Estepona, Málaga. Al completar un pedido, aceptas estas condiciones.
       </p>
 
       <h2>2. Productos y precios</h2>

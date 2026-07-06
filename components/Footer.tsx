@@ -134,7 +134,7 @@ export default function Footer() {
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <span className="text-[11px] tracking-[0.02em]" style={{ color: 'rgba(245,242,236,0.55)' }}>
-              © 2026 QUEVI Wellness Clinic
+              © 2026 QUEVI WELLNESS CLINIC SL · NIF B88657044
             </span>
             <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
               {[

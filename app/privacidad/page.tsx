@@ -17,8 +17,9 @@ export default function PrivacidadPage() {
 
       <h2>1. Responsable del tratamiento</h2>
       <ul>
-        <li><strong>Responsable:</strong> QUEVI Wellness Clinic [completar razón social]</li>
-        <li><strong>Domicilio:</strong> Calle Gibraltar 2, 29680 Estepona, Málaga</li>
+        <li><strong>Responsable:</strong> QUEVI WELLNESS CLINIC SL</li>
+        <li><strong>NIF:</strong> B88657044</li>
+        <li><strong>Domicilio:</strong> Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga</li>
         <li><strong>Email:</strong> info@queviwellnessclinic.es</li>
       </ul>
 

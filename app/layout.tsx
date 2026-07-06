@@ -84,9 +84,11 @@ const jsonLd = {
   url: 'https://queviwellnessclinic.es',
   telephone: '+34 683 462 705',
   email: 'info@queviwellnessclinic.es',
+  legalName: 'QUEVI WELLNESS CLINIC SL',
+  taxID: 'B88657044',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Calle Gibraltar 2',
+    streetAddress: 'Calle Gibraltar 2, Local Bajo',
     addressLocality: 'Estepona',
     addressRegion: 'Málaga',
     postalCode: '29680',

@@ -9,7 +9,7 @@ export const SITE = {
     'No analizamos datos, entendemos tu historia clínica para diseñar tu mejor versión con tecnología de precisión.',
   phone: '+34 683 462 705',
   email: 'info@queviwellnessclinic.es',
-  address: 'Calle Gibraltar 2, 29680 Estepona, Málaga',
+  address: 'Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga',
   bookingUrl: '#booking',
 }
 
