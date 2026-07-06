@@ -55,7 +55,7 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
               name: shipping.name,
               email: shipping.email,
               phone: shipping.phone || undefined,
-              address: { line1: shipping.address, city: shipping.city, postal_code: shipping.postalCode, country: shipping.country },
+              address: { line1: shipping.address, line2: '', city: shipping.city, state: '', postal_code: shipping.postalCode, country: shipping.country },
             },
           },
         },
