@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Phone,
@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Lock,
 } from 'lucide-react'
-import { SITE } from '@/content'
+import { SITE, RITUALES } from '@/content'
 import { fadeUp, staggerContainer, slideInLeft, slideInRight } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
@@ -24,6 +24,8 @@ const SERVICES_OPTIONS = [
   'PRP Photoativa / PDRN',
   'Tecnología High-Tech (LED, Láser, IPL)',
   'Primera consulta (orientación)',
+  // Rituales de Firma — reservables con seña de 50 € (el resto se abona en clínica)
+  ...RITUALES.map((r) => `Ritual ${r.name}`),
 ]
 
 // ─── Time slots ────────────────────────────────────────────────────────────
@@ -564,6 +566,16 @@ export default function Booking() {
   const [service, setService] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+
+  // Preselección por URL (?service=Ritual%20X) — usada por los botones
+  // "Reservar con seña" de la sección de Rituales
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get('service')
+    if (param && SERVICES_OPTIONS.includes(param)) {
+      setService(param)
+      setStep(2)
+    }
+  }, [])
 
   return (
     <>

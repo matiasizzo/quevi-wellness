@@ -150,24 +150,39 @@ export default function Rituales() {
                           </ol>
                         </div>
 
-                        <button
-                          onClick={() => addItem({
-                            id: `ritual-${ritual.id}`,
-                            slug: ritual.id,
-                            name: ritual.name,
-                            price: ritual.priceEur,
-                            vol: ritual.duration,
-                            image_url: null,
-                            stripe: '#355539',
-                          })}
-                          className="group inline-flex items-center justify-center gap-2 w-full py-3 bg-brand-600 hover:bg-brand-700 text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform cursor-pointer"
-                          style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                        >
-                          Añadir al carrito · {ritual.priceEur} €
-                          <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" />
-                          </svg>
-                        </button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <button
+                            onClick={() => addItem({
+                              id: `ritual-${ritual.id}`,
+                              slug: ritual.id,
+                              name: ritual.name,
+                              price: ritual.priceEur,
+                              vol: ritual.duration,
+                              image_url: null,
+                              stripe: '#355539',
+                            })}
+                            className="group inline-flex items-center justify-center gap-2 w-full py-3 bg-brand-600 hover:bg-brand-700 text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform cursor-pointer"
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+                          >
+                            Comprar · {ritual.priceEur} €
+                            <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" />
+                            </svg>
+                          </button>
+                          <a
+                            href={`/?service=${encodeURIComponent(`Ritual ${ritual.name}`)}#booking`}
+                            className="group inline-flex items-center justify-center gap-2 w-full py-3 border border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform"
+                            style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+                          >
+                            Reservar con seña · 50 €
+                            <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                            </svg>
+                          </a>
+                        </div>
+                        <p className="text-xs text-carbon-400 leading-relaxed m-0 -mt-2">
+                          Cómpralo completo online, o resérvalo con una seña de 50 € y abona el resto en clínica.
+                        </p>
                       </div>
                     </motion.div>
                   )}
