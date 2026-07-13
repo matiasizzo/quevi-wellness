@@ -26,7 +26,7 @@ export default function RitualesTeaser() {
             variants={fadeUp}
             className="inline-block px-4 py-1.5 rounded-full bg-terra-100 text-terra-700 text-sm font-medium mb-4"
           >
-            Rituales de Firma QUEVI
+            Rituales de Firma Dall&apos;O Selfcare
           </motion.span>
           <motion.h2
             variants={fadeUp}
@@ -36,7 +36,8 @@ export default function RitualesTeaser() {
             <em className="italic font-normal text-brand-600">&amp; Biohacking</em>
           </motion.h2>
           <motion.p variants={fadeUp} className="text-carbon-500 text-lg max-w-2xl mx-auto">
-            Experiencias de 60 a 90 minutos. Cómpralas online y canjéalas en clínica — sin cita previa ni seña.
+            Experiencias de 60 a 90 minutos. Protocolos oficiales de Dall&apos;O Selfcare,
+            aplicados en QUEVI bajo autorización.
           </motion.p>
         </motion.div>
 

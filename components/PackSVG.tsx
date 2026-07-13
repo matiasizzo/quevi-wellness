@@ -28,9 +28,9 @@ export default function PackSVG({ id, vol, stripe, name, code }: { id: string; v
         <text x="345" y="94.5" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="5.5" fill="#9a8c70">{vol.replace(/ /g, '')}</text>
         <path d="M 60 105 L 320 105 L 320 265 L 60 265 Z" fill={`url(#front-${id})`} stroke="#cfc4a8" strokeWidth="0.5" />
         <path d="M 300 105 L 320 105 L 320 265 L 300 265 Z" fill="#000" opacity="0.04" />
-        <text x="190" y="148" textAnchor="middle" fontFamily="Playfair Display, serif" fontWeight="700" fontSize="26" fill="#1e1e1e" letterSpacing="4">QUEVI</text>
+        <text x="190" y="148" textAnchor="middle" fontFamily="Playfair Display, serif" fontWeight="700" fontSize="26" fill="#1e1e1e" letterSpacing="4">DALL&apos;O</text>
         <line x1="148" y1="158" x2="232" y2="158" stroke="#9a8c70" strokeWidth="0.5" />
-        <text x="190" y="172" textAnchor="middle" fontFamily="Playfair Display, serif" fontStyle="italic" fontSize="11" fill="#2c472f" letterSpacing="2">Dall&apos;O Skin</text>
+        <text x="190" y="172" textAnchor="middle" fontFamily="Playfair Display, serif" fontStyle="italic" fontSize="11" fill="#2c472f" letterSpacing="2">Skin</text>
         <text x="190" y="188" textAnchor="middle" fontFamily="Inter, sans-serif" fontSize="6" letterSpacing="2.5" fill="#7a6a52">CLINICAL COSMETICS · BARCELONA</text>
         <rect x="78" y="230" width="76" height="6" fill={stripe} />
         <text x="78" y="252" fontFamily="Inter, sans-serif" fontWeight="600" fontSize="11" letterSpacing="2.5" fill="#1e1e1e">{name.toUpperCase().slice(0, 22)}</text>

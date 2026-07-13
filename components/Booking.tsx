@@ -630,8 +630,8 @@ export default function Booking() {
             </h3>
             <p className="text-[16px] text-brand-200 m-0 mx-auto mb-8 max-w-[540px] leading-relaxed">
               Reserva un diagnóstico médico gratuito en clínica QUEVI. Cruzamos tu ADN, tu
-              mapa mineral y tu lectura facial 3D — y diseñamos un protocolo DALL&apos;Ó hecho
-              a la medida de tu historia.
+              mapa mineral y tu lectura facial 3D — y diseñamos un protocolo personalizado
+              hecho a la medida de tu historia.
             </p>
             <div className="inline-flex gap-3 flex-wrap justify-center">
               <a

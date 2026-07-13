@@ -124,6 +124,13 @@ export default function Footer() {
       <div className="max-w-[1600px] mx-auto mt-2 mb-8 flex flex-col items-center justify-center gap-5 select-none px-6">
         <span className="block w-14 h-px" style={{ background: 'rgba(245,242,236,0.22)' }} />
         <QueviLogo variant="light" width={190} height={66} />
+        <p className="text-[11px] leading-[1.7] text-center max-w-[640px] m-0" style={{ color: 'rgba(245,242,236,0.45)' }}>
+          QUEVI WELLNESS CLINIC SL es un centro médico con unidad de estética, distribuidor
+          autorizado de los productos Dall&apos;O Skin y aplicador oficial de los protocolos
+          Dall&apos;O Selfcare bajo contrato de gerenciamiento. Las marcas Dall&apos;O pertenecen
+          a sus respectivos titulares. La compra de productos es independiente de la
+          contratación de servicios médicos.
+        </p>
       </div>
 
       {/* Bottom bar */}

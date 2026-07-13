@@ -60,7 +60,7 @@ export default function Services() {
           variants={fadeUp}
           className="inline-block text-[11px] tracking-[0.32em] uppercase text-carbon-400 mb-4"
         >
-          Dra. Quevi × Dr. Dall&apos;Ó · Medicina estética de precisión
+          Centro médico · Unidad de estética avanzada · Medicina de precisión
         </motion.span>
 
         <motion.h2

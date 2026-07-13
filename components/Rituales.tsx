@@ -29,7 +29,7 @@ export default function Rituales() {
             variants={fadeUp}
             className="inline-block px-4 py-1.5 rounded-full bg-terra-100 text-terra-700 text-sm font-medium mb-4"
           >
-            Rituales de Firma QUEVI
+            Rituales de Firma Dall&apos;O Selfcare
           </motion.span>
           <motion.h2
             variants={fadeUp}
@@ -43,7 +43,7 @@ export default function Rituales() {
             Dall'O Skin con tecnologías de entrega transdérmica para cuidar tu piel y tu cuerpo desde el interior.
           </motion.p>
           <motion.p variants={fadeUp} className="text-brand-600 text-sm font-medium mt-3">
-            Cómpralos online y canjéalos en clínica — sin cita previa ni seña.
+            Protocolos oficiales de Dall&apos;O Selfcare, aplicados en QUEVI bajo autorización.
           </motion.p>
         </motion.div>
 

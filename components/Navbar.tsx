@@ -28,8 +28,8 @@ export default function Navbar() {
       {/* Promo bar */}
       <div className="bg-carbon-900 text-cream-100 text-[10px] sm:text-[11px] tracking-[0.18em] sm:tracking-[0.22em] py-2.5 sm:py-3 px-4 sm:px-6 text-center uppercase font-medium">
         <strong className="text-brand-200 font-medium">Estética consciente</strong>
-        <span className="hidden sm:inline">{' '}· Envío gratuito desde 80 € · Diagnóstico médico incluido con tu primera compra</span>
-        <span className="sm:hidden">{' '}· Diagnóstico médico incluido</span>
+        <span className="hidden sm:inline">{' '}· Envío gratuito desde 80 € · Primera consulta de diagnóstico gratuita</span>
+        <span className="sm:hidden">{' '}· Primera consulta gratuita</span>
       </div>
 
       {/* Nav */}

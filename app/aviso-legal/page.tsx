@@ -37,21 +37,37 @@ export default function AvisoLegalPage() {
         servicios, y a no emplearlos para actividades ilícitas o contrarias a la buena fe.
       </p>
 
-      <h2>4. Propiedad intelectual e industrial</h2>
+      <h2>4. Relación con Dall&apos;O Selfcare y marcas de terceros</h2>
+      <p>
+        QUEVI WELLNESS CLINIC SL es un centro médico con unidad de estética que actúa como{' '}
+        <strong>distribuidor autorizado</strong> de los productos cosméticos Dall&apos;O Skin y como{' '}
+        <strong>aplicador oficial de los protocolos Dall&apos;O Selfcare</strong>, en virtud de un
+        contrato de gerenciamiento y autorización suscrito con su titular. Las marcas, nombres
+        comerciales y protocolos Dall&apos;O son propiedad de sus respectivos titulares y se utilizan
+        en este sitio exclusivamente para identificar los productos y servicios distribuidos o
+        aplicados bajo dicha autorización.
+      </p>
+      <p>
+        La venta de productos a través de la tienda online es <strong>independiente</strong> de la
+        contratación de servicios médicos o estéticos: la adquisición de un producto no está
+        condicionada a la contratación de ningún tratamiento, ni viceversa.
+      </p>
+
+      <h2>5. Propiedad intelectual e industrial</h2>
       <p>
         Todos los contenidos de este sitio (textos, imágenes, logotipos, diseño, código) son propiedad
         del titular o de terceros que han autorizado su uso, y están protegidos por la normativa de
         propiedad intelectual e industrial. Queda prohibida su reproducción sin autorización expresa.
       </p>
 
-      <h2>5. Responsabilidad</h2>
+      <h2>6. Responsabilidad</h2>
       <p>
         El contenido informativo de esta web —incluido el Journal— tiene carácter divulgativo y no
         sustituye en ningún caso el consejo, diagnóstico o tratamiento médico profesional. Ante cualquier
         duda sobre tu salud, consulta con un profesional sanitario.
       </p>
 
-      <h2>6. Legislación aplicable</h2>
+      <h2>7. Legislación aplicable</h2>
       <p>
         Las presentes condiciones se rigen por la legislación española. Para cualquier controversia,
         las partes se someten a los juzgados y tribunales de Málaga, salvo que la normativa de consumo

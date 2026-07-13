@@ -419,28 +419,32 @@ export default function ShopPage() {
           </nav>
 
           <h1
-            className="font-serif font-bold leading-[0.98] tracking-[-0.022em] m-0 mb-[22px] text-carbon-900 text-balance"
-            style={{ fontSize: 'clamp(48px, 7vw, 96px)', maxWidth: '14ch' }}
+            className="font-serif font-normal leading-[0.98] tracking-[-0.022em] m-0 mb-4 text-carbon-900 text-balance"
+            style={{ fontSize: 'clamp(44px, 6vw, 84px)', maxWidth: '14ch' }}
           >
             Tienda
           </h1>
-          <p className="text-[17px] text-carbon-500 max-w-[620px] m-0 mb-8 leading-[1.6]">
-            Cosmética médica de precisión · Dall&apos;O Skin
+          <p className="text-[16px] sm:text-[17px] text-carbon-500 max-w-[560px] m-0 mb-7 leading-[1.65]">
+            Cosmética clínica <em className="font-serif italic text-brand-700 not-italic">Dall&apos;O Skin</em>,
+            seleccionada y aplicada bajo criterio médico en QUEVI.
           </p>
 
-          <div className="flex flex-wrap gap-6 sm:gap-12 pt-6 max-w-[620px]" style={{ borderTop: '1px solid #ddd8cc' }}>
+          <div className="flex flex-wrap gap-2">
             {[
-              { v: '7', l: 'Fórmulas magistrales' },
-              { v: '3', l: 'Líneas clínicas' },
-              { v: '100%', l: 'Formulación médica' },
-              { v: '4,9★', l: '2.000 reseñas' },
-            ].map((s) => (
-              <div key={s.l} className="flex flex-col gap-1">
-                <span className="font-serif font-bold text-[26px] leading-none text-brand-700">
-                  {s.v}
-                </span>
-                <span className="text-[11px] tracking-[0.14em] uppercase text-carbon-500">{s.l}</span>
-              </div>
+              'Distribución oficial autorizada',
+              'Fórmulas magistrales',
+              'Formulación de grado clínico',
+            ].map((chip) => (
+              <span
+                key={chip}
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[11px] tracking-[0.1em] uppercase text-brand-700"
+                style={{ border: '1px solid rgba(53,85,57,0.25)', background: 'rgba(213,226,214,0.35)' }}
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                {chip}
+              </span>
             ))}
           </div>
         </div>
