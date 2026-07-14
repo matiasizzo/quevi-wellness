@@ -327,7 +327,7 @@ export const RITUALES = [
     duration: '60 minutos',
     priceEur: 290,
     color: '#5f9c7d',
-    image: '/images/rituales/d-purifying-serum.jpg',
+    image: '/images/rituales/cover-purifying.jpg',
     results: [
       'Piel visiblemente más firme y poros refinados',
       'Efecto glow saludable: los activos siguen trabajando hasta 72 h después de la sesión',
@@ -371,7 +371,7 @@ export const RITUALES = [
     duration: '60 minutos',
     priceEur: 290,
     color: '#b47ba0',
-    image: '/images/rituales/d-rescue-serum.jpg',
+    image: '/images/rituales/cover-longevity.jpg',
     results: [
       'Firmeza y vitalidad recuperadas',
       'Textura renovada y barrera cutánea protegida',
@@ -415,7 +415,7 @@ export const RITUALES = [
     duration: '60 minutos',
     priceEur: 290,
     color: '#c08a2d',
-    image: '/images/rituales/d-evenglow-ampolla.jpg',
+    image: '/images/rituales/cover-evenglow.jpg',
     results: [
       'Tono visiblemente más uniforme',
       'Luminosidad natural recuperada y barrera cutánea fortalecida',
@@ -486,7 +486,14 @@ export const RITUALES = [
         desc: 'Presoterapia suave para evacuar toxinas y activar el sistema linfático, con aromaterapia de anclaje y un té botánico antioxidante selecto.',
       },
     ],
-    homeCare: [],
+    homeCare: [
+      {
+        name: 'D-AOX Oil',
+        vol: '20 ml',
+        desc: 'Aceite antioxidante de grado clínico — NMN, resveratrol, rosa mosqueta y vitamina E — para prolongar la calma antioxidante en casa.',
+        image: '/images/rituales/d-aox-oil.jpg',
+      },
+    ],
   },
   {
     id: 'active-relief',
@@ -521,7 +528,14 @@ export const RITUALES = [
         desc: 'Compresión neumática secuencial que expulsa el ácido láctico acumulado, eliminando la fatiga de golpe.',
       },
     ],
-    homeCare: [],
+    homeCare: [
+      {
+        name: 'D-Rescue Serum',
+        vol: '20 ml',
+        desc: 'Bio-regeneración intensiva con PDRN, SOD y vitamina E — el sistema de auxilio para acelerar la recuperación de la piel tras el esfuerzo.',
+        image: '/images/rituales/d-rescue-serum.jpg',
+      },
+    ],
   },
 ]
 

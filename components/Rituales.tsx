@@ -47,7 +47,7 @@ export default function Rituales() {
           </motion.h2>
           <motion.p variants={fadeUp} className="text-carbon-500 text-lg max-w-2xl mx-auto">
             Experiencias de 60 minutos en suite privada que combinan alta cosmética de
-            producción propia con tecnología de vanguardia. Cada ritual facial incluye
+            producción propia con tecnología de vanguardia. Cada ritual incluye
             tu tratamiento de continuidad en casa (Home Care).
           </motion.p>
           <motion.p variants={fadeUp} className="text-brand-600 text-sm font-medium mt-3">
