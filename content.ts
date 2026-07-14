@@ -25,7 +25,7 @@ export const NAV_LINKS = [
 ]
 
 export const HERO = {
-  badge: 'QUEVI BIO-SCAN SKIN · Diagnóstico 360°',
+  badge: 'QUEVI SKIN-SCAN · Diagnóstico 360°',
   headline: 'Tu nueva historia\nde vida de piel',
   subheadline:
     'Aquí es donde empezamos a escribir tu nueva historia de vida de piel. No analizamos datos, entendemos tu historia clínica para diseñar tu mejor versión. Medicina estética de precisión con tecnología diagnóstica única.',
@@ -74,7 +74,7 @@ export const SERVICES = [
 ]
 
 export const ABOUT = {
-  badge: 'QUEVI BIO-SCAN SKIN',
+  badge: 'QUEVI SKIN-SCAN',
   headline: 'No analizamos datos,\nentendemos tu historia',
   description:
     'El diagnóstico más completo de medicina estética. Cruzamos tu historial clínico con tres tecnologías de precisión para prescribir una rutina médica única, diseñada exclusivamente para tu piel y tu salud interna.',
@@ -538,7 +538,7 @@ export const TESTIMONIALS = [
     name: 'María G.',
     role: 'Paciente QUEVI',
     rating: 5,
-    text: 'El diagnóstico BIO-SCAN fue revelador. Por primera vez un médico entendió el origen real de mis problemas de piel. Los resultados hablan solos.',
+    text: 'El diagnóstico SKIN-SCAN fue revelador. Por primera vez un médico entendió el origen real de mis problemas de piel. Los resultados hablan solos.',
   },
   {
     name: 'Carlos M.',
@@ -597,9 +597,9 @@ export const BLOG_POSTS = [
 
 export const FAQS = [
   {
-    question: '¿Qué es el diagnóstico BIO-SCAN SKIN 360°?',
+    question: '¿Qué es el diagnóstico SKIN-SCAN Multiespectral?',
     answer:
-      'Es nuestro proceso diagnóstico exclusivo en 4 fases: anamnesis médica, análisis tecnológico con AURA + N-GENE + OLIGOCHECK, valoración del informe por un médico especialista y prescripción de cosmética médica personalizada.',
+      'Es un análisis multiespectral de 20–30 minutos en suite privada con la tecnología D-ScanSkin. Evalúa los 4 marcadores clave de degradación dérmica — inflamación silenciosa, glicación y reserva de colágeno, fotodaño acumulado y barrera biológica — y termina con valoración médica y prescripción personalizada. Precio oficial: 90 €; tu primera sesión es cortesía de QUEVI.',
   },
   {
     question: '¿Qué diferencia a QUEVI de una clínica estética convencional?',
@@ -609,7 +609,7 @@ export const FAQS = [
   {
     question: '¿Cuántas sesiones necesito?',
     answer:
-      'Depende del protocolo y de tu diagnóstico. Los neuromoduladores y rellenos pueden ser sesión única. Tecnologías como LED o Ellegance pueden requerir entre 1 y 15 sesiones. El médico lo define tras el BIO-SCAN.',
+      'Depende del protocolo y de tu diagnóstico. Los neuromoduladores y rellenos pueden ser sesión única. Tecnologías como LED o Ellegance pueden requerir entre 1 y 15 sesiones. El médico lo define tras el SKIN-SCAN.',
   },
   {
     question: '¿Son dolorosos los procedimientos?',
@@ -629,7 +629,7 @@ export const FAQS = [
   {
     question: '¿Puedo empezar sin haber hecho el diagnóstico?',
     answer:
-      'Recomendamos siempre comenzar con el BIO-SCAN SKIN para garantizar resultados óptimos. Sin embargo, puedes consultar por tratamientos específicos. En todos los casos, la primera consulta médica es el primer paso.',
+      'Recomendamos siempre comenzar con el SKIN-SCAN para garantizar resultados óptimos. Sin embargo, puedes consultar por tratamientos específicos. En todos los casos, la primera consulta médica es el primer paso.',
   },
 ]
 
@@ -641,7 +641,7 @@ export const FOOTER_LINKS = {
     { label: 'RESET / SOUL',             href: '#services' },
   ],
   empresa: [
-    { label: 'Diagnóstico BIO-SCAN', href: '#about' },
+    { label: 'Diagnóstico SKIN-SCAN', href: '#about' },
     { label: 'Terapias ProAging',    href: '#treatments' },
     { label: 'Tecnología High-Tech', href: '#treatments' },
     { label: 'Rituales de Firma',    href: '#rituales' },

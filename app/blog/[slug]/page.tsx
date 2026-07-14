@@ -81,7 +81,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               ¿Quieres saber qué necesita <em className="italic">tu</em> piel?
             </h2>
             <p className="text-[14px] text-brand-100 m-0 mb-6">
-              Empieza por el diagnóstico BIO-SCAN SKIN 360° — la primera consulta es gratuita.
+              Empieza por el diagnóstico SKIN-SCAN Multiespectral — la primera consulta es gratuita.
             </p>
             <Link
               href="/#booking"

@@ -18,7 +18,7 @@ import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
 // ─── Services list ─────────────────────────────────────────────────────────
 const SERVICES_OPTIONS = [
-  'Diagnóstico BIO-SCAN SKIN 360°',
+  'Diagnóstico SKIN-SCAN Multiespectral',
   'Neuromoduladores',
   'Rellenos — DallÒ LIPS / Arquitectura Face',
   'PRP Photoativa / PDRN',
@@ -579,7 +579,7 @@ export default function Booking() {
 
   return (
     <>
-      {/* ── BIO-SCAN CTA band ──────────────────────────────────────────── */}
+      {/* ── SKIN-SCAN CTA band ──────────────────────────────────────────── */}
       <section
         id="diagnostico"
         className="relative overflow-hidden text-center py-28"
@@ -612,7 +612,7 @@ export default function Booking() {
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-[2]">
-          <div className="max-w-[720px] mx-auto">
+          <div className="max-w-[840px] mx-auto">
             <span
               className="inline-block px-4 py-1.5 rounded-full text-[11px] tracking-[0.2em] uppercase text-cream-100 mb-[22px]"
               style={{
@@ -620,19 +620,62 @@ export default function Booking() {
                 border: '1px solid rgba(245,242,236,0.22)',
               }}
             >
-              BIO-SCAN 360°
+              Diagnóstico Multiespectral SKIN-SCAN
             </span>
             <h3
               className="font-serif font-normal leading-[1.05] tracking-tight m-0 mb-5 text-cream-100 text-balance"
               style={{ fontSize: 'clamp(34px, 4.2vw, 56px)' }}
             >
-              ¿No sabes por dónde <em className="italic text-brand-300">empezar</em>?
+              No tratamos a <em className="italic text-brand-300">ciegas</em>.
             </h3>
-            <p className="text-[16px] text-brand-200 m-0 mx-auto mb-8 max-w-[540px] leading-relaxed">
-              Reserva un diagnóstico médico gratuito en clínica QUEVI. Cruzamos tu ADN, tu
-              mapa mineral y tu lectura facial 3D — y diseñamos un protocolo personalizado
-              hecho a la medida de tu historia.
+            <p className="text-[16px] text-brand-200 m-0 mx-auto mb-8 max-w-[560px] leading-relaxed">
+              Mediante la tecnología multiespectral D-ScanSkin analizamos en profundidad
+              los 4 marcadores clave de la degradación dérmica, en una sesión de 20–30
+              minutos en suite privada.
             </p>
+
+            {/* 4 marcadores */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left max-w-[680px] mx-auto mb-8">
+              {[
+                {
+                  t: 'Índice de inflamación silenciosa',
+                  d: 'Detectamos el estrés celular interno antes de que sea visible en la superficie.',
+                },
+                {
+                  t: 'Glicación y reserva de colágeno',
+                  d: 'Analizamos la pérdida de elasticidad estructural y el endurecimiento de las fibras de sostén.',
+                },
+                {
+                  t: 'Fotodaño acumulado',
+                  d: 'Identificamos manchas, alteraciones y texturas ocultas bajo las capas superficiales.',
+                },
+                {
+                  t: 'Barrera biológica',
+                  d: 'Evaluamos la salud y resistencia del manto hidrolipídico y la microbiota.',
+                },
+              ].map((m, i) => (
+                <div
+                  key={m.t}
+                  className="flex gap-3 rounded-2xl p-4"
+                  style={{ background: 'rgba(245,242,236,0.07)', border: '1px solid rgba(245,242,236,0.14)' }}
+                >
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center mt-0.5 bg-brand-300/20 text-brand-200">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-[13px] font-semibold text-cream-100 m-0">{m.t}</p>
+                    <p className="text-[12px] text-brand-200 leading-relaxed m-0 mt-1">{m.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p className="text-[13px] text-brand-200 m-0 mb-7">
+              Precio oficial: <strong className="text-cream-100">90 €</strong>
+              <span className="mx-2 opacity-50">·</span>
+              Tu primera sesión, <strong className="text-cream-100">cortesía de QUEVI</strong>
+            </p>
+
             <div className="inline-flex gap-3 flex-wrap justify-center">
               <a
                 href="#contact"

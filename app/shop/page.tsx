@@ -383,6 +383,40 @@ function ProductosTab() {
             </motion.article>
           ))}
         </motion.div>
+
+        {/* Nutrición Avanzada — suplementos (teaser) */}
+        <div className="mt-14 rounded-3xl border border-cream-400 bg-cream-200 p-7 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-brand-100 flex items-center justify-center">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#355539" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z" />
+              <path d="m8.5 8.5 7 7" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <span className="text-[10px] tracking-[0.22em] uppercase text-carbon-400 block mb-1.5">
+              Nutrición Avanzada · Dall&apos;O Selfcare
+            </span>
+            <h3 className="font-serif font-medium text-[22px] text-carbon-900 m-0 mb-2 leading-[1.2]">
+              Suplementos nutricionales de alta pureza biológica
+            </h3>
+            <p className="text-[14px] text-carbon-500 leading-[1.65] m-0">
+              Fórmulas que nutren la vitalidad desde el interior del organismo y ayudan
+              al equilibrio metabólico que se refleja en el exterior. Próximamente en la
+              tienda online — ya disponibles bajo prescripción en clínica.
+            </p>
+          </div>
+          <a
+            href="https://wa.me/34683462705?text=Hola%2C%20me%20gustar%C3%ADa%20informaci%C3%B3n%20sobre%20los%20suplementos%20nutricionales."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-600 hover:text-cream-50 whitespace-nowrap"
+          >
+            Consultar en clínica
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+            </svg>
+          </a>
+        </div>
       </section>
     </>
   )
@@ -494,7 +528,7 @@ export default function ShopPage() {
             className="inline-block px-4 py-1.5 rounded-full text-[11px] tracking-[0.2em] uppercase text-cream-100 mb-[22px]"
             style={{ background: 'rgba(245,242,236,0.12)', border: '1px solid rgba(245,242,236,0.22)' }}
           >
-            BIO-SCAN 360°
+            SKIN-SCAN Multiespectral
           </span>
           <h3
             className="font-serif font-normal leading-[1.05] tracking-[-0.015em] m-0 mb-[18px] text-cream-100 text-balance"

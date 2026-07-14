@@ -1,6 +1,6 @@
 # QUEVI Wellness Clinic — Documentación completa
 
-> Clínica de medicina estética de precisión en Estepona, Málaga (España). Especializada en diagnóstico BIO-SCAN SKIN 360° y protocolos ProAging personalizados con tecnología de precisión. QUEVI es un centro médico con unidad de estética, distribuidor autorizado de los productos Dall'O Skin y aplicador oficial de los protocolos Dall'O Selfcare bajo contrato de gerenciamiento.
+> Clínica de medicina estética de precisión en Estepona, Málaga (España). Especializada en diagnóstico SKIN-SCAN Multiespectral y protocolos ProAging personalizados con tecnología de precisión. QUEVI es un centro médico con unidad de estética, distribuidor autorizado de los productos Dall'O Skin y aplicador oficial de los protocolos Dall'O Selfcare bajo contrato de gerenciamiento.
 
 Sitio web: https://queviwellnessclinic.es
 Teléfono: +34 683 462 705
@@ -21,23 +21,16 @@ QUEVI organiza todos sus tratamientos en cuatro pilares clínicos:
 
 ---
 
-## Diagnóstico BIO-SCAN SKIN 360°
+## Diagnóstico Multiespectral SKIN-SCAN
 
-El diagnóstico más completo de medicina estética. Proceso exclusivo en 4 fases:
+No aplicamos tratamientos a ciegas. Mediante la tecnología multiespectral D-ScanSkin realizamos, en una sesión de 20–30 minutos en suite privada, un análisis profundo de los 4 marcadores clave de degradación dérmica:
 
-**Fase 01 — Anamnesis y consulta médica**
-Entrevista personal con el médico estético. Evaluación del historial clínico, estilo de vida, hábitos de sueño, alimentación y objetivos.
+1. **Índice de inflamación silenciosa** — detecta el estrés celular interno antes de que sea visible en la superficie.
+2. **Mapeo de glicación y reserva de colágeno** — analiza la pérdida de elasticidad estructural y el endurecimiento de las fibras de sostén.
+3. **Fotodaño acumulado** — identifica manchas, alteraciones y texturas ocultas bajo las capas superficiales.
+4. **Barrera biológica** — evalúa la salud y resistencia del manto hidrolipídico y la microbiota.
 
-**Fase 02 — Trilogía tecnológica**
-- **AURA**: Análisis facial 3D. Estado completo de la piel en tres dimensiones.
-- **N-GENE**: Análisis genético / ADN. Predisposiciones dérmicas y respuesta celular.
-- **OLIGOCHECK**: Niveles de minerales y metales pesados en tiempo real mediante espectrofotometría.
-
-**Fase 03 — Valoración del informe médico**
-El médico especialista cruza los resultados tecnológicos con la anamnesis. Interpreta las gráficas de OligoCheck y cruza el mapa AURA con la genética N-GENE.
-
-**Fase 04 — Prescripción y cosmética Dall'O Skin**
-Con el informe validado, prescripción de la rutina cosmética personalizada. Es una fórmula médica, no una recomendación comercial.
+Precio oficial: 90 €. La primera sesión es cortesía de QUEVI. Tras el análisis, valoración médica y prescripción personalizada.
 
 ---
 
@@ -174,6 +167,8 @@ Envío gratuito desde 80 €. La compra de productos es independiente de los ser
 
 Categorías: Limpiadores · Serums · Aceites
 
+Nutrición Avanzada: suplementos nutricionales Dall'O de alta pureza biológica, que nutren la vitalidad desde el interior y ayudan al equilibrio metabólico. Próximamente en la tienda online; ya disponibles bajo prescripción en clínica.
+
 ---
 
 ## Cosmética Dall'O Skin
@@ -188,10 +183,10 @@ La línea cosmética médica exclusiva de QUEVI. Todos los rituales finalizan co
 Cada protocolo en QUEVI parte de un diagnóstico clínico real. Se cruzan historial médico, genética (N-GENE) y bioquímica (OLIGOCHECK) antes de cualquier tratamiento. El resultado es una prescripción médica, no una recomendación comercial.
 
 **¿Puedo empezar sin haber hecho el diagnóstico?**
-Se recomienda siempre comenzar con el BIO-SCAN SKIN. Sin embargo, los Rituales de Firma se pueden comprar y disfrutar directamente sin diagnóstico previo.
+Se recomienda siempre comenzar con el SKIN-SCAN. Sin embargo, los Rituales de Firma se pueden comprar y disfrutar directamente sin diagnóstico previo.
 
 **¿Cuántas sesiones necesito?**
-Depende del protocolo. Neuromoduladores y rellenos son sesión única. Tecnologías como LED o Ellegance pueden requerir entre 1 y 15 sesiones. El médico lo define tras el BIO-SCAN.
+Depende del protocolo. Neuromoduladores y rellenos son sesión única. Tecnologías como LED o Ellegance pueden requerir entre 1 y 15 sesiones. El médico lo define tras el SKIN-SCAN.
 
 **¿Son dolorosos los procedimientos?**
 La mayoría son muy bien tolerados. Se aplica anestesia tópica o infiltrativa cuando es necesario. La fototerapia LED y el infrarrojo vibracional son completamente indoloros.

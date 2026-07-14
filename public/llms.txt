@@ -1,12 +1,12 @@
 # QUEVI Wellness Clinic
 
-> Clínica de medicina estética de precisión ubicada en Estepona, Málaga (España). Especializada en diagnóstico 360° BIO-SCAN SKIN y protocolos ProAging personalizados. No es una clínica estética convencional: cada tratamiento parte de un diagnóstico clínico real que cruza historial médico, genética y bioquímica del paciente.
+> Clínica de medicina estética de precisión ubicada en Estepona, Málaga (España). Especializada en diagnóstico 360° SKIN-SCAN y protocolos ProAging personalizados. No es una clínica estética convencional: cada tratamiento parte de un diagnóstico clínico real que cruza historial médico, genética y bioquímica del paciente.
 
 QUEVI Wellness Clinic ofrece servicios de medicina estética avanzada organizados en cuatro pilares: SHIELD (Bio-Protección), REPAIR (Regeneración), BOOST (Optimización) y RESET/SOUL (Equilibrio). QUEVI es un centro médico con unidad de estética, distribuidor autorizado de los productos Dall'O Skin y aplicador oficial de los protocolos Dall'O Selfcare bajo contrato de gerenciamiento.
 
 ## Diagnóstico
 
-- [Diagnóstico BIO-SCAN SKIN 360°](https://queviwellnessclinic.es/#diagnostico): Proceso en 4 fases: anamnesis médica + trilogía tecnológica AURA (3D facial) + N-GENE (ADN) + OLIGOCHECK (minerales y metales pesados) + valoración médica + prescripción cosmética personalizada. Primera consulta gratuita.
+- [Diagnóstico Multiespectral SKIN-SCAN](https://queviwellnessclinic.es/#diagnostico): Análisis multiespectral con tecnología D-ScanSkin (20–30 min en suite privada) de los 4 marcadores clave de degradación dérmica: inflamación silenciosa, glicación y reserva de colágeno, fotodaño acumulado y barrera biológica. Precio oficial 90 €; la primera sesión es cortesía de QUEVI.
 
 ## Tratamientos médico-estéticos
 
@@ -29,6 +29,7 @@ Experiencias de 60 minutos en suite privada. Protocolos oficiales de Dall'O Self
 ## Tienda
 
 - [Tienda online](https://queviwellnessclinic.es/shop): Productos cosméticos médicos Dall'O Skin — limpiadores, serums y aceites. Envío gratuito desde 80 €.
+- Nutrición Avanzada: suplementos nutricionales Dall'O de alta pureza biológica — próximamente online, ya disponibles bajo prescripción en clínica.
 
 ## Reservas
 
@@ -44,7 +45,7 @@ Experiencias de 60 minutos en suite privada. Protocolos oficiales de Dall'O Self
 
 ## Preguntas frecuentes
 
-**¿Qué es el diagnóstico BIO-SCAN SKIN 360°?**
+**¿Qué es el diagnóstico SKIN-SCAN Multiespectral?**
 Proceso diagnóstico exclusivo en 4 fases: anamnesis médica, análisis con AURA + N-GENE + OLIGOCHECK, valoración médica y prescripción de cosmética personalizada.
 
 **¿Qué diferencia a QUEVI de una clínica estética convencional?**
@@ -54,7 +55,7 @@ Cada protocolo parte de un diagnóstico clínico real. Se cruzan historial, gen�
 Sí. Los Rituales de Firma se compran directamente online sin necesidad de diagnóstico previo ni seña. Los tratamientos médicos sí requieren consulta previa.
 
 **¿Cuántas sesiones necesito?**
-Depende del protocolo. Neuromoduladores y rellenos suelen ser sesión única. Tecnologías como LED o Ellegance pueden requerir entre 1 y 15 sesiones. El médico lo define tras el BIO-SCAN.
+Depende del protocolo. Neuromoduladores y rellenos suelen ser sesión única. Tecnologías como LED o Ellegance pueden requerir entre 1 y 15 sesiones. El médico lo define tras el SKIN-SCAN.
 
 **¿Son dolorosos los procedimientos?**
 La mayoría son muy bien tolerados. Se aplica anestesia tópica o infiltrativa cuando es necesario. La fototerapia LED y el infrarrojo vibracional son completamente indoloros.

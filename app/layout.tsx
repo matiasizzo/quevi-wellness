@@ -34,13 +34,13 @@ export const metadata: Metadata = {
     template: '%s | QUEVI Wellness Clinic',
   },
   description:
-    'Medicina estética de precisión en Estepona, Málaga. Diagnóstico BIO-SCAN 360°, terapias ProAging y tecnologías High-Tech. Primera consulta gratuita.',
+    'Medicina estética de precisión en Estepona, Málaga. Diagnóstico SKIN-SCAN Multiespectral, terapias ProAging y tecnologías High-Tech. Primera consulta gratuita.',
   keywords: [
     'medicina estética Málaga',
     'clínica estética Estepona',
     'diagnóstico piel Málaga',
     'tratamientos faciales Estepona',
-    'BIO-SCAN skin',
+    'SKIN-SCAN',
     'terapias proaging',
     'medicina estética de precisión',
     'QUEVI wellness',
@@ -100,7 +100,7 @@ const jsonLd = {
     longitude: '-5.1470',
   },
   description:
-    'Medicina estética de precisión en Estepona, Málaga. Diagnóstico BIO-SCAN 360°, terapias ProAging y tecnologías High-Tech.',
+    'Medicina estética de precisión en Estepona, Málaga. Diagnóstico SKIN-SCAN Multiespectral, terapias ProAging y tecnologías High-Tech.',
   priceRange: '€€€',
   medicalSpecialty: 'Dermatology',
   openingHours: 'Mo-Fr 09:00-20:00',
