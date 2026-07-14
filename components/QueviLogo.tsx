@@ -37,16 +37,6 @@ export default function QueviLogo({
         QUEVI
       </text>
 
-      {/* Swash — starts under the Q tail, sweeps right, gentle arc */}
-      <path
-        d="M 28 56 Q 80 70 140 64 Q 190 59 218 56"
-        stroke={primary}
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.55"
-      />
-
       {/* Wellness Clinic — light weight, tracked */}
       <text
         x="120"

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Rituales de Firma',
   description:
-    'Rituales de firma QUEVI: experiencias de 60 a 90 minutos que combinan cosmética clínica Dall\'O Skin con tecnologías de entrega transdérmica. Cómpralos online y canjéalos en clínica.',
+    'Rituales de Firma Dall\'O Selfcare aplicados en QUEVI: experiencias de 60 minutos en suite privada con Home Care incluido. Cómpralos online o resérvalos con seña de 50 €.',
 }
 
 export default function RitualesPage() {

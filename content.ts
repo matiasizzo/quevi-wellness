@@ -304,119 +304,224 @@ export const TREATMENTS: { category: string; items: Treatment[] }[] = [
   },
 ]
 
+export interface RitualHomeCare {
+  name: string
+  vol: string
+  desc: string
+  image: string
+}
+
+/** Etiqueta usada en el selector de reservas para cada ritual */
+export function ritualBookingLabel(name: string) {
+  return name.startsWith('Ritual') ? name : `Ritual ${name}`
+}
+
 export const RITUALES = [
   {
-    id: 'bioblindskin',
-    badge: 'Reset Biológico',
-    name: 'D-BIOBLINDSKIN®',
-    tagline: 'El despertar de tu piel',
+    id: 'd-purifying',
+    badge: 'Ritual Facial',
+    name: 'Ritual Facial D-Purifying',
+    tagline: 'El reset biológico de tu piel',
     description:
-      'Intervención biológica para ayudar a prevenir el daño del exposoma mediante microneedling, exosomas y sellado vibracional infrarrojo.',
-    duration: '60–90 minutos',
+      'Sesión de 60 minutos diseñada para ayudar a revertir los daños del exposoma (polución, radiación, estrés) y despertar la luminosidad perdida.',
+    duration: '60 minutos',
     priceEur: 290,
+    color: '#5f9c7d',
+    image: '/images/rituales/d-purifying-serum.jpg',
     results: [
-      'Poros visiblemente refinados y superficie cutánea suavizada',
-      'Brillo "desde el interior", libre de signos de fatiga',
+      'Piel visiblemente más firme y poros refinados',
+      'Efecto glow saludable: los activos siguen trabajando hasta 72 h después de la sesión',
     ],
     phases: [
       {
-        title: 'Diagnóstico Digital & Purificación',
-        desc: 'Chequeo de alta tecnología para entender las necesidades de tu dermis. Limpieza profunda mediante hidro-succión y peeling de seda.',
+        title: 'Higiene térmica y extracción celular',
+        desc: 'Purificación profunda con mousse ozonizado, vapor e hidrosucción para limpiar cada poro.',
       },
       {
-        title: 'Infusión de Juventud',
-        desc: 'Mediante Microneedling o Electroporación, canalizamos ácido hialurónico purificado, antioxidantes, PDRN y Exosomas.',
+        title: 'Tecnología Ellegance — vibración + infrarrojo',
+        desc: 'Estimulación profunda de colágeno, apta y segura incluso para pacientes hipertensas. Reduce la inflamación de la piel.',
       },
       {
-        title: 'Sellado Vibracional',
-        desc: 'Biohacking Lumínico (LED) con terapia infrarroja vibracional exclusiva. Un masaje rítmico que sella los activos mientras te sumerges en relajación total.',
+        title: 'Infusión liposomada y Foto-Calma LED',
+        desc: 'El sérum D-Purifying (ácido hialurónico liposomal termosensible, NAD y péptidos calmantes) sella el poro; el biohacking lumínico fija los activos en la membrana celular hasta 72 h.',
+      },
+    ],
+    homeCare: [
+      {
+        name: 'D-Purifying Mousse Limpiador',
+        vol: '150 ml',
+        desc: 'Pureza ozonizada diaria.',
+        image: '/images/rituales/d-purifying-mousse.jpg',
+      },
+      {
+        name: 'Sérum D-Purifying',
+        vol: '20 ml',
+        desc: 'Bio-hidratación profunda y prolongada con hialurónico liposomal y péptidos.',
+        image: '/images/rituales/d-purifying-serum.jpg',
       },
     ],
   },
   {
-    id: 'bodysculpt',
-    badge: 'Arquitectura Corporal',
-    name: 'D-BODY SCULPT & DETOX®',
-    tagline: 'Arquitectura molecular para la silueta',
+    id: 'd-longevity',
+    badge: 'Ritual Facial',
+    name: 'Ritual Facial D-Longevity',
+    tagline: 'Reparación y longevidad',
     description:
-      'Tratamos el cuerpo no solo como forma, sino como un sistema biológico que necesita detoxificación y firmeza estructural.',
-    duration: '60–90 minutos',
-    priceEur: 320,
+      'Experiencia VIP de 60 minutos en cabina donde la biotecnología de vanguardia se une a la alta cosmética botánica para ayudar a restaurar la integridad cutánea.',
+    duration: '60 minutos',
+    priceEur: 290,
+    color: '#b47ba0',
+    image: '/images/rituales/d-rescue-serum.jpg',
     results: [
-      'Silueta armonizada y reducción de retención de líquidos',
-      'Piel corporal elástica y rejuvenecida',
+      'Firmeza y vitalidad recuperadas',
+      'Textura renovada y barrera cutánea protegida',
     ],
     phases: [
       {
-        title: 'Bio-Limpieza de Adsorción',
-        desc: 'Eliminación de metales pesados mediante bio-limpieza de adsorción de alta eficiencia.',
+        title: 'Higiene de alta precisión y renovación',
+        desc: 'Limpieza y oxigenación con aceites ozonizados, rosa mosqueta, ácidos glicólico y láctico, y vitaminas B5 y B12, mediante vapor e hidrosucción.',
       },
       {
-        title: 'Activos Lipolíticos y Tensores',
-        desc: 'Entrega de activos lipolíticos y tensores que activan el drenaje osmótico.',
+        title: 'Tecnología Ellegance — vibración + infrarrojo',
+        desc: 'Estimula el metabolismo celular, reduce la inflamación sistémica del tejido y activa la producción de colágeno.',
       },
       {
-        title: 'Síntesis de Elastina',
-        desc: 'Estimulación de la síntesis de elastina mejorando la calidad del tejido conectivo de forma estructural.',
+        title: 'Infusión bio-regenerativa D-Rescue con LED',
+        desc: 'PDRN (polinucleótidos) y Superóxido Dismutasa (SOD) ayudan a la célula en su autorreparación, mientras el aceite de açaí y la Coenzima Q10 liposomada neutralizan el estrés oxidativo.',
+      },
+    ],
+    homeCare: [
+      {
+        name: 'D-Longevity Mousse Limpiador',
+        vol: '150 ml',
+        desc: 'Pureza ozonizada y equilibrio del pH diario.',
+        image: '/images/rituales/d-longevity-mousse.jpg',
+      },
+      {
+        name: 'D-Rescue Serum',
+        vol: '20 ml',
+        desc: 'Bio-regeneración intensiva con PDRN, SOD y vitamina E para una sinergia antioxidante superior.',
+        image: '/images/rituales/d-rescue-serum.jpg',
       },
     ],
   },
   {
-    id: 'zenharmony',
-    badge: 'Neuro-Estético',
-    name: 'D-ZEN HARMONY®',
+    id: 'd-evenglow',
+    badge: 'Ritual Facial',
+    name: 'Ritual Facial D-Evenglow',
+    tagline: 'Uniformidad y luz',
+    description:
+      'Un "up" en el control de la pigmentación y la longevidad cutánea: 60 minutos para unificar el tono y devolver la luminosidad natural a la piel.',
+    duration: '60 minutos',
+    priceEur: 290,
+    color: '#c08a2d',
+    image: '/images/rituales/d-evenglow-ampolla.jpg',
+    results: [
+      'Tono visiblemente más uniforme',
+      'Luminosidad natural recuperada y barrera cutánea fortalecida',
+    ],
+    phases: [
+      {
+        title: 'Higiene de alta precisión y renovación',
+        desc: 'Limpieza profunda y oxigenación con aceites ozonizados, rosa mosqueta, ácidos glicólico y láctico, y vitaminas B5 y B12.',
+      },
+      {
+        title: 'Tecnología Ellegance — vibración + infrarrojo',
+        desc: 'Reduce la inflamación sistémica, activa el colágeno y prepara el tejido para la máxima penetración de activos.',
+      },
+      {
+        title: 'Infusión D-Evenglow — inducción profesional',
+        desc: 'Ampolla con PDRN, ácido tranexámico, glutatión y vitamina C aplicada mediante microneedling o radiofrecuencia, auxiliando a inhibir la síntesis de melanina.',
+      },
+      {
+        title: 'Sellado Foto-Calma',
+        desc: 'LED terapia final para neutralizar el estrés oxidativo y asegurar la autorreparación de la piel.',
+      },
+    ],
+    homeCare: [
+      {
+        name: 'D-Longevity Mousse Limpiador',
+        vol: '150 ml',
+        desc: 'Pureza ozonizada y equilibrio del pH diario.',
+        image: '/images/rituales/d-longevity-mousse.jpg',
+      },
+      {
+        name: 'D-Evenglow Serum',
+        vol: '20 ml',
+        desc: 'PDRN, vitamina C estable, ácido tranexámico, hialurónico y niacinamida para unificar el tono a diario.',
+        image: '/images/rituales/d-evenglow-serum.jpg',
+      },
+    ],
+  },
+  {
+    id: 'zen-harmony',
+    badge: 'Neuro-Estético · Face & Body',
+    name: 'D-Zen Harmony',
     tagline: 'Cuando la mente se silencia, la piel se regenera',
     description:
-      'Sinergia de aceites clínicos y masajes neuro-sedantes para auxiliar en el control de la inflamación del cuerpo.',
-    duration: '60–90 minutos',
+      'El estrés crónico es el mayor oxidante de la piel y el causante del envejecimiento inflamatorio (inflammaging). Una experiencia inmersiva que equilibra el eje mente-cuerpo con aceites esenciales de grado clínico y biohacking.',
+    duration: '60 minutos',
     priceEur: 260,
+    color: '#7f9987',
+    image: '/images/rituales/ritual-zen.jpg',
     results: [
-      'Paz mental profunda',
-      'Piel intensamente nutrida, calmada y libre de rojeces',
+      'Paz mental profunda y cortisol a la baja',
+      'Piel desinflamada, oxigenada y calmada',
     ],
     phases: [
       {
-        title: 'Fórmula Magistral Zen Harmony',
-        desc: 'Sinergia de aceites de Incienso (Boswellia), Jojoba, Bergamota e Ylang-Ylang de grado clínico.',
+        title: 'Inmersión sensorial y meditación',
+        desc: 'Música de alta relajación, bruma de aromaterapia y meditación guiada para ralentizar el ritmo cardíaco y liberar la mente.',
       },
       {
-        title: 'Masaje Neuro-Sedante',
-        desc: 'Técnicas que activan el nervio vago, reduciendo el cortisol y restaurando la barrera lipídica.',
+        title: 'Biohacking lumínico + masaje neuro-sedante',
+        desc: 'LED selectivo sobre el rostro durante el masaje manual con la fórmula magistral de Incienso (Boswellia), Jojoba y Bergamota — activa el nervio vago y reduce el cortisol.',
       },
       {
-        title: 'Sellado Nutritivo',
-        desc: 'Restauración profunda de la piel con nutrición intensa y calma cutánea duradera.',
+        title: 'Terapia térmica Ellegance',
+        desc: 'Vibración hipertérmica e infrarrojos en zonas clave de tensión para desinflamar la dermis, mejorar la microcirculación y oxigenar el tejido.',
+      },
+      {
+        title: 'Drenaje y sello Zen — presoterapia',
+        desc: 'Presoterapia suave para evacuar toxinas y activar el sistema linfático, con aromaterapia de anclaje y un té botánico antioxidante selecto.',
       },
     ],
+    homeCare: [],
   },
   {
-    id: 'activerelief',
-    badge: 'Recuperación',
-    name: 'D-ACTIVE RELIEF®',
-    tagline: 'Fisioterapia molecular para tensiones profundas',
+    id: 'active-relief',
+    badge: 'Recuperación · Face & Body',
+    name: 'D-Active Relief',
+    tagline: 'Biohacking muscular de alto rendimiento',
     description:
-      'Diseñado para liberar al cuerpo de tensiones profundas y contracturas con activos como Árnica e Hipérico.',
+      '¿Cuerpo pesado, sobrecargado o con contracturas que no desaparecen? El nexo perfecto entre la medicina deportiva de alta competición y el bienestar de lujo. No es un masaje común.',
     duration: '60 minutos',
     priceEur: 250,
-    price: '250 € – 380 €',
+    color: '#2c4a68',
+    image: '/images/rituales/ritual-active.jpg',
     results: [
       'Alivio inmediato del dolor muscular',
-      'Recuperación de la movilidad y descompresión total del cuerpo',
+      'Movilidad recuperada y cuerpo descomprimido',
     ],
     phases: [
       {
-        title: 'Emulsión D-Active Relief',
-        desc: 'Árnica Montana, Gaultheria (aspirina natural) e Hipérico — potentes analgésicos y antiinflamatorios botánicos.',
+        title: 'Descontracturante térmico — Ellegance',
+        desc: 'Vibración hipertérmica e infrarrojos para ablandar las fascias y aumentar el riego sanguíneo al instante.',
       },
       {
-        title: 'Liberación Miofascial',
-        desc: 'Masaje que elimina el ácido láctico y desinfama las fibras musculares de forma acelerada.',
+        title: 'Liberación miofascial de élite',
+        desc: 'Masaje técnico profundo con la emulsión magistral de Árnica, Gaultheria e Hipérico — potentes analgésicos clínicos que desactivan los puntos de dolor.',
       },
       {
-        title: 'Descompresión Total',
-        desc: 'Sesión de inmersión total para la recuperación completa de la movilidad y el bienestar.',
+        title: 'Reparación celular — LED infrarroja',
+        desc: 'Luz de alta penetración que llega al corazón del músculo para desinflamar y acelerar la regeneración de los tejidos.',
+      },
+      {
+        title: 'Vaciado de toxinas — presoterapia deportiva',
+        desc: 'Compresión neumática secuencial que expulsa el ácido láctico acumulado, eliminando la fatiga de golpe.',
       },
     ],
+    homeCare: [],
   },
 ]
 

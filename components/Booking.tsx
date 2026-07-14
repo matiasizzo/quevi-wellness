@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Lock,
 } from 'lucide-react'
-import { SITE, RITUALES } from '@/content'
+import { SITE, RITUALES, ritualBookingLabel } from '@/content'
 import { fadeUp, staggerContainer, slideInLeft, slideInRight } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
@@ -25,7 +25,7 @@ const SERVICES_OPTIONS = [
   'Tecnología High-Tech (LED, Láser, IPL)',
   'Primera consulta (orientación)',
   // Rituales de Firma — reservables con seña de 50 € (el resto se abona en clínica)
-  ...RITUALES.map((r) => `Ritual ${r.name}`),
+  ...RITUALES.map((r) => ritualBookingLabel(r.name)),
 ]
 
 // ─── Time slots ────────────────────────────────────────────────────────────
