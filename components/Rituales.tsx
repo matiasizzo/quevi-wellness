@@ -19,6 +19,8 @@ function soft(hex: string, alpha: number) {
 export default function Rituales() {
   const { ref, isInView } = useScrollAnimation()
   const [openId, setOpenId] = useState<string | null>(null)
+  // Para rituales con bono: qué opción está seleccionada ('single' | 'pack')
+  const [packChoice, setPackChoice] = useState<Record<string, 'single' | 'pack'>>({})
   const { addItem } = useCart()
 
   return (
@@ -106,7 +108,9 @@ export default function Rituales() {
                         <Clock size={12} />
                         <span>{ritual.duration}</span>
                         <span className="text-cream-500">·</span>
-                        <span className="font-semibold" style={{ color: ritual.color }}>{ritual.priceEur} €</span>
+                        <span className="font-semibold" style={{ color: ritual.color }}>
+                          {ritual.pack ? `desde ${ritual.priceEur} €` : `${ritual.priceEur} €`}
+                        </span>
                         {ritual.homeCare.length > 0 && (
                           <>
                             <span className="text-cream-500">·</span>
@@ -235,26 +239,61 @@ export default function Rituales() {
                           </div>
                         )}
 
+                        {/* Selector sesión única / bono (solo rituales con pack) */}
+                        {ritual.pack && (
+                          <div className="grid grid-cols-2 gap-2 -mb-2">
+                            {([
+                              { key: 'single' as const, label: '1 sesión', price: ritual.priceEur },
+                              { key: 'pack' as const, label: `Bono ${ritual.pack.sessions} sesiones`, price: ritual.pack.priceEur },
+                            ]).map((opt) => {
+                              const active = (packChoice[ritual.id] ?? 'single') === opt.key
+                              return (
+                                <button
+                                  key={opt.key}
+                                  onClick={() => setPackChoice((prev) => ({ ...prev, [ritual.id]: opt.key }))}
+                                  className="flex flex-col items-center gap-0.5 rounded-2xl border py-3 px-2 transition-all duration-200"
+                                  style={active
+                                    ? { borderColor: ritual.color, background: soft(ritual.color, 0.1) }
+                                    : { borderColor: '#ddd8cc', background: '#f9f7f3' }}
+                                >
+                                  <span className="text-[13px] font-semibold" style={{ color: active ? ritual.color : '#525252' }}>
+                                    {opt.label}
+                                  </span>
+                                  <span className="text-[12px] text-carbon-400">
+                                    {opt.price} €{opt.key === 'pack' && ritual.pack ? ` · ${Math.round(opt.price / ritual.pack.sessions)} €/sesión` : ''}
+                                  </span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+
                         {/* Actions */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          <button
-                            onClick={() => addItem({
-                              id: `ritual-${ritual.id}`,
-                              slug: ritual.id,
-                              name: ritual.name,
-                              price: ritual.priceEur,
-                              vol: ritual.duration,
-                              image_url: ritual.image,
-                              stripe: ritual.color,
-                            })}
-                            className="group inline-flex items-center justify-center gap-2 w-full py-3 text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.97] will-change-transform cursor-pointer"
-                            style={{ background: ritual.color, transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                          >
-                            Comprar · {ritual.priceEur} €
-                            <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" />
-                            </svg>
-                          </button>
+                          {(() => {
+                            const isPack = ritual.pack && (packChoice[ritual.id] ?? 'single') === 'pack'
+                            const price = isPack && ritual.pack ? ritual.pack.priceEur : ritual.priceEur
+                            return (
+                              <button
+                                onClick={() => addItem({
+                                  id: isPack ? `ritual-${ritual.id}-pack` : `ritual-${ritual.id}`,
+                                  slug: ritual.id,
+                                  name: isPack && ritual.pack ? `${ritual.name} — Bono ${ritual.pack.sessions} sesiones` : ritual.name,
+                                  price,
+                                  vol: isPack && ritual.pack ? `${ritual.pack.sessions} sesiones · 60 min c/u` : ritual.duration,
+                                  image_url: ritual.image,
+                                  stripe: ritual.color,
+                                })}
+                                className="group inline-flex items-center justify-center gap-2 w-full py-3 text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.97] will-change-transform cursor-pointer"
+                                style={{ background: ritual.color, transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+                              >
+                                Comprar · {price} €
+                                <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" />
+                                </svg>
+                              </button>
+                            )
+                          })()}
                           <a
                             href={`/?service=${encodeURIComponent(ritualBookingLabel(ritual.name))}#booking`}
                             className="group inline-flex items-center justify-center gap-2 w-full py-3 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform"

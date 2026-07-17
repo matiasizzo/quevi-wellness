@@ -311,12 +311,29 @@ export interface RitualHomeCare {
   image: string
 }
 
+export interface Ritual {
+  id: string
+  badge: string
+  name: string
+  tagline: string
+  description: string
+  duration: string
+  priceEur: number
+  /** Bono multi-sesión opcional (ej. pack de 10 sesiones) */
+  pack?: { sessions: number; priceEur: number }
+  color: string
+  image: string
+  results: string[]
+  phases: { title: string; desc: string }[]
+  homeCare: RitualHomeCare[]
+}
+
 /** Etiqueta usada en el selector de reservas para cada ritual */
 export function ritualBookingLabel(name: string) {
   return name.startsWith('Ritual') ? name : `Ritual ${name}`
 }
 
-export const RITUALES = [
+export const RITUALES: Ritual[] = [
   {
     id: 'd-purifying',
     badge: 'Ritual Facial',
@@ -534,6 +551,45 @@ export const RITUALES = [
         vol: '20 ml',
         desc: 'Bio-regeneración intensiva con PDRN, SOD y vitamina E — el sistema de auxilio para acelerar la recuperación de la piel tras el esfuerzo.',
         image: '/images/rituales/d-rescue-serum.jpg',
+      },
+    ],
+  },
+  {
+    id: 'relax-piernas',
+    badge: 'Biohacking Muscular · Piernas',
+    name: 'D-Relax Legs',
+    tagline: 'Ligereza inmediata para piernas cansadas',
+    description:
+      'El ritual de biohacking muscular y linfático para piernas cansadas: reactiva la circulación, elimina la retención de líquidos, vacía toxinas y devuelve la ligereza inmediata a tus extremidades inferiores. En sesión única o bono de 10 sesiones.',
+    duration: '60 minutos',
+    priceEur: 100,
+    pack: { sessions: 10, priceEur: 800 },
+    color: '#b06e52',
+    image: '/images/rituales/cover-piernas.jpg',
+    results: [
+      'Ligereza inmediata y alivio de la pesadez',
+      'Menos retención de líquidos y fatiga muscular borrada de golpe',
+    ],
+    phases: [
+      {
+        title: 'Activación térmica circulatoria — Ellegance',
+        desc: 'Vibración hipertérmica con infrarrojos para dilatar los vasos sanguíneos, estimular el riego y ablandar los tejidos tensos de forma inmediata.',
+      },
+      {
+        title: 'Masaje manual de retorno venoso',
+        desc: 'Maniobras de drenaje linfático profundo con cremas y aceites personalizados. La emulsión magistral desinflama, activa el flujo sanguíneo y alivia la pesadez.',
+      },
+      {
+        title: 'Presoterapia deportiva de vaciado',
+        desc: 'Compresión neumática secuencial que actúa como bomba de retorno: expulsa el ácido láctico, elimina los líquidos acumulados y borra la fatiga de golpe.',
+      },
+    ],
+    homeCare: [
+      {
+        name: 'D-AOX Oil',
+        vol: '20 ml',
+        desc: 'Aceite antioxidante de grado clínico para prolongar el masaje drenante en casa.',
+        image: '/images/rituales/d-aox-oil.jpg',
       },
     ],
   },

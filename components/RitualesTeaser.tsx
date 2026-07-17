@@ -51,7 +51,7 @@ export default function RitualesTeaser() {
           variants={staggerContainer}
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
-          className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10"
+          className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"
         >
           {RITUALES.map((ritual) => (
             <motion.div key={ritual.id} variants={scaleIn}>
@@ -92,7 +92,9 @@ export default function RitualesTeaser() {
                       <Clock size={12} />
                       60 min
                     </span>
-                    <span className="font-semibold text-sm" style={{ color: ritual.color }}>{ritual.priceEur} €</span>
+                    <span className="font-semibold text-sm" style={{ color: ritual.color }}>
+                      {ritual.pack ? `desde ${ritual.priceEur} €` : `${ritual.priceEur} €`}
+                    </span>
                   </div>
                 </div>
               </Link>
