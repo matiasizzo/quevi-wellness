@@ -1,7 +1,7 @@
 import Navbar          from '@/components/Navbar'
 import Hero            from '@/components/Hero'
 import Services        from '@/components/Services'
-import Treatments      from '@/components/Treatments'
+import TreatmentsTeaser from '@/components/TreatmentsTeaser'
 import ProductsPreview from '@/components/ProductsPreview'
 import RitualesTeaser  from '@/components/RitualesTeaser'
 import FAQ             from '@/components/FAQ'
@@ -15,7 +15,7 @@ export default function Home() {
       <main>
         <Hero />
         <Services />
-        <Treatments />
+        <TreatmentsTeaser />
         <ProductsPreview />
         <RitualesTeaser />
         <FAQ limit={4} />

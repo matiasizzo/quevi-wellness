@@ -126,12 +126,12 @@ export const STATS = [
 
 export interface TreatmentDetail {
   application?: string
-  benefits?: string[]
   duration?: string
   sessions?: string
   durability?: string
   anesthesia?: string
   requirements?: string
+  recovery?: string
   aftercare?: string
   note?: string
 }
@@ -139,165 +139,165 @@ export interface TreatmentDetail {
 export interface Treatment {
   name: string
   desc: string
+  image: string
   detail: TreatmentDetail
 }
 
-export const TREATMENTS: { category: string; items: Treatment[] }[] = [
+export interface TreatmentCategory {
+  category: string
+  desc: string
+  color: string
+  items: Treatment[]
+}
+
+export const TREATMENTS: TreatmentCategory[] = [
   {
     category: 'Terapias ProAging',
+    desc: 'Terapias que ayudan a estimular la renovación celular y prolongan la vida cutánea.',
+    color: '#355539',
     items: [
       {
         name: 'Neuromoduladores',
-        desc: 'Atenuación de arrugas dinámicas para una expresión serena.',
+        desc: 'Expresión serena y piel luminosa: atenúa las arrugas dinámicas reduciendo temporalmente la contracción muscular.',
+        image: '/images/tratamientos/neuromoduladores.jpg',
         detail: {
-          benefits: [
-            'Minimiza arrugas faciales',
-            'Mejora el aspecto de la piel',
-            'Apariencia más relajada y rejuvenecida',
-          ],
+          duration: '30 minutos',
           sessions: '1 sesión cada 3–6 meses',
           durability: '3–4 meses, variable según tipo de piel y hábitos de vida',
           aftercare:
-            'Rutina personalizada de SkinCare. Protección solar estricta. Evitar sauna y nieve para prevenir hiperpigmentación.',
+            'Rutina personalizada de SkinCare, protección solar estricta y evitar sauna y nieve para prevenir hiperpigmentación.',
         },
       },
       {
-        name: "DallÒ LIPS",
-        desc: 'Labios definidos con ácido hialurónico reticulado. El efecto "Glow".',
+        name: 'Remodelación Facial con Ácido Hialurónico',
+        desc: 'Restaura el contorno facial con naturalidad y precisión: redefine el óvalo y mejora la textura y elasticidad cutánea.',
+        image: '/images/tratamientos/hialuronico.jpg',
+        detail: {
+          duration: '30–60 minutos',
+          anesthesia: 'Local o infiltrativa',
+          durability: '6 a 18 meses, según estilo de vida',
+          aftercare: 'SkinCare médica personalizada, protección solar y evitar sauna y nieve.',
+        },
+      },
+      {
+        name: 'Remodelación de Labios — DallÒ LIPS',
+        desc: 'Labios definidos, con volumen y efecto glow, con ácido hialurónico reticulado.',
+        image: '/images/tratamientos/lips.jpg',
         detail: {
           application:
-            'Valoración morfológica exhaustiva del labio, musculatura perioral y oclusión dental, con imágenes en reposo y movimiento antes del tratamiento.',
-          benefits: [
-            'Volumen natural y simétrico',
-            'Efecto glow inmediato',
-            'Mejora en el perfil y proyección del labio',
-          ],
+            'Valoración morfológica exhaustiva del labio, musculatura perioral y oclusión dental, complementada con imágenes en reposo y movimiento antes del tratamiento.',
           duration: '30–60 minutos',
           anesthesia: 'Local o infiltrativa',
           durability: '6 a 12 meses',
           aftercare: 'Evitar calor intenso (sol, sauna). Posibles hematomas o edema durante 7 días.',
+          note: 'Es fundamental mantener expectativas realistas: en ciertos casos puede requerirse más de una sesión para lograr resultados óptimos.',
         },
       },
       {
-        name: 'Arquitectura Face',
-        desc: 'Ácido hialurónico y bioestimuladores de colágeno para restaurar el contorno facial con naturalidad y precisión.',
+        name: 'Plasma Concentrado en Plaquetas (PRP)',
+        desc: 'Tratamiento regenerativo: plasma de tu propia sangre, rico en factores de crecimiento que estimulan la regeneración de piel, articulaciones y cabello.',
+        image: '/images/tratamientos/prp.jpg',
         detail: {
-          benefits: [
-            'Reposición de volumen facial',
-            'Redefinición del óvalo facial',
-            'Mejora de la textura y elasticidad cutánea',
-          ],
+          application: 'Microinyecciones intradérmicas con pápulas.',
           duration: '30–60 minutos',
           anesthesia: 'Local o infiltrativa',
-          durability: '6 a 18 meses (según estilo de vida)',
-          aftercare: 'SkinCare médica personalizada. Protección solar. Evitar sauna y nieve.',
-          note: 'Es fundamental mantener expectativas realistas. En ciertos casos puede requerirse más de una sesión para lograr resultados óptimos.',
-        },
-      },
-      {
-        name: 'PRP Photoativa',
-        desc: 'Concentrado plaquetario activado por luz para mejorar textura facial y densidad capilar. Regeneración desde adentro.',
-        detail: {
-          application:
-            'Plasma obtenido de tu propia sangre, rico en factores de crecimiento que estimulan regeneración celular. Micro inyecciones intradérmicas con pápulas.',
-          duration: '30–60 minutos',
-          sessions: 'Cada 4–6 semanas',
+          sessions: '1 sesión cada 30–90 días',
           durability: '3–12 meses',
-          requirements: 'Pruebas de VIH, hepatitis, sífilis, hemograma, coagulación.',
-          aftercare: 'Rutina médica. Protección solar. Evitar sauna, sol y nieve.',
+          requirements: 'Pruebas sanguíneas previas para confirmar que eres apto para este procedimiento.',
+          aftercare: 'Rutina médica, protección solar y evitar sauna, sol y nieve.',
         },
       },
       {
-        name: 'PDRN — Polinucleótidos',
-        desc: 'Revitaliza desde el ADN. Derivados de salmón que actúan sobre inflamación, pigmentación y regeneración celular.',
+        name: 'Revitalización Facial PDRN — Polinucleótidos',
+        desc: 'Revitaliza desde el ADN, protege y calma: polidesoxirribonucleótidos derivados de salmón que auxilian en el control de la inflamación, la pigmentación y la regeneración celular.',
+        image: '/images/tratamientos/pdrn.jpg',
         detail: {
-          application: 'Mesoterapia con micro agujas.',
-          benefits: ['Rosácea', 'Melasma', 'Arrugas finas', 'Acné atrófico'],
+          application: 'Mesoterapia con microagujas o radiofrecuencia, con anestesia local.',
+          duration: '60 minutos',
           sessions: '1–4, con intervalos de 4–6 semanas',
-          duration: '30–60 minutos',
-          aftercare: 'Rutina médica. Protección solar. Evitar calor extremo.',
+          aftercare: 'Rutina médica, protección solar y evitar calor extremo.',
+        },
+      },
+      {
+        name: 'Inductores de Colágeno',
+        desc: 'Activa el colágeno y mejora la calidad de tu piel: el ácido poli-D,L-láctico estimula la producción natural de colágeno.',
+        image: '/images/tratamientos/inductores.jpg',
+        detail: {
+          application: 'Inyecciones con aguja fina o cánula, bajo anestesia local.',
+          sessions: '1 cada 12 meses',
+          durability: '12–18 meses, según fabricante',
+          aftercare: 'Masajes dirigidos, rutina médica, protección solar y evitar calor y nieve.',
         },
       },
       {
         name: 'Peelings',
-        desc: 'Revela una piel renovada, uniforme y visiblemente más tersa. Fórmulas adaptadas a tu tipo de piel.',
+        desc: 'Exfoliación profunda y controlada que mejora la calidad y uniformidad de la piel, atenúa cicatrices de acné y aporta luminosidad y suavidad.',
+        image: '/images/tratamientos/peelings.jpg',
         detail: {
-          benefits: [
-            'Exfoliación profunda y controlada',
-            'Mejora la calidad y uniformidad de la piel',
-            'Atenúa cicatrices causadas por acné',
-            'Aporta luminosidad y suavidad',
-          ],
+          application: 'Combinaciones precisas de ácidos como glicólico, retinoico, tricloroacético, mandélico y kójico.',
           sessions: '2–4 sesiones, espaciadas cada 4–6 semanas según diagnóstico médico',
-          aftercare: 'Rutina personalizada de SkinCare indicada por el equipo médico. Protección solar estricta.',
-        },
-      },
-      {
-        name: 'SEFFILLER — Células Madre',
-        desc: 'Uso de tejido adiposo propio para auxiliar en producción de colágeno y vitalidad cutánea duradera.',
-        detail: {
-          application:
-            'Extracción bajo anestesia local (abdomen o caderas) + infiltración en zonas estratégicas.',
-          benefits: ['Mejora de textura', 'Elasticidad', 'Calidad dérmica'],
-          sessions: '1–2, con mantenimiento cada 24 meses',
           aftercare:
-            'Higiene, protección solar, evitar calor excesivo. Posibles hematomas o inflamación leve por 7 días.',
+            'Rutina personalizada de SkinCare indicada por el equipo médico, protector solar diario (SPF alto) y evitar sauna y nieve los días posteriores.',
         },
       },
     ],
   },
   {
-    category: 'Tecnologías High-Tech',
+    category: 'Tecnologías BOOST',
+    desc: 'Innovación con tecnologías de última generación para potenciar la salud y belleza de tu piel.',
+    color: '#b06e52',
     items: [
       {
         name: 'Fototerapia LED — Biohacking Lumínico',
-        desc: 'Autorregulación celular y equilibrio dérmico. Estimula el metabolismo celular y promueve la autorregulación natural de la piel.',
+        desc: 'Luz roja, azul e infrarroja que auxilia en la estimulación del metabolismo celular y promueve la autorregulación natural de la piel.',
+        image: '/images/tratamientos/led.jpg',
         detail: {
-          application:
-            'Dispositivo médico clase II con luz roja (660 nm) e infrarroja (850 nm).',
           duration: '30–60 minutos',
           sessions: '1 cada 1–4 semanas',
           aftercare: 'Protección solar. Sin recuperación requerida.',
         },
       },
       {
-        name: 'Ellegance — Infrarrojo Vibracional',
-        desc: 'Combinación de calor infrarrojo y vibración hipertérmica que favorece la circulación, drenaje linfático y detox celular profundo.',
+        name: 'Microneedling — Radiofrecuencia con Microagujas',
+        desc: 'Uniformiza la piel y trata cicatrices con energía térmica en la dermis profunda, sin dañar la epidermis. Reduce poros.',
+        image: '/images/tratamientos/microneedling.jpg',
         detail: {
           duration: '30–60 minutos',
-          sessions: '1–15 (cada 1–30 días)',
+          sessions: '1–4, cada 2–6 semanas',
+          aftercare: 'Posible inflamación leve; seguir los cuidados médicos personalizados.',
+        },
+      },
+      {
+        name: 'Elegance — Infrarrojo con Vibración Hipertérmica',
+        desc: 'Bienestar facial y corporal: combina calor infrarrojo y vibración que favorece la circulación, el drenaje linfático y el detox celular.',
+        image: '/images/tratamientos/elegance.jpg',
+        detail: {
+          duration: '30–60 minutos · indolora, sin anestesia',
+          sessions: '1–15, cada 1–30 días',
           aftercare: 'Adaptado según intensidad, supervisado por el equipo médico.',
         },
       },
       {
-        name: 'Radiofrecuencia con Microagujas',
-        desc: 'Tecnología bipolar que libera energía térmica en la dermis profunda. Textura uniforme, poros reducidos, tratamiento de cicatrices de acné.',
-        detail: {
-          application:
-            'Energía térmica en dermis profunda sin dañar la epidermis. Reduce poros y mejora piel sensible o con acné.',
-          duration: '30–60 minutos',
-          sessions: '1–4 (cada 2–6 semanas)',
-          aftercare: 'Posible inflamación leve. Seguir cuidados médicos personalizados.',
-        },
-      },
-      {
         name: 'Láser CO₂',
-        desc: 'Pulsos de luz infrarroja de alta energía que estimulan colágeno y tratan cicatrices, manchas y queratosis.',
+        desc: 'Luz infrarroja de alta energía cuyos pulsos llegan a capas profundas de la piel: estimula colágeno y trata cicatrices, manchas y queratosis.',
+        image: '/images/tratamientos/laser-co2.jpg',
         detail: {
-          application:
-            'Láser con larga trayectoria que utiliza dióxido de carbono como medio activo. Sus pulsos llegan a capas profundas de la piel.',
           duration: '60 minutos',
+          anesthesia: 'Local o infiltrativa',
           sessions: 'Individualizadas por diagnóstico',
-          aftercare: 'Recuperación de 7 a 21 días según intensidad. Posible inflamación leve a intensa.',
+          recovery: 'De 7 a 21 días, según intensidad',
+          aftercare: 'Posible inflamación leve a intensa; seguir los cuidados médicos personalizados.',
         },
       },
       {
         name: 'Fotorejuvenecimiento IPL',
-        desc: 'Piel uniforme. Atenúa manchas solares y microvasos desde capas superficiales hasta profundas.',
+        desc: 'Piel luminosa y uniforme: luz pulsada intensa que trata melasma y atenúa manchas solares y microvasos, desde capas superficiales hasta profundas.',
+        image: '/images/tratamientos/ipl.jpg',
         detail: {
           duration: '60 minutos',
           sessions: 'Personalizadas por indicación médica',
-          aftercare: 'Recuperación de hasta 21 días en algunos casos. Posible inflamación leve a intensa.',
+          recovery: 'Hasta 21 días en algunos casos',
+          aftercare: 'Posible inflamación leve a intensa; seguir los cuidados médicos recomendados.',
         },
       },
     ],

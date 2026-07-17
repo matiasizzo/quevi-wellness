@@ -3,254 +3,201 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
-import { fadeUp, staggerContainer } from '@/lib/animations'
-import { useScrollAnimation } from '@/lib/useScrollAnimation'
+import { ChevronDown, Clock } from 'lucide-react'
 import { TREATMENTS } from '@/content'
+import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations'
+import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
-const PILLARS = [
-  {
-    id: 'shield',
-    num: '01',
-    pillar: 'SHIELD',
-    title: 'Bio-Protección',
-    desc: 'SPF inteligente, microbioma y antioxidación avanzada. La primera barrera clínica que escribe tu mejor mañana.',
-    image: '/images/shield.png',
-    overlay: 'rgba(22,35,26,',
-    treatments: ['Peelings', 'Fotorejuvenecimiento IPL'],
-  },
-  {
-    id: 'repair',
-    num: '02',
-    pillar: 'REPAIR',
-    title: 'Regeneración',
-    desc: 'PDRN, péptidos biomiméticos y células madre vegetales. Reparación celular medible desde la 4ª semana.',
-    image: '/images/repair.png',
-    overlay: 'rgba(58,28,15,',
-    treatments: ['Neuromoduladores', "DallÒ LIPS", 'Arquitectura Face', 'PRP Photoativa', 'PDRN — Polinucleótidos', 'SEFFILLER — Células Madre'],
-  },
-  {
-    id: 'boost',
-    num: '03',
-    pillar: 'BOOST',
-    title: 'Optimización',
-    desc: 'Vitamina C estabilizada, oligoelementos y terapia LED. La piel que respira, refleja luz y recobra densidad.',
-    image: '/images/boost.png',
-    overlay: 'rgba(70,36,20,',
-    treatments: ['Fototerapia LED — Biohacking Lumínico', 'Ellegance — Infrarrojo Vibracional', 'Radiofrecuencia con Microagujas', 'Láser CO₂'],
-  },
-  {
-    id: 'reset',
-    num: '04',
-    pillar: 'RESET / SOUL',
-    title: 'Equilibrio',
-    desc: 'CBD tópico, adaptógenos y melatonina. Apagamos el cortisol cutáneo para que la piel descanse de verdad.',
-    image: '/images/reset.jpeg',
-    overlay: 'rgba(14,28,20,',
-    treatments: [],
-  },
+/** Convierte el color de la categoría en un tono suave para fondos */
+function soft(hex: string, alpha: number) {
+  const n = parseInt(hex.slice(1), 16)
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+const SPEC_LABELS: { key: 'application' | 'duration' | 'anesthesia' | 'sessions' | 'durability' | 'requirements' | 'recovery' | 'aftercare'; label: string }[] = [
+  { key: 'application',  label: 'Aplicación' },
+  { key: 'duration',     label: 'Tiempo del procedimiento' },
+  { key: 'anesthesia',   label: 'Anestesia' },
+  { key: 'sessions',     label: 'Sesiones' },
+  { key: 'durability',   label: 'Duración del efecto' },
+  { key: 'requirements', label: 'Requisitos' },
+  { key: 'recovery',     label: 'Recuperación' },
+  { key: 'aftercare',    label: 'Post-tratamiento' },
 ]
-
-const ALL_TREATMENTS = TREATMENTS.flatMap((cat) => cat.items)
 
 export default function Treatments() {
   const { ref, isInView } = useScrollAnimation()
-  const [openId, setOpenId] = useState<string | null>(null)
-
-  const openPillar = PILLARS.find((p) => p.id === openId) ?? null
-  const openItems = openPillar
-    ? ALL_TREATMENTS.filter((t) => openPillar.treatments.includes(t.name))
-    : []
+  const [openName, setOpenName] = useState<string | null>(null)
 
   return (
-    <section id="treatments" className="bg-cream-100 py-24 border-t border-cream-400">
-      <div ref={ref} className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9">
+    <section id="treatments" className="py-28 bg-cream-100 overflow-hidden border-t border-cream-400">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {/* Header */}
         <motion.div
+          ref={ref}
           variants={staggerContainer}
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
-          className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-14"
+          className="text-center mb-16"
         >
-          <div>
-            <motion.span variants={fadeUp} className="text-[11px] tracking-[0.32em] uppercase text-carbon-400 block mb-4">
-              — Protocolos clínicos · Se reservan con cita médica
-            </motion.span>
-            <motion.h2
-              variants={fadeUp}
-              className="font-serif font-normal leading-[1] tracking-[-0.018em] m-0 text-carbon-900"
-              style={{ fontSize: 'clamp(38px, 4.8vw, 68px)' }}
-            >
-              Los 4 <em className="italic text-brand-600">pilares</em> del tratamiento.
-            </motion.h2>
-          </div>
-          <motion.div variants={fadeUp}>
-            <a
-              href="#booking"
-              className="inline-flex items-center gap-2 px-7 py-3 bg-brand-600 text-cream-50 rounded-full font-medium text-[13px] tracking-[0.02em] transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform whitespace-nowrap"
-              style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-            >
-              Reservar diagnóstico
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-              </svg>
-            </a>
-          </motion.div>
+          <motion.span
+            variants={fadeUp}
+            className="inline-block px-4 py-1.5 rounded-full bg-brand-100 text-brand-700 text-sm font-medium mb-4"
+          >
+            Terapias Faciales Quevi Pro-Aging
+          </motion.span>
+          <motion.h2
+            variants={fadeUp}
+            className="font-serif font-normal text-4xl sm:text-5xl leading-[1.05] tracking-tight text-carbon-900 mb-4 text-balance"
+          >
+            Renovación celular <em className="italic font-normal text-brand-600">&amp; longevidad cutánea</em>
+          </motion.h2>
+          <motion.p variants={fadeUp} className="text-carbon-500 text-lg max-w-2xl mx-auto">
+            Terapias que ayudan a estimular la renovación celular y prolongan la vida de tu piel,
+            combinadas con tecnologías de última generación.
+          </motion.p>
+          <motion.p variants={fadeUp} className="text-brand-600 text-sm font-medium mt-3">
+            Se agendan con cita previa y se confirman con una seña de 50 €, descontable del tratamiento.
+          </motion.p>
         </motion.div>
 
-        {/* 4 cards */}
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          animate={isInView ? 'visible' : 'hidden'}
-          className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {PILLARS.map((p) => {
-            const isOpen = openId === p.id
-            return (
-              <motion.button
-                key={p.pillar}
-                variants={fadeUp}
-                onClick={() => setOpenId(isOpen ? null : p.id)}
-                aria-expanded={isOpen}
-                className={`relative overflow-hidden flex flex-col justify-between rounded-[4px] text-cream-100 cursor-pointer group will-change-transform text-left border-2 transition-colors duration-300 ${
-                  isOpen ? 'border-brand-500' : 'border-transparent'
-                }`}
-                style={{
-                  minHeight: 'clamp(320px, 36vw, 480px)',
-                  transition: 'transform 0.2s cubic-bezier(0.22,1,0.36,1), border-color 0.3s',
-                }}
-                whileHover={{ y: -5, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
-              >
-                {/* Background image */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <Image
-                    src={p.image}
-                    alt={p.title}
-                    fill
-                    className="object-cover group-hover:scale-[1.05] transition-transform duration-[900ms]"
-                    style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  />
-                </div>
-                {/* Overlay — keeps title/text legible over the photo */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `linear-gradient(to top, ${p.overlay}0.88) 0%, ${p.overlay}0.55) 38%, ${p.overlay}0.18) 62%, ${p.overlay}0.10) 100%)`,
-                  }}
-                />
-
-                {/* Number */}
-                <span className="relative z-[2] font-serif italic text-[13px] tracking-[0.04em] p-7 pb-0" style={{ color: 'rgba(245,242,236,0.75)' }}>
-                  {p.num}
-                </span>
-
-                {/* Content */}
-                <div className="relative z-[2] flex flex-col gap-3 p-7">
-                  <span className="text-[10px] tracking-[0.26em] uppercase font-medium" style={{ color: 'rgba(245,242,236,0.8)' }}>
-                    {p.pillar}
-                  </span>
-                  <h3 className="font-serif font-normal leading-[1.05] m-0 tracking-[-0.01em] text-cream-100" style={{ fontSize: 'clamp(28px, 2.8vw, 38px)', textShadow: '0 1px 12px rgba(0,0,0,0.35)' }}>
-                    {p.title}
-                  </h3>
-                  <p className="text-[14px] leading-[1.6] m-0" style={{ color: 'rgba(245,242,236,0.85)' }}>
-                    {p.desc}
-                  </p>
-                  <span
-                    className="inline-flex items-center gap-[10px] text-[11px] tracking-[0.22em] uppercase text-cream-100 mt-2 pb-1 border-b self-start group-hover:gap-[16px] transition-all duration-300"
-                    style={{ borderColor: 'rgba(245,242,236,0.45)' }}
-                  >
-                    {isOpen ? 'Cerrar' : 'Ver tratamientos'}
-                    <motion.svg
-                      animate={{ rotate: isOpen ? 90 : 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                    </motion.svg>
-                  </span>
-                </div>
-              </motion.button>
-            )
-          })}
-        </motion.div>
-
-        {/* Expanded detail panel */}
-        <AnimatePresence initial={false}>
-          {openPillar && (
+        {TREATMENTS.map((cat) => (
+          <div key={cat.category} className="mb-14 last:mb-0">
+            {/* Category header */}
             <motion.div
-              key={openPillar.id}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
+              variants={fadeUp}
+              initial="hidden"
+              animate={isInView ? 'visible' : 'hidden'}
+              className="flex items-center gap-3 mb-2"
             >
-              <div className="mt-[14px] rounded-[4px] border border-cream-400 bg-cream-200 p-7 sm:p-10">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 mb-8">
-                  <div>
-                    <span className="text-[10px] tracking-[0.26em] uppercase text-carbon-400 block mb-2">
-                      {openPillar.pillar} · {openPillar.title}
-                    </span>
-                    <h3 className="font-serif font-normal text-carbon-900 m-0" style={{ fontSize: 'clamp(24px, 2.4vw, 34px)' }}>
-                      Tratamientos de este pilar
-                    </h3>
-                    <p className="text-[13px] text-carbon-400 mt-2 m-0">
-                      Los tratamientos médico-estéticos se agendan con cita previa y se confirman con una seña.
-                    </p>
-                  </div>
-                  <a
-                    href="#booking"
-                    className="inline-flex items-center gap-2 px-7 py-3 bg-brand-600 text-cream-50 rounded-full font-medium text-[13px] tracking-[0.02em] transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.97] whitespace-nowrap flex-shrink-0"
-                    style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                  >
-                    Agendar cita con seña
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                    </svg>
-                  </a>
-                </div>
-
-                {openItems.length > 0 ? (
-                  <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                    {openItems.map((t) => (
-                      <div key={t.name} className="flex flex-col gap-2 p-5 rounded-[4px] bg-cream-100 border border-cream-400">
-                        <h4 className="font-serif font-medium text-[18px] text-carbon-900 m-0 leading-[1.25]">
-                          {t.name}
-                        </h4>
-                        <p className="text-[13px] text-carbon-500 leading-[1.6] m-0 flex-1">
-                          {t.desc}
-                        </p>
-                        {t.detail.duration && (
-                          <span className="text-[11px] text-carbon-400 tracking-[0.04em]">
-                            Duración: {t.detail.duration}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-[4px] bg-cream-100 border border-cream-400">
-                    <p className="text-[14px] text-carbon-500 leading-[1.6] m-0 flex-1">
-                      El pilar RESET / SOUL se trabaja a través de nuestros <strong className="text-carbon-900">Rituales de Firma</strong>:
-                      aromaterapia clínica, masajes neuro-sedantes y mindfulness estético. Los rituales se compran
-                      directamente — sin necesidad de seña.
-                    </p>
-                    <a
-                      href="/rituales"
-                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-600 hover:text-cream-50 whitespace-nowrap"
-                    >
-                      Ver rituales
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                      </svg>
-                    </a>
-                  </div>
-                )}
-              </div>
+              <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cat.color }} />
+              <h3 className="font-serif font-medium text-2xl text-carbon-900 m-0">{cat.category}</h3>
             </motion.div>
-          )}
-        </AnimatePresence>
+            <p className="text-carbon-500 text-sm mb-7 ml-[22px]">{cat.desc}</p>
+
+            {/* Cards */}
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate={isInView ? 'visible' : 'hidden'}
+              className="grid sm:grid-cols-2 gap-5"
+            >
+              {cat.items.map((t) => {
+                const isOpen = openName === t.name
+                const specs = SPEC_LABELS.filter((s) => t.detail[s.key])
+                return (
+                  <motion.div
+                    key={t.name}
+                    variants={scaleIn}
+                    className={`rounded-3xl border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] overflow-hidden will-change-transform bg-cream-50 ${
+                      isOpen ? 'shadow-xl shadow-brand-100/30' : 'hover:shadow-lg hover:shadow-brand-100/40 hover:-translate-y-1'
+                    }`}
+                    style={{
+                      borderColor: isOpen ? cat.color : '#ddd8cc',
+                      borderTopWidth: 3,
+                      borderTopColor: cat.color,
+                    }}
+                  >
+                    {/* Card header */}
+                    <button
+                      onClick={() => setOpenName(isOpen ? null : t.name)}
+                      className="w-full text-left p-6"
+                      aria-expanded={isOpen}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex flex-col gap-2 flex-1 min-w-0">
+                          <h4 className="text-lg font-bold text-carbon-900 font-serif leading-snug m-0">
+                            {t.name}
+                          </h4>
+                          <p className="text-sm text-carbon-500 leading-relaxed m-0">
+                            {t.desc}
+                          </p>
+                          {t.detail.duration && (
+                            <div className="flex items-center gap-2 mt-1 text-carbon-400 text-xs">
+                              <Clock size={12} />
+                              <span>{t.detail.duration}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col items-center gap-3 flex-shrink-0">
+                          <div
+                            className="relative w-20 h-24 sm:w-24 sm:h-28 rounded-2xl overflow-hidden"
+                            style={{ background: soft(cat.color, 0.08) }}
+                          >
+                            <Image src={t.image} alt={t.name} fill className="object-cover" sizes="96px" />
+                          </div>
+                          <motion.div
+                            animate={{ rotate: isOpen ? 180 : 0 }}
+                            transition={{ duration: 0.25 }}
+                            className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                            style={isOpen
+                              ? { background: cat.color, color: '#f9f7f3' }
+                              : { background: '#ddd8cc', color: '#525252' }}
+                          >
+                            <ChevronDown size={15} />
+                          </motion.div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Expandable detail */}
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          key="detail"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                        >
+                          <div className="px-6 pb-6 flex flex-col gap-5 border-t border-cream-400 pt-5">
+                            {/* Specs */}
+                            <div className="flex flex-col divide-y divide-cream-300 rounded-2xl border border-cream-300 bg-cream-100 overflow-hidden">
+                              {specs.map((s) => (
+                                <div key={s.key} className="grid grid-cols-[130px_1fr] sm:grid-cols-[170px_1fr] gap-3 px-4 py-2.5">
+                                  <span className="text-[11px] font-semibold uppercase tracking-wider pt-0.5" style={{ color: cat.color }}>
+                                    {s.label}
+                                  </span>
+                                  <span className="text-[13px] text-carbon-700 leading-relaxed">
+                                    {t.detail[s.key]}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {t.detail.note && (
+                              <p className="text-xs text-carbon-500 leading-relaxed m-0 px-4 py-3 rounded-xl" style={{ background: soft(cat.color, 0.07), border: `1px solid ${soft(cat.color, 0.2)}` }}>
+                                <strong className="text-carbon-700">Observación:</strong> {t.detail.note}
+                              </p>
+                            )}
+
+                            {/* CTA */}
+                            <a
+                              href={`/?service=${encodeURIComponent(t.name)}#booking`}
+                              className="group inline-flex items-center justify-center gap-2 w-full py-3 text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.97] will-change-transform"
+                              style={{ background: cat.color, transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+                            >
+                              Reservar con seña · 50 €
+                              <svg className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                              </svg>
+                            </a>
+                            <p className="text-xs text-carbon-400 leading-relaxed m-0 -mt-3">
+                              La seña se descuenta del precio final. El precio total se define tras la valoración médica.
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+          </div>
+        ))}
       </div>
     </section>
   )

@@ -12,18 +12,16 @@ import {
   ArrowRight,
   Lock,
 } from 'lucide-react'
-import { SITE, RITUALES, ritualBookingLabel } from '@/content'
+import { SITE, RITUALES, TREATMENTS, ritualBookingLabel } from '@/content'
 import { fadeUp, staggerContainer, slideInLeft, slideInRight } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
 // ─── Services list ─────────────────────────────────────────────────────────
 const SERVICES_OPTIONS = [
   'Diagnóstico SKIN-SCAN Multiespectral',
-  'Neuromoduladores',
-  'Rellenos — DallÒ LIPS / Arquitectura Face',
-  'PRP Photoativa / PDRN',
-  'Tecnología High-Tech (LED, Láser, IPL)',
   'Primera consulta (orientación)',
+  // Terapias faciales y tecnologías — nombres exactos para los deep-links de las cards
+  ...TREATMENTS.flatMap((cat) => cat.items.map((t) => t.name)),
   // Rituales de Firma — reservables con seña de 50 € (el resto se abona en clínica)
   ...RITUALES.map((r) => ritualBookingLabel(r.name)),
 ]
