@@ -14,11 +14,19 @@ interface ShippingDetails {
   country: string
 }
 
+interface GiftDetails {
+  isGift: boolean
+  recipientName: string
+  recipientEmail: string
+  message: string
+}
+
 export async function POST(req: NextRequest) {
-  const { items, shippingDetails, couponCode } = await req.json() as {
+  const { items, shippingDetails, couponCode, gift } = await req.json() as {
     items: CartItem[]
     shippingDetails: ShippingDetails
     couponCode?: string
+    gift?: GiftDetails
   }
 
   if (!items?.length) {
@@ -73,6 +81,7 @@ export async function POST(req: NextRequest) {
           vol: i.vol,
           priceCents: Math.round(i.price * 100),
           quantity: i.quantity,
+          sessions: i.sessions ?? 1,
         }))
       ),
       subtotal_cents: String(subtotalCents),
@@ -86,6 +95,11 @@ export async function POST(req: NextRequest) {
       shipping_city: shippingDetails.city,
       shipping_postal_code: shippingDetails.postalCode,
       shipping_country: shippingDetails.country,
+      // Regalo
+      is_gift: gift?.isGift ? '1' : '0',
+      gift_recipient_name: gift?.isGift ? (gift.recipientName ?? '') : '',
+      gift_recipient_email: gift?.isGift ? (gift.recipientEmail ?? '') : '',
+      gift_message: gift?.isGift ? (gift.message ?? '').slice(0, 480) : '',
     },
   })
 

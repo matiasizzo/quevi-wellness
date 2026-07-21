@@ -60,11 +60,28 @@ type Product = {
   product_variants: Variant[]
 }
 
+type GiftCard = {
+  id: string
+  code: string
+  item_name: string
+  amount_cents: number
+  total_sessions: number
+  sessions_used: number
+  status: string
+  purchaser_name: string | null
+  recipient_name: string | null
+  recipient_email: string | null
+  message: string | null
+  created_at: string
+  expires_at: string | null
+}
+
 type AdminData = {
   orders: Order[]
   appointments: Appointment[]
   bookings: Booking[]
   products: Product[]
+  giftCards: GiftCard[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -346,6 +363,136 @@ function StockTab({ products }: { products: Product[] }) {
   )
 }
 
+// ── Tab: Vales regalo ─────────────────────────────────────────────────────────
+
+function GiftStatusBadge({ card }: { card: GiftCard }) {
+  const expired = card.expires_at ? new Date(card.expires_at) < new Date() : false
+  const status = expired && card.status === 'active' ? 'expired' : card.status
+  const map: Record<string, { label: string; cls: string }> = {
+    active:    { label: 'Activo',    cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
+    redeemed:  { label: 'Canjeado',  cls: 'bg-zinc-600/40 text-zinc-300 border-zinc-500/40' },
+    cancelled: { label: 'Cancelado', cls: 'bg-red-500/20 text-red-300 border-red-500/30' },
+    expired:   { label: 'Caducado',  cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
+  }
+  const s = map[status] ?? map.active
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase ${s.cls}`}>
+      {s.label}
+    </span>
+  )
+}
+
+function ValesTab({ giftCards, pw, onChanged }: { giftCards: GiftCard[]; pw: string; onChanged: () => void }) {
+  const [query, setQuery] = useState('')
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  async function act(id: string, action: 'use' | 'cancel' | 'reactivate') {
+    setBusyId(id)
+    try {
+      const res = await fetch('/api/admin/gift-cards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+        body: JSON.stringify({ id, action }),
+      })
+      if (res.ok) onChanged()
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const q = query.trim().toUpperCase()
+  const filtered = q
+    ? giftCards.filter(c =>
+        c.code.includes(q) ||
+        (c.recipient_name ?? '').toUpperCase().includes(q) ||
+        (c.item_name ?? '').toUpperCase().includes(q))
+    : giftCards
+
+  const active = giftCards.filter(c => c.status === 'active')
+  const outstanding = active.reduce((s, c) => s + (c.amount_cents || 0), 0)
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Vales emitidos" value={giftCards.length} />
+        <StatCard label="Activos" value={active.length} />
+        <StatCard label="Canjeados" value={giftCards.filter(c => c.status === 'redeemed').length} />
+        <StatCard label="Valor pendiente" value={euros(outstanding)} sub="vales activos" />
+      </div>
+
+      <input
+        type="text"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        placeholder="Buscar por código, destinatario o experiencia…"
+        className="w-full bg-zinc-900/60 border border-zinc-700 rounded-lg px-4 py-2.5 text-[13px] text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+      />
+
+      {filtered.length === 0 ? <Empty label="No hay vales regalo" /> : (
+        <div className="space-y-3">
+          {filtered.map(c => {
+            const left = Math.max(0, c.total_sessions - c.sessions_used)
+            const expired = c.expires_at ? new Date(c.expires_at) < new Date() : false
+            const canUse = c.status === 'active' && !expired && left > 0
+            return (
+              <div key={c.id} className="rounded-xl border border-zinc-700/60 bg-zinc-800/40 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="font-mono text-[15px] font-semibold text-zinc-100 tracking-[0.08em]">{c.code}</span>
+                      <GiftStatusBadge card={c} />
+                    </div>
+                    <p className="text-[14px] text-zinc-300 mt-1.5">{c.item_name}</p>
+                    <p className="text-[12px] text-zinc-500 mt-0.5">
+                      Para <span className="text-zinc-400">{c.recipient_name ?? '—'}</span>
+                      {c.recipient_email ? ` · ${c.recipient_email}` : ''}
+                      {c.purchaser_name ? ` · de ${c.purchaser_name}` : ''}
+                    </p>
+                    {c.message && <p className="text-[12px] text-zinc-500 italic mt-1">"{c.message}"</p>}
+                    <p className="text-[11px] text-zinc-600 mt-1.5">
+                      {euros(c.amount_cents)} · {left}/{c.total_sessions} sesiones disponibles
+                      {c.expires_at ? ` · caduca ${fmtDate(c.expires_at)}` : ''}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    {canUse && (
+                      <button
+                        onClick={() => act(c.id, 'use')}
+                        disabled={busyId === c.id}
+                        className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[12px] font-medium hover:bg-emerald-500/30 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {c.total_sessions > 1 ? 'Usar 1 sesión' : 'Marcar canjeado'}
+                      </button>
+                    )}
+                    {c.status === 'cancelled' ? (
+                      <button
+                        onClick={() => act(c.id, 'reactivate')}
+                        disabled={busyId === c.id}
+                        className="px-4 py-2 rounded-lg border border-zinc-700 text-[12px] text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        Reactivar
+                      </button>
+                    ) : c.status !== 'redeemed' && (
+                      <button
+                        onClick={() => act(c.id, 'cancel')}
+                        disabled={busyId === c.id}
+                        className="px-4 py-2 rounded-lg border border-zinc-700 text-[12px] text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        Cancelar
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -354,7 +501,7 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<AdminData | null>(null)
-  const [tab, setTab] = useState<'pedidos' | 'citas' | 'stock'>('pedidos')
+  const [tab, setTab] = useState<'pedidos' | 'citas' | 'stock' | 'vales'>('pedidos')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
 
   const fetchData = useCallback(async (pwd: string) => {
@@ -449,6 +596,7 @@ export default function AdminPage() {
   const TABS = [
     { id: 'pedidos', label: 'Pedidos', count: data?.orders.length ?? 0 },
     { id: 'citas',   label: 'Citas',   count: (data?.appointments.length ?? 0) + (data?.bookings.length ?? 0) },
+    { id: 'vales',   label: 'Vales regalo', count: data?.giftCards?.length ?? 0 },
     { id: 'stock',   label: 'Stock',   count: data?.products.length ?? 0 },
   ] as const
 
@@ -526,6 +674,7 @@ export default function AdminPage() {
           <>
             {tab === 'pedidos' && <PedidosTab orders={data.orders} />}
             {tab === 'citas'   && <CitasTab appointments={data.appointments} bookings={data.bookings} />}
+            {tab === 'vales'   && <ValesTab giftCards={data.giftCards ?? []} pw={savedPw} onChanged={() => fetchData(savedPw)} />}
             {tab === 'stock'   && <StockTab products={data.products} />}
           </>
         )}

@@ -283,6 +283,7 @@ export default function Rituales() {
                                   vol: isPack && ritual.pack ? `${ritual.pack.sessions} sesiones · 60 min c/u` : ritual.duration,
                                   image_url: ritual.image,
                                   stripe: ritual.color,
+                                  sessions: isPack && ritual.pack ? ritual.pack.sessions : 1,
                                 })}
                                 className="group inline-flex items-center justify-center gap-2 w-full py-3 text-cream-50 text-sm font-medium rounded-full transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-[0.97] will-change-transform cursor-pointer"
                                 style={{ background: ritual.color, transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}

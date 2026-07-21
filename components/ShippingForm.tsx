@@ -7,10 +7,10 @@ import { useCart } from '@/lib/cartContext'
 import { formatPrice } from '@/lib/format'
 import { getShippingCents } from '@/lib/shipping'
 import QueviLogo from '@/components/QueviLogo'
-import type { ShippingDetails } from '@/app/checkout/page'
+import type { ShippingDetails, GiftDetails } from '@/app/checkout/page'
 
 interface Props {
-  onConfirmed: (details: ShippingDetails) => void
+  onConfirmed: (details: ShippingDetails, gift: GiftDetails) => void
   loading: boolean
   error: string | null
 }
@@ -25,14 +25,21 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
   const [form, setForm] = useState<ShippingDetails>({
     name: '', email: '', phone: '', address: '', city: '', postalCode: '', country: 'ES',
   })
+  const [gift, setGift] = useState<GiftDetails>({
+    isGift: false, recipientName: '', recipientEmail: '', message: '',
+  })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  function handleGiftChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    setGift((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onConfirmed(form)
+    onConfirmed(form, gift)
   }
 
   const inputClass = 'w-full border border-cream-400 bg-cream-50 rounded-lg px-4 py-3 text-sm text-carbon-900 placeholder:text-carbon-400 focus:outline-none focus:border-brand-600 transition-colors'
@@ -58,7 +65,45 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
           <input name="email" type="email" required value={form.email} onChange={handleChange}
             placeholder="Correo electrónico" className={inputClass} />
 
-          <h2 className="font-serif text-[24px] font-normal text-carbon-900 pt-4 mb-2">Entrega</h2>
+          {/* Gift toggle */}
+          <label
+            className="flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-colors mt-1"
+            style={{
+              borderColor: gift.isGift ? '#355539' : '#ddd8cc',
+              background: gift.isGift ? 'rgba(213,226,214,0.35)' : '#fdfcfa',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={gift.isGift}
+              onChange={(e) => setGift((prev) => ({ ...prev, isGift: e.target.checked }))}
+              className="mt-0.5 accent-brand-600 w-4 h-4"
+            />
+            <span className="flex-1">
+              <span className="text-sm font-medium text-carbon-900 flex items-center gap-1.5">
+                🎁 Es un regalo
+              </span>
+              <span className="block text-[12px] text-carbon-500 mt-0.5">
+                Enviaremos un vale con un código único a la persona que elijas. Podrá canjearlo en clínica.
+              </span>
+            </span>
+          </label>
+
+          {gift.isGift && (
+            <div className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/50 p-4">
+              <p className="text-[11px] tracking-[0.14em] uppercase text-brand-700 font-medium">Datos del destinatario</p>
+              <input name="recipientName" required value={gift.recipientName} onChange={handleGiftChange}
+                placeholder="Nombre de quien recibe el regalo" className={inputClass} />
+              <input name="recipientEmail" type="email" required value={gift.recipientEmail} onChange={handleGiftChange}
+                placeholder="Email de quien recibe el regalo" className={inputClass} />
+              <textarea name="message" value={gift.message} onChange={handleGiftChange} rows={3}
+                placeholder="Mensaje personal (opcional)" className={inputClass + ' resize-none'} />
+            </div>
+          )}
+
+          <h2 className="font-serif text-[24px] font-normal text-carbon-900 pt-4 mb-2">
+            {gift.isGift ? 'Datos de facturación' : 'Entrega'}
+          </h2>
 
           <select name="country" required value={form.country} onChange={handleChange} className={inputClass}>
             <option value="ES">España</option>
@@ -72,19 +117,19 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <input name="name" required value={form.name} onChange={handleChange}
-              placeholder="Nombre completo" className={inputClass} />
+              placeholder="Tu nombre completo" className={inputClass} />
             <input name="phone" type="tel" value={form.phone} onChange={handleChange}
               placeholder="Teléfono" className={inputClass} />
           </div>
 
-          <input name="address" required value={form.address} onChange={handleChange}
-            placeholder="Dirección" className={inputClass} />
+          <input name="address" required={!gift.isGift} value={form.address} onChange={handleChange}
+            placeholder={gift.isGift ? 'Dirección (opcional)' : 'Dirección'} className={inputClass} />
 
           <div className="grid grid-cols-2 gap-3">
-            <input name="postalCode" required value={form.postalCode} onChange={handleChange}
-              placeholder="Código postal" className={inputClass} />
-            <input name="city" required value={form.city} onChange={handleChange}
-              placeholder="Ciudad" className={inputClass} />
+            <input name="postalCode" required={!gift.isGift} value={form.postalCode} onChange={handleChange}
+              placeholder={gift.isGift ? 'Código postal (opcional)' : 'Código postal'} className={inputClass} />
+            <input name="city" required={!gift.isGift} value={form.city} onChange={handleChange}
+              placeholder={gift.isGift ? 'Ciudad (opcional)' : 'Ciudad'} className={inputClass} />
           </div>
 
           {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}

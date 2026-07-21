@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@supabase/supabase-js'
-import { sendOrderEmails } from '@/lib/orderEmails'
+import { sendOrderEmails, sendGiftEmails, type GiftCardEmail } from '@/lib/orderEmails'
+import { generateGiftCode } from '@/lib/giftCode'
 import type Stripe from 'stripe'
 
 export const dynamic = 'force-dynamic'
@@ -103,6 +104,56 @@ export async function POST(request: Request) {
           },
         })
         if (error) console.error('[webhook/stripe] Order insert error:', error)
+
+        // ── Vales regalo: generar un código por unidad y avisar al destinatario ──
+        if (meta.is_gift === '1' && meta.gift_recipient_email) {
+          try {
+            const expiresAt = new Date()
+            expiresAt.setMonth(expiresAt.getMonth() + 12)
+
+            const cards: GiftCardEmail[] = []
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const rows: any[] = []
+
+            for (const it of items) {
+              const qty = Math.max(1, Number(it.quantity) || 1)
+              const sessions = Math.max(1, Number(it.sessions) || 1)
+              for (let n = 0; n < qty; n++) {
+                const code = generateGiftCode()
+                cards.push({ code, itemName: it.name, totalSessions: sessions, expiresAt: expiresAt.toISOString() })
+                rows.push({
+                  code,
+                  item_name: it.name,
+                  item_slug: it.slug ?? null,
+                  amount_cents: Number(it.priceCents) || 0,
+                  total_sessions: sessions,
+                  sessions_used: 0,
+                  status: 'active',
+                  purchaser_name: meta.shipping_name ?? '',
+                  purchaser_email: meta.shipping_email ?? '',
+                  recipient_name: meta.gift_recipient_name ?? '',
+                  recipient_email: meta.gift_recipient_email,
+                  message: meta.gift_message ?? '',
+                  stripe_payment_intent_id: pi.id,
+                  expires_at: expiresAt.toISOString(),
+                })
+              }
+            }
+
+            const { error: giftErr } = await supabase.from('gift_cards').insert(rows)
+            if (giftErr) console.error('[webhook/stripe] Gift card insert error:', giftErr)
+
+            await sendGiftEmails({
+              purchaserName: meta.shipping_name ?? '',
+              recipientName: meta.gift_recipient_name ?? '',
+              recipientEmail: meta.gift_recipient_email,
+              message: meta.gift_message || undefined,
+              cards,
+            })
+          } catch (err) {
+            console.error('[webhook/stripe] Failed generating gift cards:', err)
+          }
+        }
 
         // Emails de confirmación (comprador + clínica) — solo en pedidos nuevos
         if (meta.shipping_email) {

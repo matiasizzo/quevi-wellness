@@ -85,6 +85,7 @@ export default function Footer() {
                 { label: 'Tratamientos', href: '/tratamientos' },
                 { label: 'Rituales de Firma', href: '/rituales' },
                 { label: 'Reservar cita', href: '/#booking' },
+                { label: 'Comprobar vale regalo', href: '/vale' },
                 { label: 'Mi cuenta', href: '/cuenta' },
                 { label: 'Journal', href: '/blog' },
               ].map((l) => (

@@ -11,6 +11,8 @@ export type CartItem = {
   image_url: string | null
   stripe: string
   quantity: number
+  /** Nº de sesiones que incluye (bonos). Por defecto 1. Usado en vales regalo. */
+  sessions?: number
 }
 
 export type Coupon = {
