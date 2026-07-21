@@ -20,6 +20,7 @@ type ProductDetail = {
   dosage: string | null
   frequency: string | null
   storage: string | null
+  precautions: string | null
   skin_type: string[] | null
   volume_ml: number | null
   image_url: string | null
@@ -51,8 +52,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
         const { data, error } = await supabase
           .from('products')
           .select(`
-            id, slug, name, tagline, description, ingredients, usage_instructions,
-            dosage, frequency, storage, skin_type, volume_ml, image_url,
+            *,
             product_variants (price_cents, compare_at_cents, is_default, active)
           `)
           .eq('slug', slug)
@@ -77,6 +77,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           dosage: p.dosage,
           frequency: p.frequency,
           storage: p.storage,
+          precautions: p.precautions ?? null,
           skin_type: p.skin_type,
           volume_ml: p.volume_ml,
           image_url: p.image_url,
@@ -126,6 +127,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     { title: 'Dosis y frecuencia', content: [product.dosage, product.frequency].filter(Boolean).join(' · ') || null },
     { title: 'Ingredientes', content: product.ingredients },
     { title: 'Conservación', content: product.storage },
+    { title: 'Precauciones', content: product.precautions },
   ].filter((s) => s.content)
 
   return (

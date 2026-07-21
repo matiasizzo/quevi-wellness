@@ -177,7 +177,7 @@ function ProductosTab() {
           const price = defaultVariant ? defaultVariant.price_cents / 100 : 0
           const was = defaultVariant?.compare_at_cents ? defaultVariant.compare_at_cents / 100 : null
           const tipo = p.slug.includes('mousse') || p.slug.includes('limpi') ? 'limpiador'
-            : p.slug.includes('oil') || p.slug.includes('aceite') ? 'aceite'
+            : p.slug.includes('oil') || p.slug.includes('aceite') || p.slug.includes('relief') ? 'aceite'
             : 'serum'
           return {
             id: p.id,
