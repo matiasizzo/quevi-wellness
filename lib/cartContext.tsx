@@ -18,6 +18,8 @@ export type CartItem = {
 export type Coupon = {
   code: string
   percent: number
+  /** Ámbito del cupón: toda la web ('all') o solo productos ('products'). */
+  scope?: 'all' | 'products'
 }
 
 type CartContextType = {

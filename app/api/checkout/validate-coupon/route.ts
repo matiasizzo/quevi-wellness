@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('discount_codes')
-    .select('code, discount_percent, max_uses, uses')
+    .select('code, discount_percent, max_uses, uses, scope')
     .eq('code', code.trim().toUpperCase())
     .eq('active', true)
     .single()
@@ -34,5 +34,6 @@ export async function POST(req: NextRequest) {
     valid: true,
     code: data.code,
     discountPercent: data.discount_percent,
+    scope: data.scope === 'products' ? 'products' : 'all',
   })
 }

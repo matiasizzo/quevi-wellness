@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useCart } from '@/lib/cartContext'
 import { FREE_SHIPPING_THRESHOLD_CENTS } from '@/lib/shipping'
+import { couponDiscount, eligibleSubtotal } from '@/lib/discount'
 
 function priceFmt(n: number) {
   return n.toFixed(2).replace('.', ',') + ' €'
@@ -20,7 +21,10 @@ export default function CartDrawer() {
   const freeShippingThreshold = FREE_SHIPPING_THRESHOLD_CENTS / 100
   const remainingForFree = Math.max(0, freeShippingThreshold - total)
   const shippingProgress = Math.min(100, (total / freeShippingThreshold) * 100)
-  const discount = coupon ? (total * coupon.percent) / 100 : 0
+  const discount = couponDiscount(items, coupon)
+  // Cupón solo-productos aplicado pero sin productos elegibles en el carrito
+  const couponNoEligible =
+    !!coupon && (coupon.scope ?? 'all') === 'products' && eligibleSubtotal(items, 'products') === 0
 
   async function applyCoupon(e: React.FormEvent) {
     e.preventDefault()
@@ -35,7 +39,7 @@ export default function CartDrawer() {
       })
       const data = await res.json()
       if (data.valid) {
-        setCoupon({ code: data.code, percent: data.discountPercent })
+        setCoupon({ code: data.code, percent: data.discountPercent, scope: data.scope })
         setCouponInput('')
       } else {
         setCouponError(data.error ?? 'Código no válido')
@@ -235,16 +239,26 @@ export default function CartDrawer() {
 
                 {/* Coupon */}
                 {coupon ? (
-                  <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200">
-                    <span className="text-[12px] text-brand-700">
-                      <strong>{coupon.code}</strong> · −{coupon.percent}%
-                    </span>
-                    <button
-                      onClick={() => setCoupon(null)}
-                      className="text-[11px] text-carbon-400 underline underline-offset-2 hover:text-carbon-700 transition-colors"
-                    >
-                      Quitar
-                    </button>
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200">
+                      <span className="text-[12px] text-brand-700">
+                        <strong>{coupon.code}</strong> · −{coupon.percent}%
+                        {(coupon.scope ?? 'all') === 'products' && (
+                          <span className="text-brand-500"> · solo productos</span>
+                        )}
+                      </span>
+                      <button
+                        onClick={() => setCoupon(null)}
+                        className="text-[11px] text-carbon-400 underline underline-offset-2 hover:text-carbon-700 transition-colors"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                    {couponNoEligible && (
+                      <p className="text-[11px] text-carbon-400 m-0 px-1">
+                        Este código solo aplica a productos de la tienda. Añade productos para usarlo.
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <form onSubmit={applyCoupon} className="flex flex-col gap-1.5">

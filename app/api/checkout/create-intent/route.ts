@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getStripe } from '@/lib/stripe'
 import { getShippingCents } from '@/lib/shipping'
+import { couponDiscountCents } from '@/lib/discount'
 import type { CartItem } from '@/lib/cartContext'
 
 interface ShippingDetails {
@@ -53,13 +54,14 @@ export async function POST(req: NextRequest) {
       const supabase = createClient(url, key, { auth: { persistSession: false } })
       const { data } = await supabase
         .from('discount_codes')
-        .select('code, discount_percent, max_uses, uses')
+        .select('code, discount_percent, max_uses, uses, scope')
         .eq('code', couponCode.trim().toUpperCase())
         .eq('active', true)
         .single()
 
       if (data && (data.max_uses === null || data.uses < data.max_uses)) {
-        discountCents = Math.round((subtotalCents * data.discount_percent) / 100)
+        const scope = data.scope === 'products' ? 'products' : 'all'
+        discountCents = couponDiscountCents(items, data.discount_percent, scope)
         appliedCoupon = data.code
       }
     }

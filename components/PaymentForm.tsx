@@ -8,6 +8,7 @@ import { PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useCart } from '@/lib/cartContext'
 import { formatPrice } from '@/lib/format'
 import { getShippingCents } from '@/lib/shipping'
+import { couponDiscountCents } from '@/lib/discount'
 import QueviLogo from '@/components/QueviLogo'
 import type { ShippingDetails } from '@/app/checkout/page'
 
@@ -27,7 +28,7 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
   const [paying, setPaying] = useState(false)
   const subtotal = Math.round(items.reduce((sum, i) => sum + i.price * 100 * i.quantity, 0))
   const shippingCents = getShippingCents(subtotal)
-  const discountCents = coupon ? Math.round((subtotal * coupon.percent) / 100) : 0
+  const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all') : 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
