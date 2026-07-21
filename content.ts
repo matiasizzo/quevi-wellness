@@ -547,10 +547,10 @@ export const RITUALES: Ritual[] = [
     ],
     homeCare: [
       {
-        name: 'D-Rescue Serum',
-        vol: '20 ml',
-        desc: 'Bio-regeneración intensiva con PDRN, SOD y vitamina E — el sistema de auxilio para acelerar la recuperación de la piel tras el esfuerzo.',
-        image: '/images/rituales/d-rescue-serum.jpg',
+        name: 'D-Active Relief Cream-Oil',
+        vol: '150 ml',
+        desc: 'Crema-aceite de fitoterapia clínica — Árnica, Gaultheria, Eucalipto, Menta e Hipérico — para prolongar el efecto analgésico y descontracturante en casa.',
+        image: '/images/rituales/d-active-relief.jpg',
       },
     ],
   },
@@ -586,14 +586,29 @@ export const RITUALES: Ritual[] = [
     ],
     homeCare: [
       {
-        name: 'D-AOX Oil',
-        vol: '20 ml',
-        desc: 'Aceite antioxidante de grado clínico para prolongar el masaje drenante en casa.',
-        image: '/images/rituales/d-aox-oil.jpg',
+        name: 'D-Zen Harmony Oil',
+        vol: '150 ml',
+        desc: 'Aceite de masaje Face & Body con lavanda, bergamota, ylang-ylang e incienso — para prolongar el masaje drenante y la relajación en casa.',
+        image: '/images/rituales/d-zen-harmony-oil.jpg',
       },
     ],
   },
 ]
+
+/**
+ * Ritual en el que se recomienda cada producto de la tienda.
+ * Clave: slug del producto en Supabase → ritual de /rituales.
+ */
+export const PRODUCT_RITUAL: Record<string, { ritualId: string; ritualName: string }> = {
+  'd-purifying-mousse':  { ritualId: 'd-purifying',   ritualName: 'Ritual Facial D-Purifying' },
+  'd-purifying-serum':   { ritualId: 'd-purifying',   ritualName: 'Ritual Facial D-Purifying' },
+  'd-longevity-mousse':  { ritualId: 'd-longevity',   ritualName: 'Ritual Facial D-Longevity' },
+  'd-rescue-serum':      { ritualId: 'd-longevity',   ritualName: 'Ritual Facial D-Longevity' },
+  'd-evenglow-serum':    { ritualId: 'd-evenglow',    ritualName: 'Ritual Facial D-Evenglow' },
+  'd-aox-oil':           { ritualId: 'zen-harmony',   ritualName: 'D-Zen Harmony' },
+  'd-zen-harmony-oil':   { ritualId: 'relax-piernas', ritualName: 'D-Relax Legs' },
+  'd-active-relief':     { ritualId: 'active-relief', ritualName: 'D-Active Relief' },
+}
 
 export const SELLO_DALLO = {
   title: "El Sello Dall'O: Cuidado In & Out",

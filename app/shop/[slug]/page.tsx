@@ -8,6 +8,7 @@ import Footer from '@/components/Footer'
 import PackSVG from '@/components/PackSVG'
 import { supabase } from '@/lib/supabase'
 import { useCart } from '@/lib/cartContext'
+import { PRODUCT_RITUAL } from '@/content'
 
 type ProductDetail = {
   id: string
@@ -248,6 +249,37 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               <p className="text-[12px] text-carbon-400 m-0">
                 Envío gratuito a partir de 80 € · Devoluciones en 14 días (producto precintado)
               </p>
+
+              {/* Ritual en el que se recomienda este producto */}
+              {PRODUCT_RITUAL[product.slug] && (
+                <Link
+                  href={`/rituales#ritual-${PRODUCT_RITUAL[product.slug].ritualId}`}
+                  className="group flex items-center justify-between gap-4 p-4 rounded-2xl border border-brand-300 bg-brand-100/60 transition-all duration-200 hover:border-brand-600 hover:bg-brand-100"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="flex-shrink-0 w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f9f7f3" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3v2M12 19v2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M3 12h2M19 12h2M5.6 18.4 7 17M17 7l1.4-1.4" />
+                        <circle cx="12" cy="12" r="4" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0">
+                      <span className="block text-[10px] tracking-[0.16em] uppercase text-brand-700 font-medium">
+                        Incluido en el ritual
+                      </span>
+                      <span className="block text-[14px] font-serif font-medium text-carbon-900 truncate">
+                        {PRODUCT_RITUAL[product.slug].ritualName}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="flex-shrink-0 inline-flex items-center gap-1.5 text-[12px] font-medium text-brand-700 group-hover:translate-x-0.5 transition-transform">
+                    Ver ritual
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                    </svg>
+                  </span>
+                </Link>
+              )}
 
               {/* Detail accordion sections */}
               {detailSections.length > 0 && (

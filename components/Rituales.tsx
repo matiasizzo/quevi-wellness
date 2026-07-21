@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Clock, Sparkles } from 'lucide-react'
@@ -22,6 +22,18 @@ export default function Rituales() {
   // Para rituales con bono: qué opción está seleccionada ('single' | 'pack')
   const [packChoice, setPackChoice] = useState<Record<string, 'single' | 'pack'>>({})
   const { addItem } = useCart()
+
+  // Deep-link: /rituales#ritual-<id> abre y centra ese ritual
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash.startsWith('#ritual-')) return
+    const id = hash.replace('#ritual-', '')
+    if (!RITUALES.some((r) => r.id === id)) return
+    setOpenId(id)
+    setTimeout(() => {
+      document.getElementById(`ritual-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 150)
+  }, [])
 
   return (
     <section id="rituales" className="py-28 bg-cream-300 overflow-hidden">
@@ -69,6 +81,7 @@ export default function Rituales() {
             return (
               <motion.div
                 key={ritual.id}
+                id={`ritual-${ritual.id}`}
                 variants={scaleIn}
                 className={`rounded-3xl border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] overflow-hidden will-change-transform bg-cream-100 ${
                   isOpen
@@ -79,6 +92,7 @@ export default function Rituales() {
                   borderColor: isOpen ? ritual.color : '#ddd8cc',
                   borderTopWidth: 3,
                   borderTopColor: ritual.color,
+                  scrollMarginTop: 90,
                 }}
               >
                 {/* Card header — always visible */}
