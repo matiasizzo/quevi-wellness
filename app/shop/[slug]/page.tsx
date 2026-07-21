@@ -247,7 +247,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
               </div>
 
               <p className="text-[12px] text-carbon-400 m-0">
-                Envío gratuito a partir de 80 € · Devoluciones en 14 días (producto precintado)
+                Envío gratuito a partir de 50 € · Devoluciones en 14 días (producto precintado)
               </p>
 
               {/* Ritual en el que se recomienda este producto */}

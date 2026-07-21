@@ -20,7 +20,7 @@ export default function TerminosPage() {
       <h2>2. Productos y precios</h2>
       <p>
         Los precios se muestran en euros (€) e incluyen IVA. Los gastos de envío se calculan antes del
-        pago: envío estándar 4,95 €, <strong>gratuito a partir de 80 €</strong> de compra. Nos
+        pago: envío estándar 4,95 €, <strong>gratuito a partir de 50 €</strong> de compra. Nos
         reservamos el derecho de corregir errores tipográficos evidentes en precios; en tal caso, te
         contactaremos antes de procesar el pedido.
       </p>
