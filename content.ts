@@ -171,7 +171,7 @@ export const TREATMENTS: TreatmentCategory[] = [
       {
         name: 'Remodelación Facial con Ácido Hialurónico',
         desc: 'Restaura el contorno facial con naturalidad y precisión: redefine el óvalo y mejora la textura y elasticidad cutánea.',
-        image: '/images/tratamientos/hialuronico.jpg',
+        image: '/images/tratamientos/hialuronico-v2.jpg',
         detail: {
           duration: '30–60 minutos',
           anesthesia: 'Local o infiltrativa',
@@ -196,7 +196,7 @@ export const TREATMENTS: TreatmentCategory[] = [
       {
         name: 'Plasma Concentrado en Plaquetas (PRP)',
         desc: 'Tratamiento regenerativo: plasma de tu propia sangre, rico en factores de crecimiento que estimulan la regeneración de piel, articulaciones y cabello.',
-        image: '/images/tratamientos/prp.jpg',
+        image: '/images/tratamientos/prp-v2.jpg',
         detail: {
           application: 'Microinyecciones intradérmicas con pápulas.',
           duration: '30–60 minutos',
