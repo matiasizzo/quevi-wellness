@@ -565,7 +565,7 @@ export const RITUALES: Ritual[] = [
     priceEur: 100,
     pack: { sessions: 10, priceEur: 800 },
     color: '#b06e52',
-    image: '/images/rituales/cover-piernas.jpg',
+    image: '/images/rituales/cover-piernas-v2.jpg',
     results: [
       'Ligereza inmediata y alivio de la pesadez',
       'Menos retención de líquidos y fatiga muscular borrada de golpe',
