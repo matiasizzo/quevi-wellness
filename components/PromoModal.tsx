@@ -86,7 +86,7 @@ export default function PromoModal() {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -101,14 +101,14 @@ export default function PromoModal() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-full max-w-[820px] max-h-[92vh] overflow-y-auto rounded-[28px] shadow-2xl"
+            className="relative w-full max-w-[820px] max-h-[90vh] overflow-y-auto rounded-[22px] sm:rounded-[28px] shadow-2xl"
             style={{ background: '#f5f2ec' }}
           >
             {/* Cerrar */}
             <button
               onClick={close}
               aria-label="Cerrar promoción"
-              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 hover:rotate-90"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center transition-all duration-200 hover:rotate-90"
               style={{ background: 'rgba(245,242,236,0.92)', border: '1px solid #ddd8cc' }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#23261f" strokeWidth="1.7" strokeLinecap="round">
@@ -117,7 +117,7 @@ export default function PromoModal() {
             </button>
 
             {/* Cabecera */}
-            <div className="relative overflow-hidden px-7 sm:px-10 pt-10 pb-7 text-center" style={{ background: '#355539' }}>
+            <div className="relative overflow-hidden px-5 sm:px-10 pt-6 pb-5 sm:pt-10 sm:pb-7 text-center" style={{ background: '#355539' }}>
               <div
                 className="absolute pointer-events-none"
                 style={{ top: '-140px', right: '-90px', width: '380px', height: '380px', borderRadius: '50%', background: 'rgba(233,196,120,0.20)', filter: 'blur(70px)' }}
@@ -128,61 +128,64 @@ export default function PromoModal() {
               />
               <div className="relative">
                 <span
-                  className="inline-block px-4 py-1.5 rounded-full text-[10px] tracking-[0.24em] uppercase mb-4"
+                  className="inline-block px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.24em] uppercase mb-2.5 sm:mb-4"
                   style={{ color: '#f5f2ec', background: 'rgba(245,242,236,0.12)', border: '1px solid rgba(245,242,236,0.24)' }}
                 >
                   Verano 2026 · Plazas limitadas
                 </span>
                 <h2
                   id="promo-title"
-                  className="font-serif font-normal leading-[1.06] tracking-[-0.015em] m-0 mb-3 text-balance"
-                  style={{ fontSize: 'clamp(30px, 4.4vw, 46px)', color: '#f9f7f3' }}
+                  className="font-serif font-normal leading-[1.06] tracking-[-0.015em] m-0 mb-2 sm:mb-3 text-balance"
+                  style={{ fontSize: 'clamp(24px, 6.4vw, 46px)', color: '#f9f7f3' }}
                 >
                   Disfruta el verano <em className="italic" style={{ color: '#e9c478' }}>en QUEVI</em>
                 </h2>
-                <p className="text-[14px] sm:text-[15px] leading-[1.6] m-0 mx-auto max-w-[440px]" style={{ color: '#c9d8c9' }}>
-                  Dos rituales pensados para el calor — piernas ligeras y piel luminosa — con un
-                  <strong style={{ color: '#f9f7f3' }}> 20% de descuento</strong> durante toda la temporada.
+                <p className="text-[12.5px] sm:text-[15px] leading-[1.5] sm:leading-[1.6] m-0 mx-auto max-w-[440px]" style={{ color: '#c9d8c9' }}>
+                  Piernas ligeras y piel luminosa, con un
+                  <strong style={{ color: '#f9f7f3' }}> 20% de descuento</strong> toda la temporada.
                 </p>
               </div>
             </div>
 
             {/* Rituales */}
-            <div className="px-5 sm:px-8 py-7">
-              <div className="grid sm:grid-cols-2 gap-4">
+            <div className="px-4 sm:px-8 py-5 sm:py-7">
+              <div className="grid sm:grid-cols-2 gap-2.5 sm:gap-4">
                 {PROMO_ITEMS.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
                     onClick={close}
-                    className="group flex flex-col rounded-2xl overflow-hidden border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+                    className="group flex flex-row sm:flex-col rounded-2xl overflow-hidden border transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
                     style={{ borderColor: '#ddd8cc', background: '#faf8f4' }}
                   >
-                    <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/10' }}>
+                    <div className="relative flex-none w-[104px] sm:w-full aspect-square sm:aspect-[16/10] overflow-hidden">
                       <Image
                         src={item.image}
                         alt={item.name}
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                        sizes="(max-width: 640px) 100vw, 380px"
+                        sizes="(max-width: 640px) 104px, 380px"
                       />
                       <span
-                        className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-semibold tracking-[0.1em] uppercase"
+                        className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-[0.08em] uppercase"
                         style={{ background: '#c4876a', color: '#fff' }}
                       >
                         −20%
                       </span>
                     </div>
-                    <div className="flex flex-col gap-1.5 p-4 flex-1">
-                      <h3 className="font-serif font-medium text-[17px] m-0 leading-[1.2]" style={{ color: '#23261f' }}>
+                    <div className="flex flex-col gap-0.5 sm:gap-1.5 px-3.5 py-2.5 sm:p-4 flex-1 min-w-0 justify-center sm:justify-start">
+                      <h3 className="font-serif font-medium text-[15.5px] sm:text-[17px] m-0 leading-[1.2]" style={{ color: '#23261f' }}>
                         {item.name}
                       </h3>
-                      <p className="text-[12.5px] leading-[1.55] m-0 flex-1" style={{ color: '#5b6152' }}>
+                      <p
+                        className="text-[11.5px] sm:text-[12.5px] leading-[1.4] sm:leading-[1.55] m-0 sm:flex-1 overflow-hidden"
+                        style={{ color: '#5b6152', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}
+                      >
                         {item.desc}
                       </p>
-                      <div className="flex items-baseline gap-2 mt-1.5">
-                        <span className="font-serif text-[20px] font-medium" style={{ color: '#355539' }}>{item.after} €</span>
-                        <span className="text-[13px] line-through" style={{ color: '#9a9585' }}>{item.before} €</span>
+                      <div className="flex items-baseline gap-2 mt-0.5 sm:mt-1.5">
+                        <span className="font-serif text-[18px] sm:text-[20px] font-medium" style={{ color: '#355539' }}>{item.after} €</span>
+                        <span className="text-[12px] sm:text-[13px] line-through" style={{ color: '#9a9585' }}>{item.before} €</span>
                       </div>
                     </div>
                   </Link>
@@ -191,39 +194,40 @@ export default function PromoModal() {
 
               {/* Código */}
               <div
-                className="mt-5 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left"
+                className="mt-3 sm:mt-5 rounded-2xl px-4 py-3 sm:p-5 flex flex-row items-center gap-3 sm:gap-4 text-left"
                 style={{ background: '#ede9e0', border: '1px dashed #c4876a' }}
               >
-                <div className="flex-1">
-                  <p className="text-[11px] tracking-[0.16em] uppercase m-0 mb-1.5" style={{ color: '#5b6152' }}>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[9.5px] sm:text-[11px] tracking-[0.14em] sm:tracking-[0.16em] uppercase m-0 mb-0.5 sm:mb-1.5" style={{ color: '#5b6152' }}>
                     Usa tu código al pagar
                   </p>
                   <button
                     onClick={copyCode}
-                    className="font-serif text-[24px] sm:text-[27px] tracking-[0.08em] transition-opacity hover:opacity-70 cursor-pointer bg-transparent border-0 p-0"
+                    className="font-serif text-[20px] sm:text-[27px] tracking-[0.06em] sm:tracking-[0.08em] transition-opacity hover:opacity-70 cursor-pointer bg-transparent border-0 p-0 text-left"
                     style={{ color: '#355539' }}
                     aria-label={`Copiar código ${PROMO_CODE}`}
                   >
                     {PROMO_CODE}
                   </button>
-                  <p className="text-[11.5px] m-0 mt-1" style={{ color: copied ? '#355539' : '#9a9585' }}>
-                    {copied ? '✓ Código copiado' : 'Toca el código para copiarlo'}
+                  <p className="text-[10px] sm:text-[11.5px] m-0 mt-0.5 sm:mt-1" style={{ color: copied ? '#355539' : '#9a9585' }}>
+                    {copied ? '✓ Código copiado' : 'Tócalo para copiarlo'}
                   </p>
                 </div>
                 <Link
                   href="/rituales"
                   onClick={close}
-                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-[13px] font-medium transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap"
+                  className="flex-none inline-flex items-center gap-1.5 sm:gap-2 px-4 py-2.5 sm:px-7 sm:py-3.5 rounded-full text-[12px] sm:text-[13px] font-medium transition-all duration-200 hover:-translate-y-0.5 whitespace-nowrap"
                   style={{ background: '#355539', color: '#f9f7f3' }}
                 >
-                  Ver los rituales
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <span className="sm:hidden">Ver</span>
+                  <span className="hidden sm:inline">Ver los rituales</span>
+                  <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                   </svg>
                 </Link>
               </div>
 
-              <p className="text-[11px] text-center m-0 mt-4" style={{ color: '#9a9585' }}>
+              <p className="text-[9.5px] sm:text-[11px] text-center m-0 mt-2.5 sm:mt-4 leading-[1.45]" style={{ color: '#9a9585' }}>
                 Descuento aplicable a los rituales D-Relax Legs y D-Bio Lumina. No acumulable con otras promociones.
               </p>
             </div>
