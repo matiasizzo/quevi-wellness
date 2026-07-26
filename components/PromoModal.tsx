@@ -19,16 +19,16 @@ const PROMO_ITEMS = [
     desc: 'Piernas ligeras: drenaje, presoterapia y adiós a la pesadez del calor.',
     image: '/images/rituales/cover-piernas-v2.jpg',
     href: '/rituales#ritual-relax-piernas',
-    before: 100,
-    after: 80,
+    before: 125,
+    after: 100,
   },
   {
     name: 'D-Bio Lumina',
     desc: 'Efecto glow: higiene de precisión, Ellegance y fototerapia LED. Bruma incluida.',
     image: '/images/rituales/cover-biolumina.jpg',
     href: '/rituales#ritual-bio-lumina',
-    before: 100,
-    after: 80,
+    before: 125,
+    after: 100,
   },
 ]
 

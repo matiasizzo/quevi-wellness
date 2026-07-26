@@ -291,7 +291,9 @@ export default function Rituales() {
                               <button
                                 onClick={() => addItem({
                                   id: isPack ? `ritual-${ritual.id}-pack` : `ritual-${ritual.id}`,
-                                  slug: ritual.id,
+                                  // El bono lleva slug propio para que las promos por ritual
+                                  // (ej. VERANOQUEVI) no descuenten también sobre el pack.
+                                  slug: isPack ? `${ritual.id}-pack` : ritual.id,
                                   name: isPack && ritual.pack ? `${ritual.name} — Bono ${ritual.pack.sessions} sesiones` : ritual.name,
                                   price,
                                   vol: isPack && ritual.pack ? `${ritual.pack.sessions} sesiones · 60 min c/u` : ritual.duration,
