@@ -555,6 +555,44 @@ export const RITUALES: Ritual[] = [
     ],
   },
   {
+    id: 'bio-lumina',
+    badge: 'Ritual Facial · Glow',
+    name: 'Ritual D-Bio Lumina',
+    tagline: 'Efecto glow y longevidad',
+    description:
+      'Poros purificados, piel hidratada y barrera cutánea protegida. Cuarenta minutos en cabina que combinan higiene de alta precisión, tecnología Ellegance y fototerapia LED para devolver la luz a la piel — con la bruma Home Care incluida para continuar en casa.',
+    duration: '40 minutos',
+    priceEur: 100,
+    color: '#c9a227',
+    image: '/images/rituales/cover-biolumina.jpg',
+    results: [
+      'Poros purificados y piel visiblemente hidratada',
+      'Barrera cutánea protegida y luminosidad recuperada',
+    ],
+    phases: [
+      {
+        title: 'Higiene y activación de la piel — 10 min',
+        desc: 'Limpieza profunda y oxigenación de alta precisión mediante vapor, hidrosucción y renovación cutánea superficial. Preparamos la piel, eliminamos impurezas y reactivamos la receptividad celular sin interferencias causadas por la contaminación.',
+      },
+      {
+        title: 'Estimulación con tecnología Ellegance — 15 min',
+        desc: 'Aplicación combinada de vibración y tecnología infrarroja con hipertermia en el tejido facial para estimular el metabolismo celular, disminuir la inflamación sistémica y activar la síntesis natural de colágeno.',
+      },
+      {
+        title: 'Infusión Bio Lumina con LED — 15 min',
+        desc: 'Penetración profunda de principios activos mediante fototerapia LED focalizada, finalizando con el sellado y brumización de activos péptidos y botánicos. Acelera los mecanismos de autorreparación y neutraliza el estrés oxidativo.',
+      },
+    ],
+    homeCare: [
+      {
+        name: 'D-Hydrapeptide Hydration Oil-in-Mist',
+        vol: '150 ml',
+        desc: 'Bruma bifásica con ácido hialurónico, péptidos, agua de rosas, niacinamida y aceite de jojoba — incluida para prolongar el glow en casa.',
+        image: '/images/rituales/d-hydrapeptide.jpg',
+      },
+    ],
+  },
+  {
     id: 'relax-piernas',
     badge: 'Biohacking Muscular · Piernas',
     name: 'D-Relax Legs',

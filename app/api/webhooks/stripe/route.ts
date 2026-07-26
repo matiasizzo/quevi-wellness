@@ -105,6 +105,24 @@ export async function POST(request: Request) {
         })
         if (error) console.error('[webhook/stripe] Order insert error:', error)
 
+        // ── Contador de usos del cupón (permite medir promos y aplicar max_uses) ──
+        if (meta.coupon_code) {
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { data: dc } = await (supabase as any)
+              .from('discount_codes').select('uses').eq('code', meta.coupon_code).maybeSingle()
+            if (dc) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              await (supabase as any)
+                .from('discount_codes')
+                .update({ uses: (dc.uses ?? 0) + 1 })
+                .eq('code', meta.coupon_code)
+            }
+          } catch (e) {
+            console.error('[webhook/stripe] Coupon uses increment error:', e)
+          }
+        }
+
         // ── Vales regalo: generar un código por unidad y avisar al destinatario ──
         if (meta.is_gift === '1' && meta.gift_recipient_email) {
           try {

@@ -54,14 +54,14 @@ export async function POST(req: NextRequest) {
       const supabase = createClient(url, key, { auth: { persistSession: false } })
       const { data } = await supabase
         .from('discount_codes')
-        .select('code, discount_percent, max_uses, uses, scope')
+        .select('code, discount_percent, max_uses, uses, scope, applies_to_slugs')
         .eq('code', couponCode.trim().toUpperCase())
         .eq('active', true)
         .single()
 
       if (data && (data.max_uses === null || data.uses < data.max_uses)) {
         const scope = data.scope === 'products' ? 'products' : 'all'
-        discountCents = couponDiscountCents(items, data.discount_percent, scope)
+        discountCents = couponDiscountCents(items, data.discount_percent, scope, data.applies_to_slugs)
         appliedCoupon = data.code
       }
     }

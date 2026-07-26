@@ -22,9 +22,11 @@ export default function CartDrawer() {
   const remainingForFree = Math.max(0, freeShippingThreshold - total)
   const shippingProgress = Math.min(100, (total / freeShippingThreshold) * 100)
   const discount = couponDiscount(items, coupon)
-  // Cupón solo-productos aplicado pero sin productos elegibles en el carrito
+  // Cupón aplicado pero sin ítems elegibles en el carrito (solo-productos o promo concreta)
   const couponNoEligible =
-    !!coupon && (coupon.scope ?? 'all') === 'products' && eligibleSubtotal(items, 'products') === 0
+    !!coupon &&
+    items.length > 0 &&
+    eligibleSubtotal(items, coupon.scope ?? 'all', coupon.appliesTo) === 0
 
   async function applyCoupon(e: React.FormEvent) {
     e.preventDefault()
@@ -39,7 +41,7 @@ export default function CartDrawer() {
       })
       const data = await res.json()
       if (data.valid) {
-        setCoupon({ code: data.code, percent: data.discountPercent, scope: data.scope })
+        setCoupon({ code: data.code, percent: data.discountPercent, scope: data.scope, appliesTo: data.appliesTo })
         setCouponInput('')
       } else {
         setCouponError(data.error ?? 'Código no válido')
@@ -243,9 +245,11 @@ export default function CartDrawer() {
                     <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-brand-50 border border-brand-200">
                       <span className="text-[12px] text-brand-700">
                         <strong>{coupon.code}</strong> · −{coupon.percent}%
-                        {(coupon.scope ?? 'all') === 'products' && (
+                        {coupon.appliesTo && coupon.appliesTo.length > 0 ? (
+                          <span className="text-brand-500"> · promo seleccionada</span>
+                        ) : (coupon.scope ?? 'all') === 'products' ? (
                           <span className="text-brand-500"> · solo productos</span>
-                        )}
+                        ) : null}
                       </span>
                       <button
                         onClick={() => setCoupon(null)}
@@ -256,7 +260,7 @@ export default function CartDrawer() {
                     </div>
                     {couponNoEligible && (
                       <p className="text-[11px] text-carbon-400 m-0 px-1">
-                        Este código solo aplica a productos de la tienda. Añade productos para usarlo.
+                        Este código no aplica a lo que tienes en el carrito.
                       </p>
                     )}
                   </div>

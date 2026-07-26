@@ -76,6 +76,172 @@ function priceFmt(n: number) {
   return n.toFixed(2).replace('.', ',').replace(/,00$/, '')
 }
 
+// ── Suplementos tab ──
+type Supplement = {
+  id: string
+  slug: string
+  name: string
+  tagline: string | null
+  price: number
+  stock: number
+  image_url: string | null
+}
+
+function SuplementosTab() {
+  const [items, setItems] = useState<Supplement[]>([])
+  const [loading, setLoading] = useState(true)
+  const { addItem } = useCart()
+
+  useEffect(() => {
+    async function fetchSupplements() {
+      if (!supabase) { setLoading(false); return }
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: cats } = await (supabase as any)
+          .from('categories').select('id, slug').in('slug', ['nutri', 'suplementos'])
+        if (!cats?.length) { setLoading(false); return }
+        const catIds = (cats as Array<{ id: string }>).map((c) => c.id)
+
+        const { data } = await supabase
+          .from('products')
+          .select(`
+            id, name, slug, tagline, image_url,
+            product_variants (price_cents, is_default, active, stock_quantity)
+          `)
+          .eq('active', true)
+          .in('category_id', catIds)
+          .order('name', { ascending: true })
+
+        if (!data) { setLoading(false); return }
+
+        const mapped = (data as Array<{
+          id: string; name: string; slug: string; tagline: string | null; image_url: string | null
+          product_variants: Array<{ price_cents: number; is_default: boolean; active: boolean; stock_quantity: number }>
+        }>).map((p) => {
+          const v = p.product_variants?.find((x) => x.is_default && x.active) ?? p.product_variants?.find((x) => x.active)
+          return {
+            id: p.id, slug: p.slug, name: p.name, tagline: p.tagline,
+            price: v ? v.price_cents / 100 : 0,
+            stock: v?.stock_quantity ?? 0,
+            image_url: p.image_url ?? null,
+          }
+        })
+        setItems(mapped)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchSupplements()
+  }, [])
+
+  if (loading) {
+    return (
+      <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 pt-10 pb-20">
+        <div className="flex items-center justify-center py-20">
+          <span className="text-[14px] text-carbon-400 tracking-[0.06em]">Cargando suplementos…</span>
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 pt-10 pb-20">
+      <div className="mb-8 max-w-[620px]">
+        <span className="text-[10px] tracking-[0.22em] uppercase text-carbon-400 block mb-2">
+          Nutrición Avanzada · Dall&apos;O Selfcare
+        </span>
+        <h2 className="font-serif font-normal text-[28px] sm:text-[34px] text-carbon-900 m-0 mb-3 leading-[1.15]">
+          Suplementos de alta pureza biológica
+        </h2>
+        <p className="text-[14px] text-carbon-500 leading-[1.7] m-0">
+          Fórmulas que nutren la vitalidad desde el interior del organismo y ayudan al equilibrio
+          metabólico que se refleja en el exterior. Recomendamos valoración médica previa para
+          ajustar la pauta a tu diagnóstico.
+        </p>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="text-[14px] text-carbon-500">No hay suplementos disponibles en este momento.</p>
+      ) : (
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="grid gap-[14px] grid-cols-1 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4"
+        >
+          {items.map((p) => (
+            <motion.article
+              key={p.id}
+              variants={fadeUp}
+              className="group/card flex flex-col rounded-3xl overflow-hidden border border-cream-400 bg-cream-100 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-100/40 transition-[border-color,box-shadow,transform] duration-200"
+            >
+              <div
+                className="relative overflow-hidden flex items-center justify-center rounded-t-3xl"
+                style={{ aspectRatio: '1/1', background: '#ede9e0' }}
+              >
+                {p.image_url ? (
+                  <Image src={p.image_url} alt={p.name} fill className="object-contain p-6" sizes="(max-width: 768px) 50vw, 25vw" />
+                ) : (
+                  <PackSVG id={p.id} vol="" stripe="#5d8a52" name={p.name} code={p.slug.toUpperCase().slice(0, 10)} />
+                )}
+                {p.stock === 0 && (
+                  <span className="absolute top-[14px] left-[14px] px-[11px] py-[5px] rounded-full text-[10px] tracking-[0.12em] uppercase font-semibold bg-carbon-900 text-cream-100">
+                    Agotado
+                  </span>
+                )}
+                {p.price > 0 && p.stock > 0 && (
+                  <button
+                    onClick={() => addItem({ id: p.id, slug: p.slug, name: p.name, price: p.price, vol: '', image_url: p.image_url, stripe: '#5d8a52' })}
+                    className="absolute bottom-4 left-4 right-4 bg-cream-100 text-carbon-900 border border-cream-400 rounded-full py-3 px-[18px] text-[12px] font-medium tracking-[0.04em] flex items-center justify-center gap-2 opacity-100 translate-y-0 lg:opacity-0 lg:translate-y-[10px] lg:group-hover/card:opacity-100 lg:group-hover/card:translate-y-0 transition-all duration-[350ms] hover:bg-brand-600 hover:text-cream-100 hover:border-brand-600"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14" /><path d="M5 12h14" />
+                    </svg>
+                    Añadir al carrito
+                  </button>
+                )}
+              </div>
+              <div className="pt-4 pb-4 px-6 flex flex-col gap-1">
+                <span className="text-[10px] tracking-[0.18em] uppercase text-carbon-400 font-medium">
+                  Suplemento
+                  <span className="font-serif italic text-brand-700 tracking-[0.04em] font-normal text-[12px] ml-1 normal-case">· Dall&apos;O Selfcare</span>
+                </span>
+                <h3 className="font-serif font-medium text-[17px] tracking-tight text-carbon-900 m-0 leading-[1.2]">
+                  {p.name}
+                </h3>
+                {p.tagline && <p className="text-[12px] text-carbon-500 leading-[1.5] m-0 mt-0.5">{p.tagline}</p>}
+                <div className="flex items-baseline justify-between mt-1.5">
+                  <span className="font-serif font-medium text-[16px] text-carbon-900">
+                    {p.price > 0 ? `${priceFmt(p.price)} €` : 'Consultar precio'}
+                  </span>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </motion.div>
+      )}
+
+      <div className="mt-12 rounded-3xl border border-cream-400 bg-cream-200 p-7 sm:p-9 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+        <p className="text-[14px] text-carbon-500 leading-[1.65] m-0 flex-1">
+          ¿No sabes qué suplemento necesitas? El diagnóstico SKIN-SCAN incluye un mapa mineral
+          (OligoCheck) que permite ajustar la pauta a tu organismo.
+        </p>
+        <a
+          href="https://wa.me/34683462705?text=Hola%2C%20me%20gustar%C3%ADa%20informaci%C3%B3n%20sobre%20los%20suplementos%20nutricionales."
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-600 hover:text-cream-50 whitespace-nowrap"
+        >
+          Consultar en clínica
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+          </svg>
+        </a>
+      </div>
+    </section>
+  )
+}
+
 // ── Servicios tab ──
 function ServiciosTab() {
   const allItems = TREATMENTS.flatMap(cat => cat.items)
@@ -384,46 +550,13 @@ function ProductosTab() {
           ))}
         </motion.div>
 
-        {/* Nutrición Avanzada — suplementos (teaser) */}
-        <div className="mt-14 rounded-3xl border border-cream-400 bg-cream-200 p-7 sm:p-10 flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-brand-100 flex items-center justify-center">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#355539" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l7 7a5 5 0 0 1-7 7z" />
-              <path d="m8.5 8.5 7 7" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <span className="text-[10px] tracking-[0.22em] uppercase text-carbon-400 block mb-1.5">
-              Nutrición Avanzada · Dall&apos;O Selfcare
-            </span>
-            <h3 className="font-serif font-medium text-[22px] text-carbon-900 m-0 mb-2 leading-[1.2]">
-              Suplementos nutricionales de alta pureza biológica
-            </h3>
-            <p className="text-[14px] text-carbon-500 leading-[1.65] m-0">
-              Fórmulas que nutren la vitalidad desde el interior del organismo y ayudan
-              al equilibrio metabólico que se refleja en el exterior. Próximamente en la
-              tienda online — ya disponibles bajo prescripción en clínica.
-            </p>
-          </div>
-          <a
-            href="https://wa.me/34683462705?text=Hola%2C%20me%20gustar%C3%ADa%20informaci%C3%B3n%20sobre%20los%20suplementos%20nutricionales."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-600 hover:text-cream-50 whitespace-nowrap"
-          >
-            Consultar en clínica
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-            </svg>
-          </a>
-        </div>
       </section>
     </>
   )
 }
 
 export default function ShopPage() {
-  const [activeTab, setActiveTab] = useState<'productos' | 'servicios'>('productos')
+  const [activeTab, setActiveTab] = useState<'productos' | 'suplementos' | 'servicios'>('productos')
 
   return (
     <>
@@ -494,7 +627,7 @@ export default function ShopPage() {
         }}
       >
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-9 py-[14px] flex items-center gap-2">
-          {(['productos', 'servicios'] as const).map((tab) => (
+          {(['productos', 'suplementos', 'servicios'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -512,7 +645,9 @@ export default function ShopPage() {
       </div>
 
       {/* Tab content */}
-      {activeTab === 'productos' ? <ProductosTab /> : <ServiciosTab />}
+      {activeTab === 'productos' && <ProductosTab />}
+      {activeTab === 'suplementos' && <SuplementosTab />}
+      {activeTab === 'servicios' && <ServiciosTab />}
 
       {/* CTA strip */}
       <section

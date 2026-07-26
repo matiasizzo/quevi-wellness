@@ -20,6 +20,8 @@ export type Coupon = {
   percent: number
   /** Ámbito del cupón: toda la web ('all') o solo productos ('products'). */
   scope?: 'all' | 'products'
+  /** Si viene con valores, el cupón solo aplica a estos slugs concretos. */
+  appliesTo?: string[] | null
 }
 
 type CartContextType = {

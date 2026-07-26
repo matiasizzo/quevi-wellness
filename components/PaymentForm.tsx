@@ -28,7 +28,7 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
   const [paying, setPaying] = useState(false)
   const subtotal = Math.round(items.reduce((sum, i) => sum + i.price * 100 * i.quantity, 0))
   const shippingCents = getShippingCents(subtotal)
-  const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all') : 0
+  const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all', coupon.appliesTo) : 0
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

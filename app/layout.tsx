@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Cormorant_Garamond } from 'next/font/google'
 import { CartProvider } from '@/lib/cartContext'
 import CartDrawer from '@/components/CartDrawer'
 import CookieBanner from '@/components/CookieBanner'
+import PromoModal from '@/components/PromoModal'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import './globals.css'
 
@@ -128,6 +129,7 @@ export default function RootLayout({
           {children}
           <CartDrawer />
           <CookieBanner />
+          <PromoModal />
           <WhatsAppButton />
         </CartProvider>
       </body>

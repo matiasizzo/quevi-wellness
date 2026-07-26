@@ -20,7 +20,7 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
   const { items, coupon } = useCart()
   const subtotal = Math.round(items.reduce((sum, i) => sum + i.price * 100 * i.quantity, 0))
   const shippingCents = getShippingCents(subtotal)
-  const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all') : 0
+  const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all', coupon.appliesTo) : 0
   const total = Math.max(0, subtotal + shippingCents - discountCents)
 
   const [form, setForm] = useState<ShippingDetails>({
