@@ -562,7 +562,7 @@ export const RITUALES: Ritual[] = [
     description:
       'Poros purificados, piel hidratada y barrera cutánea protegida. Cuarenta minutos en cabina que combinan higiene de alta precisión, tecnología Ellegance y fototerapia LED para devolver la luz a la piel — con la bruma Home Care incluida para continuar en casa.',
     duration: '40 minutos',
-    priceEur: 125,
+    priceEur: 132,
     color: '#c9a227',
     image: '/images/rituales/cover-biolumina.jpg',
     results: [
@@ -600,7 +600,7 @@ export const RITUALES: Ritual[] = [
     description:
       'El ritual de biohacking muscular y linfático para piernas cansadas: reactiva la circulación, elimina la retención de líquidos, vacía toxinas y devuelve la ligereza inmediata a tus extremidades inferiores. En sesión única o bono de 10 sesiones.',
     duration: '60 minutos',
-    priceEur: 125,
+    priceEur: 132,
     pack: { sessions: 10, priceEur: 800 },
     color: '#b06e52',
     image: '/images/rituales/cover-piernas-v2.jpg',

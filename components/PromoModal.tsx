@@ -19,16 +19,16 @@ const PROMO_ITEMS = [
     desc: 'Piernas ligeras: drenaje, presoterapia y adiós a la pesadez del calor.',
     image: '/images/rituales/cover-piernas-v2.jpg',
     href: '/rituales#ritual-relax-piernas',
-    before: 125,
-    after: 100,
+    before: 132,
+    after: 99,
   },
   {
     name: 'D-Bio Lumina',
     desc: 'Efecto glow: higiene de precisión, Ellegance y fototerapia LED. Bruma incluida.',
     image: '/images/rituales/cover-biolumina.jpg',
     href: '/rituales#ritual-bio-lumina',
-    before: 125,
-    after: 100,
+    before: 132,
+    after: 99,
   },
 ]
 
@@ -142,7 +142,7 @@ export default function PromoModal() {
                 </h2>
                 <p className="text-[12.5px] sm:text-[15px] leading-[1.5] sm:leading-[1.6] m-0 mx-auto max-w-[440px]" style={{ color: '#c9d8c9' }}>
                   Piernas ligeras y piel luminosa, con un
-                  <strong style={{ color: '#f9f7f3' }}> 20% de descuento</strong> toda la temporada.
+                  <strong style={{ color: '#f9f7f3' }}> 25% de descuento</strong> toda la temporada.
                 </p>
               </div>
             </div>
@@ -170,7 +170,7 @@ export default function PromoModal() {
                         className="absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[9px] sm:text-[10px] font-semibold tracking-[0.08em] uppercase"
                         style={{ background: '#c4876a', color: '#fff' }}
                       >
-                        −20%
+                        −25%
                       </span>
                     </div>
                     <div className="flex flex-col gap-0.5 sm:gap-1.5 px-3.5 py-2.5 sm:p-4 flex-1 min-w-0 justify-center sm:justify-start">
