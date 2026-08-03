@@ -22,6 +22,7 @@ type ProductDetail = {
   frequency: string | null
   storage: string | null
   precautions: string | null
+  nutrition_facts: string | null
   skin_type: string[] | null
   volume_ml: number | null
   image_url: string | null
@@ -79,6 +80,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           frequency: p.frequency,
           storage: p.storage,
           precautions: p.precautions ?? null,
+          nutrition_facts: p.nutrition_facts ?? null,
           skin_type: p.skin_type,
           volume_ml: p.volume_ml,
           image_url: p.image_url,
@@ -126,6 +128,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const detailSections = [
     { title: 'Modo de uso', content: product.usage_instructions },
     { title: 'Dosis y frecuencia', content: [product.dosage, product.frequency].filter(Boolean).join(' · ') || null },
+    { title: 'Información nutricional', content: product.nutrition_facts },
     { title: 'Ingredientes', content: product.ingredients },
     { title: 'Conservación', content: product.storage },
     { title: 'Precauciones', content: product.precautions },
