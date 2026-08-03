@@ -262,7 +262,7 @@ function ServiciosTab() {
             </p>
             <div className="flex items-center justify-between mt-2 pt-4" style={{ borderTop: '1px solid #ddd8cc' }}>
               <span className="font-serif text-[15px] text-carbon-700 font-medium">
-                Consultar precio
+                {item.price ?? 'Consultar precio'}
               </span>
               <a
                 href="/#booking"

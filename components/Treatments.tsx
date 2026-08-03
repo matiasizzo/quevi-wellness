@@ -114,12 +114,22 @@ export default function Treatments() {
                           <p className="text-sm text-carbon-500 leading-relaxed m-0">
                             {t.desc}
                           </p>
-                          {t.detail.duration && (
-                            <div className="flex items-center gap-2 mt-1 text-carbon-400 text-xs">
-                              <Clock size={12} />
-                              <span>{t.detail.duration}</span>
-                            </div>
-                          )}
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-1">
+                            {t.detail.duration && (
+                              <span className="inline-flex items-center gap-2 text-carbon-400 text-xs">
+                                <Clock size={12} />
+                                {t.detail.duration}
+                              </span>
+                            )}
+                            {t.price && (
+                              <span
+                                className="font-serif text-[15px] font-medium"
+                                style={{ color: cat.color }}
+                              >
+                                {t.price}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="flex flex-col items-center gap-3 flex-shrink-0">
@@ -186,7 +196,9 @@ export default function Treatments() {
                               </svg>
                             </a>
                             <p className="text-xs text-carbon-400 leading-relaxed m-0 -mt-3">
-                              La seña se descuenta del precio final. El precio total se define tras la valoración médica.
+                              {t.price
+                                ? `Precio de referencia: ${t.price}. La seña se descuenta del importe final, que se confirma tras la valoración médica.`
+                                : 'La seña se descuenta del precio final. El precio total se define tras la valoración médica.'}
                             </p>
                           </div>
                         </motion.div>

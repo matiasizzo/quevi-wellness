@@ -140,6 +140,8 @@ export interface Treatment {
   name: string
   desc: string
   image: string
+  /** Precio de referencia en clínica. Si falta, se muestra "Consultar precio". */
+  price?: string
   detail: TreatmentDetail
 }
 
@@ -157,9 +159,10 @@ export const TREATMENTS: TreatmentCategory[] = [
     color: '#355539',
     items: [
       {
-        name: 'Neuromoduladores',
+        name: 'Neuromoduladores — 3 zonas',
         desc: 'Expresión serena y piel luminosa: atenúa las arrugas dinámicas reduciendo temporalmente la contracción muscular.',
         image: '/images/tratamientos/neuromoduladores.jpg',
+        price: '350 €',
         detail: {
           duration: '30 minutos',
           sessions: '1 sesión cada 3–6 meses',
@@ -172,6 +175,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Remodelación Facial con Ácido Hialurónico',
         desc: 'Restaura el contorno facial con naturalidad y precisión: redefine el óvalo y mejora la textura y elasticidad cutánea.',
         image: '/images/tratamientos/hialuronico-v2.jpg',
+        price: '300 € (1 vial) · 450 € (2 viales)',
         detail: {
           duration: '30–60 minutos',
           anesthesia: 'Local o infiltrativa',
@@ -183,6 +187,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Remodelación de Labios — DallÒ LIPS',
         desc: 'Labios definidos, con volumen y efecto glow, con ácido hialurónico reticulado.',
         image: '/images/tratamientos/lips.jpg',
+        price: '350 €',
         detail: {
           application:
             'Valoración morfológica exhaustiva del labio, musculatura perioral y oclusión dental, complementada con imágenes en reposo y movimiento antes del tratamiento.',
@@ -197,6 +202,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Plasma Concentrado en Plaquetas (PRP)',
         desc: 'Tratamiento regenerativo: plasma de tu propia sangre, rico en factores de crecimiento que estimulan la regeneración de piel, articulaciones y cabello.',
         image: '/images/tratamientos/prp-v2.jpg',
+        price: '350 €',
         detail: {
           application: 'Microinyecciones intradérmicas con pápulas.',
           duration: '30–60 minutos',
@@ -211,6 +217,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Revitalización Facial PDRN — Polinucleótidos',
         desc: 'Revitaliza desde el ADN, protege y calma: polidesoxirribonucleótidos derivados de salmón que auxilian en el control de la inflamación, la pigmentación y la regeneración celular.',
         image: '/images/tratamientos/pdrn.jpg',
+        price: '250 €',
         detail: {
           application: 'Mesoterapia con microagujas o radiofrecuencia, con anestesia local.',
           duration: '60 minutos',
@@ -222,6 +229,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Inductores de Colágeno',
         desc: 'Activa el colágeno y mejora la calidad de tu piel: el ácido poli-D,L-láctico estimula la producción natural de colágeno.',
         image: '/images/tratamientos/inductores.jpg',
+        price: '450 €',
         detail: {
           application: 'Inyecciones con aguja fina o cánula, bajo anestesia local.',
           sessions: '1 cada 12 meses',
@@ -233,6 +241,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Peelings',
         desc: 'Exfoliación profunda y controlada que mejora la calidad y uniformidad de la piel, atenúa cicatrices de acné y aporta luminosidad y suavidad.',
         image: '/images/tratamientos/peelings.jpg',
+        price: '150 €',
         detail: {
           application: 'Combinaciones precisas de ácidos como glicólico, retinoico, tricloroacético, mandélico y kójico.',
           sessions: '2–4 sesiones, espaciadas cada 4–6 semanas según diagnóstico médico',
@@ -251,6 +260,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Fototerapia LED — Biohacking Lumínico',
         desc: 'Luz roja, azul e infrarroja que auxilia en la estimulación del metabolismo celular y promueve la autorregulación natural de la piel.',
         image: '/images/tratamientos/led.jpg',
+        price: '80 €',
         detail: {
           duration: '30–60 minutos',
           sessions: '1 cada 1–4 semanas',
@@ -261,6 +271,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Microneedling — Radiofrecuencia con Microagujas',
         desc: 'Uniformiza la piel y trata cicatrices con energía térmica en la dermis profunda, sin dañar la epidermis. Reduce poros.',
         image: '/images/tratamientos/microneedling.jpg',
+        price: 'Desde 250 €',
         detail: {
           duration: '30–60 minutos',
           sessions: '1–4, cada 2–6 semanas',
@@ -271,6 +282,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Elegance — Infrarrojo con Vibración Hipertérmica',
         desc: 'Bienestar facial y corporal: combina calor infrarrojo y vibración que favorece la circulación, el drenaje linfático y el detox celular.',
         image: '/images/tratamientos/elegance.jpg',
+        price: '100 €',
         detail: {
           duration: '30–60 minutos · indolora, sin anestesia',
           sessions: '1–15, cada 1–30 días',
@@ -281,6 +293,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Láser CO₂',
         desc: 'Luz infrarroja de alta energía cuyos pulsos llegan a capas profundas de la piel: estimula colágeno y trata cicatrices, manchas y queratosis.',
         image: '/images/tratamientos/laser-co2.jpg',
+        price: 'Desde 300 €',
         detail: {
           duration: '60 minutos',
           anesthesia: 'Local o infiltrativa',
@@ -293,6 +306,7 @@ export const TREATMENTS: TreatmentCategory[] = [
         name: 'Fotorejuvenecimiento IPL',
         desc: 'Piel luminosa y uniforme: luz pulsada intensa que trata melasma y atenúa manchas solares y microvasos, desde capas superficiales hasta profundas.',
         image: '/images/tratamientos/ipl.jpg',
+        price: '200 €',
         detail: {
           duration: '60 minutos',
           sessions: 'Personalizadas por indicación médica',
