@@ -127,6 +127,59 @@ export async function POST(req: NextRequest) {
     },
   })
 
+  // ── Guardar el pedido YA, como 'pending' ───────────────────────────────────
+  // La base de datos es la fuente de verdad: el webhook solo lo marcará pagado.
+  // Así los datos del cliente y los artículos nunca dependen de los límites de
+  // metadata de Stripe (500 caracteres por valor).
+  try {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (url && serviceKey) {
+      const db = createClient(url, serviceKey, { auth: { persistSession: false } })
+      const { error: insertErr } = await db.from('orders').insert({
+        status: 'pending',
+        subtotal_cents: subtotalCents,
+        shipping_cents: shippingCents,
+        total_cents: totalCents,
+        stripe_payment_intent_id: paymentIntent.id,
+        shipping_address: {
+          name: shippingDetails.name,
+          email: shippingDetails.email,
+          phone: shippingDetails.phone ?? '',
+          address: shippingDetails.address,
+          city: shippingDetails.city,
+          postalCode: shippingDetails.postalCode,
+          country: shippingDetails.country,
+          items: items.map((i) => ({
+            slug: i.slug,
+            name: i.name,
+            vol: i.vol,
+            price: i.price,
+            priceCents: Math.round(i.price * 100),
+            quantity: i.quantity,
+            sessions: i.sessions ?? 1,
+          })),
+          couponCode: appliedCoupon || null,
+          discountCents,
+          gift: gift?.isGift
+            ? {
+                isGift: true,
+                recipientName: gift.recipientName ?? '',
+                recipientEmail: gift.recipientEmail ?? '',
+                message: gift.message ?? '',
+              }
+            : null,
+        },
+      })
+      if (insertErr) console.error('[create-intent] No se pudo guardar el pedido:', insertErr)
+    } else {
+      console.warn('[create-intent] SUPABASE_SERVICE_ROLE_KEY no configurada — pedido no guardado')
+    }
+  } catch (e) {
+    // Nunca bloquear el pago porque falle el guardado previo
+    console.error('[create-intent] Error guardando el pedido:', e)
+  }
+
   return NextResponse.json({
     clientSecret: paymentIntent.client_secret,
     totalCents,

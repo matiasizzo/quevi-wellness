@@ -92,91 +92,104 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseServiceClient()
     if (supabase) {
+      // El pedido ya se guardó como 'pending' al iniciar el pago: esa fila es la
+      // fuente de verdad. Aquí solo lo confirmamos y disparamos los avisos.
       const { data: existing } = await supabase
-        .from('orders').select('id')
-        .eq('stripe_payment_intent_id', pi.id).maybeSingle()
+        .from('orders')
+        .select('id, status, shipping_address, subtotal_cents, shipping_cents')
+        .eq('stripe_payment_intent_id', pi.id)
+        .maybeSingle()
 
-      if (!existing) {
-        const { error } = await supabase.from('orders').insert({
-          status: 'paid',
-          subtotal_cents: Number(meta.subtotal_cents ?? 0),
-          shipping_cents: Number(meta.shipping_cents ?? 0),
-          total_cents: pi.amount,
-          stripe_payment_intent_id: pi.id,
-          shipping_address: {
-            name: meta.shipping_name ?? '',
-            email: meta.shipping_email ?? '',
-            phone: meta.shipping_phone ?? '',
-            address: meta.shipping_address ?? '',
-            city: meta.shipping_city ?? '',
-            postalCode: meta.shipping_postal_code ?? '',
-            country: meta.shipping_country ?? '',
-            items,
-          },
-        })
-        if (error) console.error('[webhook/stripe] Order insert error:', error)
+      const alreadyProcessed = existing?.status === 'paid' || existing?.status === 'completed'
 
-        // ── Contador de usos del cupón (permite medir promos y aplicar max_uses) ──
-        if (meta.coupon_code) {
+      if (!alreadyProcessed) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const saved: any = (existing?.shipping_address as any) ?? null
+
+        // Datos: primero de la base de datos, y como respaldo, de la metadata de Stripe
+        const details = {
+          name: saved?.name ?? meta.shipping_name ?? '',
+          email: saved?.email ?? meta.shipping_email ?? '',
+          phone: saved?.phone ?? meta.shipping_phone ?? '',
+          address: saved?.address ?? meta.shipping_address ?? '',
+          city: saved?.city ?? meta.shipping_city ?? '',
+          postalCode: saved?.postalCode ?? meta.shipping_postal_code ?? '',
+          country: saved?.country ?? meta.shipping_country ?? '',
+          couponCode: saved?.couponCode ?? meta.coupon_code ?? '',
+          discountCents: Number(saved?.discountCents ?? meta.discount_cents ?? 0),
+          subtotalCents: Number(existing?.subtotal_cents ?? meta.subtotal_cents ?? 0),
+          shippingCents: Number(existing?.shipping_cents ?? meta.shipping_cents ?? 0),
+          gift: saved?.gift ?? (meta.is_gift === '1'
+            ? { isGift: true, recipientName: meta.gift_recipient_name ?? '', recipientEmail: meta.gift_recipient_email ?? '', message: meta.gift_message ?? '' }
+            : null),
+        }
+        const orderItems = (saved?.items?.length ? saved.items : items) ?? []
+
+        if (existing) {
+          const { error } = await supabase
+            .from('orders').update({ status: 'paid', total_cents: pi.amount }).eq('id', existing.id)
+          if (error) console.error('[webhook/stripe] Order update error:', error)
+        } else {
+          const { error } = await supabase.from('orders').insert({
+            status: 'paid',
+            subtotal_cents: details.subtotalCents,
+            shipping_cents: details.shippingCents,
+            total_cents: pi.amount,
+            stripe_payment_intent_id: pi.id,
+            shipping_address: { ...details, items: orderItems },
+          })
+          if (error) console.error('[webhook/stripe] Order insert error:', error)
+        }
+
+        // ── Contador de usos del cupón ──
+        if (details.couponCode) {
           try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const { data: dc } = await (supabase as any)
-              .from('discount_codes').select('uses').eq('code', meta.coupon_code).maybeSingle()
+              .from('discount_codes').select('uses').eq('code', details.couponCode).maybeSingle()
             if (dc) {
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              await (supabase as any)
-                .from('discount_codes')
-                .update({ uses: (dc.uses ?? 0) + 1 })
-                .eq('code', meta.coupon_code)
+              await (supabase as any).from('discount_codes')
+                .update({ uses: (dc.uses ?? 0) + 1 }).eq('code', details.couponCode)
             }
           } catch (e) {
             console.error('[webhook/stripe] Coupon uses increment error:', e)
           }
         }
 
-        // ── Vales regalo: generar un código por unidad y avisar al destinatario ──
-        if (meta.is_gift === '1' && meta.gift_recipient_email) {
+        // ── Vales regalo: un código por unidad ──
+        if (details.gift?.isGift && details.gift.recipientEmail) {
           try {
             const expiresAt = new Date()
             expiresAt.setMonth(expiresAt.getMonth() + 12)
-
             const cards: GiftCardEmail[] = []
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const rows: any[] = []
-
-            for (const it of items) {
+            for (const it of orderItems) {
               const qty = Math.max(1, Number(it.quantity) || 1)
               const sessions = Math.max(1, Number(it.sessions) || 1)
               for (let n = 0; n < qty; n++) {
                 const code = generateGiftCode()
                 cards.push({ code, itemName: it.name, totalSessions: sessions, expiresAt: expiresAt.toISOString() })
                 rows.push({
-                  code,
-                  item_name: it.name,
-                  item_slug: it.slug ?? null,
-                  amount_cents: Number(it.priceCents) || 0,
-                  total_sessions: sessions,
-                  sessions_used: 0,
-                  status: 'active',
-                  purchaser_name: meta.shipping_name ?? '',
-                  purchaser_email: meta.shipping_email ?? '',
-                  recipient_name: meta.gift_recipient_name ?? '',
-                  recipient_email: meta.gift_recipient_email,
-                  message: meta.gift_message ?? '',
-                  stripe_payment_intent_id: pi.id,
-                  expires_at: expiresAt.toISOString(),
+                  code, item_name: it.name, item_slug: it.slug ?? null,
+                  amount_cents: Number(it.priceCents ?? Math.round((it.price ?? 0) * 100)) || 0,
+                  total_sessions: sessions, sessions_used: 0, status: 'active',
+                  purchaser_name: details.name, purchaser_email: details.email,
+                  recipient_name: details.gift.recipientName ?? '',
+                  recipient_email: details.gift.recipientEmail,
+                  message: details.gift.message ?? '',
+                  stripe_payment_intent_id: pi.id, expires_at: expiresAt.toISOString(),
                 })
               }
             }
-
             const { error: giftErr } = await supabase.from('gift_cards').insert(rows)
             if (giftErr) console.error('[webhook/stripe] Gift card insert error:', giftErr)
-
             await sendGiftEmails({
-              purchaserName: meta.shipping_name ?? '',
-              recipientName: meta.gift_recipient_name ?? '',
-              recipientEmail: meta.gift_recipient_email,
-              message: meta.gift_message || undefined,
+              purchaserName: details.name,
+              recipientName: details.gift.recipientName ?? '',
+              recipientEmail: details.gift.recipientEmail,
+              message: details.gift.message || undefined,
               cards,
             })
           } catch (err) {
@@ -184,28 +197,32 @@ export async function POST(request: Request) {
           }
         }
 
-        // Emails de confirmación (comprador + clínica) — solo en pedidos nuevos
-        if (meta.shipping_email) {
+        // ── Emails de confirmación (comprador + clínica) ──
+        if (details.email) {
           try {
             await sendOrderEmails({
               orderRef: pi.id.replace('pi_', '').slice(-8).toUpperCase(),
-              customerName: meta.shipping_name ?? '',
-              customerEmail: meta.shipping_email,
-              items,
-              subtotalCents: Number(meta.subtotal_cents ?? 0),
-              shippingCents: Number(meta.shipping_cents ?? 0),
-              discountCents: Number(meta.discount_cents ?? 0),
-              couponCode: meta.coupon_code || undefined,
+              customerName: details.name,
+              customerEmail: details.email,
+              items: orderItems.map((i: { name: string; vol?: string; quantity?: number; priceCents?: number; price?: number }) => ({
+                name: i.name, vol: i.vol,
+                quantity: Number(i.quantity) || 1,
+                priceCents: Number(i.priceCents ?? Math.round((i.price ?? 0) * 100)) || 0,
+              })),
+              subtotalCents: details.subtotalCents,
+              shippingCents: details.shippingCents,
+              discountCents: details.discountCents,
+              couponCode: details.couponCode || undefined,
               totalCents: pi.amount,
-              address: meta.shipping_address ?? '',
-              city: meta.shipping_city ?? '',
-              postalCode: meta.shipping_postal_code ?? '',
-              country: meta.shipping_country ?? '',
-              phone: meta.shipping_phone || undefined,
+              address: details.address, city: details.city,
+              postalCode: details.postalCode, country: details.country,
+              phone: details.phone || undefined,
             })
           } catch (err) {
             console.error('[webhook/stripe] Failed sending order emails:', err)
           }
+        } else {
+          console.error('[webhook/stripe] Pedido sin email de cliente. PI:', pi.id)
         }
       }
     }
