@@ -22,7 +22,30 @@ interface GiftDetails {
   message: string
 }
 
+/**
+ * Stripe limita cada valor de metadata a 500 caracteres (y 50 claves).
+ * La lista de artículos supera ese límite a partir de 3 productos, así que la
+ * partimos en fragmentos items_0, items_1… y el webhook la recompone.
+ */
+const META_CHUNK = 450
+const MAX_CHUNKS = 20
+
+function chunkItemsMetadata(json: string): Record<string, string> {
+  const meta: Record<string, string> = {}
+  const chunks: string[] = []
+  for (let i = 0; i < json.length; i += META_CHUNK) chunks.push(json.slice(i, i + META_CHUNK))
+  if (chunks.length > MAX_CHUNKS) {
+    // Carrito enorme: guardamos lo que cabe y dejamos constancia
+    meta.items_truncated = '1'
+    chunks.length = MAX_CHUNKS
+  }
+  chunks.forEach((c, i) => { meta[`items_${i}`] = c })
+  meta.items_parts = String(chunks.length)
+  return meta
+}
+
 export async function POST(req: NextRequest) {
+  try {
   const { items, shippingDetails, couponCode, gift } = await req.json() as {
     items: CartItem[]
     shippingDetails: ShippingDetails
@@ -75,9 +98,8 @@ export async function POST(req: NextRequest) {
     currency: 'eur',
     automatic_payment_methods: { enabled: true },
     metadata: {
-      items: JSON.stringify(
+      ...chunkItemsMetadata(JSON.stringify(
         items.map((i) => ({
-          id: i.id,
           slug: i.slug,
           name: i.name,
           vol: i.vol,
@@ -85,7 +107,7 @@ export async function POST(req: NextRequest) {
           quantity: i.quantity,
           sessions: i.sessions ?? 1,
         }))
-      ),
+      )),
       subtotal_cents: String(subtotalCents),
       shipping_cents: String(shippingCents),
       discount_cents: String(discountCents),
@@ -111,4 +133,13 @@ export async function POST(req: NextRequest) {
     shippingCents,
     discountCents,
   })
+  } catch (err) {
+    // Nunca devolver un cuerpo vacío: el cliente hace res.json() y necesita el motivo
+    const message = err instanceof Error ? err.message : 'Error inesperado'
+    console.error('[create-intent] Error:', err)
+    return NextResponse.json(
+      { error: `No se pudo iniciar el pago: ${message}` },
+      { status: 500 },
+    )
+  }
 }

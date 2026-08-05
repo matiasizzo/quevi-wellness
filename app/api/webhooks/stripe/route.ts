@@ -75,9 +75,20 @@ export async function POST(request: Request) {
     const pi = event.data.object as Stripe.PaymentIntent
     const meta = pi.metadata ?? {}
 
+    // Los artículos vienen partidos en items_0, items_1… (límite de 500 caracteres
+    // por valor de metadata en Stripe). `items` es el formato antiguo.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let items: any[] = []
-    try { items = JSON.parse(meta.items ?? '[]') } catch { items = [] }
+    try {
+      const parts = Number(meta.items_parts ?? 0)
+      const json = parts > 0
+        ? Array.from({ length: parts }, (_, i) => meta[`items_${i}`] ?? '').join('')
+        : (meta.items ?? '[]')
+      items = JSON.parse(json || '[]')
+    } catch (e) {
+      console.error('[webhook/stripe] No se pudo reconstruir la lista de artículos:', e)
+      items = []
+    }
 
     const supabase = getSupabaseServiceClient()
     if (supabase) {
