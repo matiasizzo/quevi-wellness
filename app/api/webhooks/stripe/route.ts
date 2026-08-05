@@ -183,6 +183,8 @@ export async function POST(request: Request) {
               items,
               subtotalCents: Number(meta.subtotal_cents ?? 0),
               shippingCents: Number(meta.shipping_cents ?? 0),
+              discountCents: Number(meta.discount_cents ?? 0),
+              couponCode: meta.coupon_code || undefined,
               totalCents: pi.amount,
               address: meta.shipping_address ?? '',
               city: meta.shipping_city ?? '',

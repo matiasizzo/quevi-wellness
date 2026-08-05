@@ -15,6 +15,10 @@ export type OrderEmailData = {
   items: OrderEmailItem[]
   subtotalCents: number
   shippingCents: number
+  /** Descuento aplicado por cupón, en céntimos. */
+  discountCents?: number
+  /** Código del cupón usado, si lo hubo. */
+  couponCode?: string
   totalCents: number
   address: string
   city: string
@@ -63,6 +67,7 @@ function totalsHtml(d: OrderEmailData) {
   <table style="width:100%;margin-top:16px;">
     <tr><td style="color:#666;font-size:13px;padding:3px 0;">Subtotal</td><td style="text-align:right;color:#666;font-size:13px;">${eur(d.subtotalCents)}</td></tr>
     <tr><td style="color:#666;font-size:13px;padding:3px 0;">Envío</td><td style="text-align:right;color:#666;font-size:13px;">${d.shippingCents === 0 ? 'Gratis' : eur(d.shippingCents)}</td></tr>
+    ${d.discountCents && d.discountCents > 0 ? `<tr><td style="color:#355539;font-size:13px;padding:3px 0;">Descuento${d.couponCode ? ` (${d.couponCode})` : ''}</td><td style="text-align:right;color:#355539;font-size:13px;">− ${eur(d.discountCents)}</td></tr>` : ''}
     <tr><td style="color:#1e1e1e;font-size:16px;padding:8px 0;border-top:1px solid #eee;"><strong>Total</strong></td><td style="text-align:right;color:#1e1e1e;font-size:16px;border-top:1px solid #eee;"><strong>${eur(d.totalCents)}</strong></td></tr>
   </table>`
 }

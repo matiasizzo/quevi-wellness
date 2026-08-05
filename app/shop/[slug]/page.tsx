@@ -25,6 +25,7 @@ type ProductDetail = {
   nutrition_facts: string | null
   skin_type: string[] | null
   volume_ml: number | null
+  variant_name: string | null
   image_url: string | null
   price: number
   was: number | null
@@ -55,7 +56,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           .from('products')
           .select(`
             *,
-            product_variants (price_cents, compare_at_cents, is_default, active)
+            product_variants (name, price_cents, compare_at_cents, is_default, active)
           `)
           .eq('slug', slug)
           .eq('active', true)
@@ -83,6 +84,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           nutrition_facts: p.nutrition_facts ?? null,
           skin_type: p.skin_type,
           volume_ml: p.volume_ml,
+          variant_name: variant?.name ?? null,
           image_url: p.image_url,
           price: variant ? variant.price_cents / 100 : 0,
           was: variant?.compare_at_cents ? variant.compare_at_cents / 100 : null,
@@ -122,7 +124,10 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
     )
   }
 
-  const vol = product.volume_ml ? `${product.volume_ml} ml` : '—'
+  // Cosmética: volumen en ml. Suplementos: formato de la variante (ej. "30 cápsulas").
+  const vol = product.volume_ml
+    ? `${product.volume_ml} ml`
+    : (product.variant_name && product.variant_name.toLowerCase() !== 'default' ? product.variant_name : '')
   const stripe = STRIPE_BY_SLUG(product.slug)
 
   const detailSections = [
@@ -172,7 +177,9 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
             <div className="flex flex-col gap-5">
               <div>
                 <span className="text-[11px] tracking-[0.18em] uppercase text-carbon-400 font-medium">
-                  Dall&apos;O Skin · Cosmética clínica
+                  {product.volume_ml
+                    ? "Dall'O Skin · Cosmética clínica"
+                    : "Dall'O Selfcare · Nutrición avanzada"}
                 </span>
                 <h1 className="font-serif font-medium text-[32px] sm:text-[40px] leading-[1.1] tracking-tight text-carbon-900 m-0 mt-2">
                   {product.name}

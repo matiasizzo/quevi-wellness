@@ -4,6 +4,25 @@ import { useState, useEffect, useCallback } from 'react'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
+type OrderItem = {
+  name?: string
+  vol?: string
+  quantity?: number
+  price?: number
+  sessions?: number
+}
+
+type ShippingAddress = {
+  name?: string
+  email?: string
+  phone?: string
+  address?: string
+  city?: string
+  postalCode?: string
+  country?: string
+  items?: OrderItem[]
+}
+
 type Order = {
   id: string
   status: string
@@ -12,6 +31,7 @@ type Order = {
   total_cents: number
   stripe_payment_intent_id: string | null
   notes: string | null
+  shipping_address: ShippingAddress | null
   created_at: string
 }
 
@@ -140,46 +160,145 @@ function Empty({ label }: { label: string }) {
 // ── Tab: Pedidos ──────────────────────────────────────────────────────────────
 
 function PedidosTab({ orders }: { orders: Order[] }) {
-  const total = orders.reduce((s, o) => s + o.total_cents, 0)
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+
   const paid = orders.filter(o => o.status === 'paid' || o.status === 'completed')
+  const total = paid.reduce((s, o) => s + o.total_cents, 0)
+
+  const filtered = orders.filter(o => {
+    if (!query.trim()) return true
+    const q = query.toLowerCase()
+    const a = o.shipping_address
+    return [a?.name, a?.email, a?.phone, a?.city, o.id, o.stripe_payment_intent_id]
+      .filter(Boolean).some(v => String(v).toLowerCase().includes(q))
+  })
+
+  function copy(text: string) {
+    navigator.clipboard?.writeText(text)
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Total pedidos" value={orders.length} />
-        <StatCard label="Completados" value={paid.length} />
-        <StatCard label="Facturación" value={euros(total)} sub="suma bruta" />
-        <StatCard label="Ticket medio" value={orders.length ? euros(Math.round(total / orders.length)) : '—'} />
+        <StatCard label="Pagados" value={paid.length} />
+        <StatCard label="Facturación" value={euros(total)} sub="solo pedidos pagados" />
+        <StatCard label="Ticket medio" value={paid.length ? euros(Math.round(total / paid.length)) : '—'} />
       </div>
 
-      {orders.length === 0 ? <Empty label="No hay pedidos todavía" /> : (
-        <div className="rounded-xl border border-zinc-700/60 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-zinc-700/60 bg-zinc-800/80">
-                  {['ID', 'Fecha', 'Estado', 'Subtotal', 'Envío', 'Total', 'Stripe PI'].map(h => (
-                    <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-500 font-medium whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-700/40">
-                {orders.map(o => (
-                  <tr key={o.id} className="hover:bg-zinc-700/20 transition-colors">
-                    <td className="px-4 py-3 font-mono text-[12px] text-zinc-400">{o.id.slice(0, 8)}…</td>
-                    <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{fmtDate(o.created_at)}</td>
-                    <td className="px-4 py-3"><StatusBadge status={o.status} /></td>
-                    <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{euros(o.subtotal_cents)}</td>
-                    <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{euros(o.shipping_cents)}</td>
-                    <td className="px-4 py-3 font-semibold text-zinc-100 whitespace-nowrap">{euros(o.total_cents)}</td>
-                    <td className="px-4 py-3 font-mono text-[11px] text-zinc-500">
-                      {o.stripe_payment_intent_id ? o.stripe_payment_intent_id.slice(0, 14) + '…' : '—'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Buscar por cliente, email, teléfono, ciudad o ID…"
+        className="w-full bg-zinc-800/60 border border-zinc-700 rounded-lg px-4 py-2.5 text-[13px] text-zinc-200 placeholder:text-zinc-500 outline-none focus:border-zinc-500 transition-colors"
+      />
+
+      {filtered.length === 0 ? <Empty label={query ? 'Sin resultados' : 'No hay pedidos todavía'} /> : (
+        <div className="space-y-2">
+          {filtered.map(o => {
+            const a = o.shipping_address ?? {}
+            const items = a.items ?? []
+            const isOpen = openId === o.id
+            const ref = o.stripe_payment_intent_id
+              ? o.stripe_payment_intent_id.replace('pi_', '').slice(-8).toUpperCase()
+              : o.id.slice(0, 8).toUpperCase()
+            return (
+              <div key={o.id} className="rounded-xl border border-zinc-700/60 bg-zinc-800/30 overflow-hidden">
+                <button
+                  onClick={() => setOpenId(isOpen ? null : o.id)}
+                  className="w-full text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
+                >
+                  <span className="font-mono text-[12px] text-zinc-500 w-[76px]">#{ref}</span>
+                  <span className="text-zinc-200 font-medium min-w-[150px] flex-1">
+                    {a.name || <span className="text-zinc-500">Sin nombre</span>}
+                    {items.length > 0 && (
+                      <span className="text-zinc-500 font-normal"> · {items.reduce((s, i) => s + (i.quantity ?? 1), 0)} art.</span>
+                    )}
+                  </span>
+                  <span className="text-zinc-400 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
+                  <StatusBadge status={o.status} />
+                  <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(o.total_cents)}</span>
+                  <span className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                </button>
+
+                {isOpen && (
+                  <div className="px-4 pb-4 pt-1 border-t border-zinc-700/40 grid gap-4 md:grid-cols-2">
+                    {/* Artículos */}
+                    <div>
+                      <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-500 mb-2">Artículos</p>
+                      {items.length === 0 ? (
+                        <p className="text-[13px] text-zinc-500">Sin detalle de artículos</p>
+                      ) : (
+                        <ul className="space-y-1.5 m-0 p-0 list-none">
+                          {items.map((i, n) => (
+                            <li key={n} className="flex justify-between gap-3 text-[13px]">
+                              <span className="text-zinc-300">
+                                {i.name}
+                                {i.vol ? <span className="text-zinc-500"> · {i.vol}</span> : null}
+                                <span className="text-zinc-500"> × {i.quantity ?? 1}</span>
+                              </span>
+                              <span className="text-zinc-400 whitespace-nowrap">
+                                {typeof i.price === 'number' ? euros(Math.round(i.price * 100) * (i.quantity ?? 1)) : '—'}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div className="mt-3 pt-3 border-t border-zinc-700/40 space-y-1 text-[12px]">
+                        <div className="flex justify-between text-zinc-400"><span>Subtotal</span><span>{euros(o.subtotal_cents)}</span></div>
+                        <div className="flex justify-between text-zinc-400"><span>Envío</span><span>{o.shipping_cents === 0 ? 'Gratis' : euros(o.shipping_cents)}</span></div>
+                        {o.subtotal_cents + o.shipping_cents !== o.total_cents && (
+                          <div className="flex justify-between text-emerald-400">
+                            <span>Descuento</span>
+                            <span>− {euros(o.subtotal_cents + o.shipping_cents - o.total_cents)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-zinc-100 font-semibold pt-1"><span>Total</span><span>{euros(o.total_cents)}</span></div>
+                      </div>
+                    </div>
+
+                    {/* Cliente y envío */}
+                    <div>
+                      <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-500 mb-2">Cliente y envío</p>
+                      <div className="space-y-1.5 text-[13px] text-zinc-300">
+                        {a.email && (
+                          <div className="flex items-center gap-2">
+                            <a href={`mailto:${a.email}`} className="text-zinc-300 hover:text-zinc-100 underline underline-offset-2">{a.email}</a>
+                            <button onClick={() => copy(a.email!)} className="text-[11px] text-zinc-500 hover:text-zinc-300">copiar</button>
+                          </div>
+                        )}
+                        {a.phone && (
+                          <div className="flex items-center gap-2">
+                            <a href={`https://wa.me/${a.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-zinc-100 underline underline-offset-2">{a.phone}</a>
+                            <span className="text-[11px] text-zinc-500">WhatsApp</span>
+                          </div>
+                        )}
+                        {a.address ? (
+                          <div className="pt-1 leading-relaxed text-zinc-400">
+                            {a.name}<br />
+                            {a.address}<br />
+                            {a.postalCode} {a.city}{a.country ? `, ${a.country}` : ''}
+                            <button
+                              onClick={() => copy(`${a.name}\n${a.address}\n${a.postalCode} ${a.city}, ${a.country}`)}
+                              className="ml-2 text-[11px] text-zinc-500 hover:text-zinc-300"
+                            >
+                              copiar dirección
+                            </button>
+                          </div>
+                        ) : (
+                          <p className="text-zinc-500 pt-1">Sin dirección — pedido sin envío (ritual, tratamiento o regalo)</p>
+                        )}
+                        {o.stripe_payment_intent_id && (
+                          <p className="pt-2 font-mono text-[11px] text-zinc-600 m-0">{o.stripe_payment_intent_id}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>

@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
   const [ordersRes, appointmentsRes, bookingsRes, productsRes, giftCardsRes] = await Promise.all([
     db.from('orders')
-      .select('id, status, subtotal_cents, shipping_cents, total_cents, stripe_payment_intent_id, notes, created_at')
+      .select('id, status, subtotal_cents, shipping_cents, total_cents, stripe_payment_intent_id, notes, shipping_address, created_at')
       .order('created_at', { ascending: false })
       .limit(200),
 

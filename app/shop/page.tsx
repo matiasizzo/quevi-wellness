@@ -179,11 +179,18 @@ function SuplementosTab() {
                 className="relative overflow-hidden flex items-center justify-center rounded-t-3xl"
                 style={{ aspectRatio: '1/1', background: '#ede9e0' }}
               >
-                {p.image_url ? (
-                  <Image src={p.image_url} alt={p.name} fill className="object-contain p-6" sizes="(max-width: 768px) 50vw, 25vw" />
-                ) : (
-                  <PackSVG id={p.id} vol="" stripe="#5d8a52" name={p.name} code={p.slug.toUpperCase().slice(0, 10)} />
-                )}
+                <Link
+                  href={`/shop/${p.slug}`}
+                  aria-label={`Ver ${p.name}`}
+                  className="absolute inset-0 w-full h-full flex items-center justify-center group-hover/card:-translate-y-1.5 transition-transform duration-500 will-change-transform"
+                  style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+                >
+                  {p.image_url ? (
+                    <Image src={p.image_url} alt={p.name} fill className="object-contain p-6" sizes="(max-width: 768px) 50vw, 25vw" />
+                  ) : (
+                    <PackSVG id={p.id} vol="" stripe="#5d8a52" name={p.name} code={p.slug.toUpperCase().slice(0, 10)} />
+                  )}
+                </Link>
                 {p.stock === 0 && (
                   <span className="absolute top-[14px] left-[14px] px-[11px] py-[5px] rounded-full text-[10px] tracking-[0.12em] uppercase font-semibold bg-carbon-900 text-cream-100">
                     Agotado
@@ -192,7 +199,7 @@ function SuplementosTab() {
                 {p.price > 0 && p.stock > 0 && (
                   <button
                     onClick={() => addItem({ id: p.id, slug: p.slug, name: p.name, price: p.price, vol: '', image_url: p.image_url, stripe: '#5d8a52' })}
-                    className="absolute bottom-4 left-4 right-4 bg-cream-100 text-carbon-900 border border-cream-400 rounded-full py-3 px-[18px] text-[12px] font-medium tracking-[0.04em] flex items-center justify-center gap-2 opacity-100 translate-y-0 lg:opacity-0 lg:translate-y-[10px] lg:group-hover/card:opacity-100 lg:group-hover/card:translate-y-0 transition-all duration-[350ms] hover:bg-brand-600 hover:text-cream-100 hover:border-brand-600"
+                    className="absolute z-10 bottom-4 left-4 right-4 bg-cream-100 text-carbon-900 border border-cream-400 rounded-full py-3 px-[18px] text-[12px] font-medium tracking-[0.04em] flex items-center justify-center gap-2 opacity-100 translate-y-0 lg:opacity-0 lg:translate-y-[10px] lg:group-hover/card:opacity-100 lg:group-hover/card:translate-y-0 transition-all duration-[350ms] hover:bg-brand-600 hover:text-cream-100 hover:border-brand-600"
                   >
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 5v14" /><path d="M5 12h14" />
@@ -207,7 +214,9 @@ function SuplementosTab() {
                   <span className="font-serif italic text-brand-700 tracking-[0.04em] font-normal text-[12px] ml-1 normal-case">· Dall&apos;O Selfcare</span>
                 </span>
                 <h3 className="font-serif font-medium text-[17px] tracking-tight text-carbon-900 m-0 leading-[1.2]">
-                  {p.name}
+                  <Link href={`/shop/${p.slug}`} className="hover:text-brand-700 transition-colors">
+                    {p.name}
+                  </Link>
                 </h3>
                 {p.tagline && <p className="text-[12px] text-carbon-500 leading-[1.5] m-0 mt-0.5">{p.tagline}</p>}
                 <div className="flex items-baseline justify-between mt-1.5">
