@@ -13,6 +13,7 @@ interface ShippingDetails {
   city: string
   postalCode: string
   country: string
+  deliveryMethod?: 'ship' | 'pickup'
 }
 
 interface GiftDetails {
@@ -65,7 +66,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Importe inválido: ${subtotalCents} céntimos.` }, { status: 400 })
   }
 
-  const shippingCents = getShippingCents(subtotalCents)
+  // Recoger en tienda no tiene coste de envío. Es un regalo → tampoco se envía.
+  const isPickup = shippingDetails?.deliveryMethod === 'pickup'
+  const shippingCents = (isPickup || gift?.isGift) ? 0 : getShippingCents(subtotalCents)
 
   // Cupón — se revalida SIEMPRE en servidor, nunca se confía en el % del cliente
   let discountCents = 0
@@ -150,6 +153,7 @@ export async function POST(req: NextRequest) {
           city: shippingDetails.city,
           postalCode: shippingDetails.postalCode,
           country: shippingDetails.country,
+          deliveryMethod: isPickup ? 'pickup' : 'ship',
           items: items.map((i) => ({
             slug: i.slug,
             name: i.name,

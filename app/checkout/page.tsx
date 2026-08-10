@@ -19,6 +19,8 @@ export interface ShippingDetails {
   city: string
   postalCode: string
   country: string
+  /** 'ship' = envío a domicilio · 'pickup' = recoger en clínica */
+  deliveryMethod?: 'ship' | 'pickup'
 }
 
 export interface GiftDetails {

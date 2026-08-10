@@ -20,6 +20,7 @@ type ShippingAddress = {
   city?: string
   postalCode?: string
   country?: string
+  deliveryMethod?: 'ship' | 'pickup'
   items?: OrderItem[]
 }
 
@@ -274,7 +275,12 @@ function PedidosTab({ orders }: { orders: Order[] }) {
                             <span className="text-[11px] text-zinc-500">WhatsApp</span>
                           </div>
                         )}
-                        {a.address ? (
+                        {a.deliveryMethod === 'pickup' ? (
+                          <div className="pt-1 leading-relaxed">
+                            <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">🏬 Recoge en tienda</span>
+                            <p className="text-zinc-500 text-[12px] mt-0.5 m-0">El cliente pasa a recoger el pedido en la clínica. No hay que enviarlo.</p>
+                          </div>
+                        ) : a.address ? (
                           <div className="pt-1 leading-relaxed text-zinc-400">
                             {a.name}<br />
                             {a.address}<br />

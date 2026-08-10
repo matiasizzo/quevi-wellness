@@ -18,8 +18,10 @@ interface Props {
 
 export default function ShippingForm({ onConfirmed, loading, error }: Props) {
   const { items, coupon } = useCart()
+  const [pickup, setPickup] = useState(false)
   const subtotal = Math.round(items.reduce((sum, i) => sum + i.price * 100 * i.quantity, 0))
-  const shippingCents = getShippingCents(subtotal)
+  // Recoger en tienda: sin coste de envío
+  const shippingCents = pickup ? 0 : getShippingCents(subtotal)
   const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all', coupon.appliesTo) : 0
   const total = Math.max(0, subtotal + shippingCents - discountCents)
 
@@ -29,6 +31,8 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
   const [gift, setGift] = useState<GiftDetails>({
     isGift: false, recipientName: '', recipientEmail: '', message: '',
   })
+  // La dirección solo es obligatoria si es envío a domicilio y no es regalo
+  const addressRequired = !gift.isGift && !pickup
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -40,7 +44,7 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    onConfirmed(form, gift)
+    onConfirmed({ ...form, deliveryMethod: pickup ? 'pickup' : 'ship' }, gift)
   }
 
   const inputClass = 'w-full border border-cream-400 bg-cream-50 rounded-lg px-4 py-3 text-sm text-carbon-900 placeholder:text-carbon-400 focus:outline-none focus:border-brand-600 transition-colors'
@@ -106,32 +110,87 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
             {gift.isGift ? 'Datos de facturación' : 'Entrega'}
           </h2>
 
-          <select name="country" required value={form.country} onChange={handleChange} className={inputClass}>
-            <option value="ES">España</option>
-            <option value="PT">Portugal</option>
-            <option value="FR">Francia</option>
-            <option value="DE">Alemania</option>
-            <option value="IT">Italia</option>
-            <option value="GB">Reino Unido</option>
-            <option value="US">Estados Unidos</option>
-          </select>
+          {/* Método de entrega — oculto en regalos (los vales son digitales) */}
+          {!gift.isGift && (
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setPickup(false)}
+                className="text-left rounded-xl border p-4 transition-colors"
+                style={{
+                  borderColor: !pickup ? '#355539' : '#ddd8cc',
+                  background: !pickup ? 'rgba(213,226,214,0.35)' : '#fdfcfa',
+                }}
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-carbon-900">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 3h15v13H1z" /><path d="M16 8h4l3 3v5h-7z" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" />
+                  </svg>
+                  Envío a domicilio
+                </span>
+                <span className="block text-[12px] text-carbon-500 mt-1">
+                  {subtotal >= 5000 ? 'Gratis' : '4,95 € · gratis desde 50 €'}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPickup(true)}
+                className="text-left rounded-xl border p-4 transition-colors"
+                style={{
+                  borderColor: pickup ? '#355539' : '#ddd8cc',
+                  background: pickup ? 'rgba(213,226,214,0.35)' : '#fdfcfa',
+                }}
+              >
+                <span className="flex items-center gap-2 text-sm font-medium text-carbon-900">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4" /><path d="M9 9v.01M9 12v.01M9 15v.01M9 18v.01" />
+                  </svg>
+                  Recoger en tienda
+                </span>
+                <span className="block text-[12px] text-carbon-500 mt-1">Gratis · en la clínica de Estepona</span>
+              </button>
+            </div>
+          )}
+
+          {pickup && !gift.isGift && (
+            <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-4 text-[13px] text-carbon-600 leading-relaxed">
+              Recoge tu pedido en <strong className="text-carbon-900">QUEVI Wellness Clinic</strong> — Calle Gibraltar 2, Local Bajo, 29680 Estepona (Málaga).
+              Te avisaremos por email cuando esté listo. Horario: Lun–Vie 09:00–20:00.
+            </div>
+          )}
+
+          {(!pickup || gift.isGift) && (
+            <select name="country" required={addressRequired} value={form.country} onChange={handleChange} className={inputClass}>
+              <option value="ES">España</option>
+              <option value="PT">Portugal</option>
+              <option value="FR">Francia</option>
+              <option value="DE">Alemania</option>
+              <option value="IT">Italia</option>
+              <option value="GB">Reino Unido</option>
+              <option value="US">Estados Unidos</option>
+            </select>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <input name="name" required value={form.name} onChange={handleChange}
               placeholder="Tu nombre completo" className={inputClass} />
-            <input name="phone" type="tel" value={form.phone} onChange={handleChange}
-              placeholder="Teléfono" className={inputClass} />
+            <input name="phone" type="tel" required={pickup} value={form.phone} onChange={handleChange}
+              placeholder={pickup ? 'Teléfono' : 'Teléfono (opcional)'} className={inputClass} />
           </div>
 
-          <input name="address" required={!gift.isGift} value={form.address} onChange={handleChange}
-            placeholder={gift.isGift ? 'Dirección (opcional)' : 'Dirección'} className={inputClass} />
+          {(!pickup || gift.isGift) && (
+            <>
+              <input name="address" required={addressRequired} value={form.address} onChange={handleChange}
+                placeholder={gift.isGift ? 'Dirección (opcional)' : 'Dirección'} className={inputClass} />
 
-          <div className="grid grid-cols-2 gap-3">
-            <input name="postalCode" required={!gift.isGift} value={form.postalCode} onChange={handleChange}
-              placeholder={gift.isGift ? 'Código postal (opcional)' : 'Código postal'} className={inputClass} />
-            <input name="city" required={!gift.isGift} value={form.city} onChange={handleChange}
-              placeholder={gift.isGift ? 'Ciudad (opcional)' : 'Ciudad'} className={inputClass} />
-          </div>
+              <div className="grid grid-cols-2 gap-3">
+                <input name="postalCode" required={addressRequired} value={form.postalCode} onChange={handleChange}
+                  placeholder={gift.isGift ? 'Código postal (opcional)' : 'Código postal'} className={inputClass} />
+                <input name="city" required={addressRequired} value={form.city} onChange={handleChange}
+                  placeholder={gift.isGift ? 'Ciudad (opcional)' : 'Ciudad'} className={inputClass} />
+              </div>
+            </>
+          )}
 
           {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-4 py-3">{error}</p>}
 
@@ -180,7 +239,7 @@ export default function ShippingForm({ onConfirmed, loading, error }: Props) {
             </div>
           )}
           <div className="flex justify-between text-sm text-carbon-400">
-            <span>Envío</span>
+            <span>{pickup ? 'Recogida en tienda' : 'Envío'}</span>
             <span>{shippingCents === 0 ? <span className="text-brand-600">Gratis</span> : formatPrice(shippingCents)}</span>
           </div>
           <div className="flex justify-between text-base text-carbon-900 pt-3 border-t border-cream-400 font-medium">

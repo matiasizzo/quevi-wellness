@@ -115,6 +115,7 @@ export async function POST(request: Request) {
           city: saved?.city ?? meta.shipping_city ?? '',
           postalCode: saved?.postalCode ?? meta.shipping_postal_code ?? '',
           country: saved?.country ?? meta.shipping_country ?? '',
+          deliveryMethod: (saved?.deliveryMethod ?? 'ship') as 'ship' | 'pickup',
           couponCode: saved?.couponCode ?? meta.coupon_code ?? '',
           discountCents: Number(saved?.discountCents ?? meta.discount_cents ?? 0),
           subtotalCents: Number(existing?.subtotal_cents ?? meta.subtotal_cents ?? 0),
@@ -216,6 +217,7 @@ export async function POST(request: Request) {
               totalCents: pi.amount,
               address: details.address, city: details.city,
               postalCode: details.postalCode, country: details.country,
+              deliveryMethod: details.deliveryMethod,
               phone: details.phone || undefined,
             })
           } catch (err) {

@@ -25,6 +25,8 @@ export type OrderEmailData = {
   postalCode: string
   country: string
   phone?: string
+  /** 'pickup' = recoge en clínica · 'ship' (por defecto) = envío a domicilio */
+  deliveryMethod?: 'ship' | 'pickup'
 }
 
 function eur(cents: number) {
@@ -97,21 +99,28 @@ async function sendEmail(to: string, subject: string, html: string) {
 
 export async function sendOrderEmails(d: OrderEmailData) {
   const clinicEmail = process.env.ORDER_NOTIFICATIONS_EMAIL
+  const isPickup = d.deliveryMethod === 'pickup'
 
   // ── Email al comprador ──
   const customerHtml = baseLayout(`
     <h1 style="color:#1e1e1e;font-size:24px;font-weight:normal;margin:0 0 8px;">¡Gracias por tu pedido${d.customerName ? `, ${d.customerName.split(' ')[0]}` : ''}!</h1>
     <p style="color:#666;font-size:14px;line-height:1.6;margin:0 0 24px;">
       Hemos recibido tu pedido <strong style="color:#355539;">#${d.orderRef}</strong> y ya lo estamos preparando.
-      Te avisaremos cuando salga en camino.
+      ${isPickup ? 'Te avisaremos cuando esté listo para recoger.' : 'Te avisaremos cuando salga en camino.'}
     </p>
     ${itemsTableHtml(d.items)}
     ${totalsHtml(d)}
     <div style="margin-top:24px;padding:16px;background:#f5f2ec;border-radius:10px;">
-      <p style="color:#999;font-size:11px;letter-spacing:2px;margin:0 0 6px;">DIRECCIÓN DE ENVÍO</p>
-      <p style="color:#1e1e1e;font-size:13px;line-height:1.5;margin:0;">
-        ${d.customerName}<br/>${d.address}<br/>${d.postalCode} ${d.city}, ${d.country}
-      </p>
+      ${isPickup ? `
+        <p style="color:#999;font-size:11px;letter-spacing:2px;margin:0 0 6px;">RECOGIDA EN TIENDA</p>
+        <p style="color:#1e1e1e;font-size:13px;line-height:1.5;margin:0;">
+          QUEVI Wellness Clinic<br/>Calle Gibraltar 2, Local Bajo<br/>29680 Estepona, Málaga<br/>
+          <span style="color:#666;">Lun–Vie · 09:00–20:00</span>
+        </p>` : `
+        <p style="color:#999;font-size:11px;letter-spacing:2px;margin:0 0 6px;">DIRECCIÓN DE ENVÍO</p>
+        <p style="color:#1e1e1e;font-size:13px;line-height:1.5;margin:0;">
+          ${d.customerName}<br/>${d.address}<br/>${d.postalCode} ${d.city}, ${d.country}
+        </p>`}
     </div>
   `)
 
@@ -126,15 +135,15 @@ export async function sendOrderEmails(d: OrderEmailData) {
       </p>
       ${itemsTableHtml(d.items)}
       ${totalsHtml(d)}
-      <div style="margin-top:24px;padding:16px;background:#f5f2ec;border-radius:10px;">
-        <p style="color:#999;font-size:11px;letter-spacing:2px;margin:0 0 6px;">ENVIAR A</p>
+      <div style="margin-top:24px;padding:16px;background:${isPickup ? '#e4ecdf' : '#f5f2ec'};border-radius:10px;">
+        <p style="color:${isPickup ? '#355539' : '#999'};font-size:11px;letter-spacing:2px;margin:0 0 6px;font-weight:bold;">${isPickup ? '🏬 RECOGE EN TIENDA' : 'ENVIAR A'}</p>
         <p style="color:#1e1e1e;font-size:13px;line-height:1.5;margin:0;">
-          ${d.address}<br/>${d.postalCode} ${d.city}, ${d.country}
+          ${isPickup ? 'El cliente pasará a recoger el pedido en la clínica. No hay que enviarlo.' : `${d.address}<br/>${d.postalCode} ${d.city}, ${d.country}`}
         </p>
       </div>
     `)
 
-    await sendEmail(clinicEmail, `🛒 Nuevo pedido #${d.orderRef} · ${eur(d.totalCents)}`, clinicHtml)
+    await sendEmail(clinicEmail, `🛒 Nuevo pedido #${d.orderRef} · ${eur(d.totalCents)}${isPickup ? ' · RECOGE EN TIENDA' : ''}`, clinicHtml)
   } else {
     console.warn('[orderEmails] ORDER_NOTIFICATIONS_EMAIL not set — clinic notification skipped')
   }

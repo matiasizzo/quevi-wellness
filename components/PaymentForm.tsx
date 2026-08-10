@@ -27,7 +27,8 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
   const [error, setError] = useState<string | null>(null)
   const [paying, setPaying] = useState(false)
   const subtotal = Math.round(items.reduce((sum, i) => sum + i.price * 100 * i.quantity, 0))
-  const shippingCents = getShippingCents(subtotal)
+  const isPickup = shipping.deliveryMethod === 'pickup'
+  const shippingCents = isPickup ? 0 : getShippingCents(subtotal)
   const discountCents = coupon ? couponDiscountCents(items, coupon.percent, coupon.scope ?? 'all', coupon.appliesTo) : 0
 
   async function handleSubmit(e: React.FormEvent) {
@@ -56,7 +57,11 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
               name: shipping.name,
               email: shipping.email,
               phone: shipping.phone || undefined,
-              address: { line1: shipping.address, line2: '', city: shipping.city, state: '', postal_code: shipping.postalCode, country: shipping.country },
+              // Con billingDetails:'never' Stripe exige todos los subcampos. En
+              // recogida en tienda no hay dirección → usamos la de la clínica.
+              address: isPickup
+                ? { line1: 'Calle Gibraltar 2, Local Bajo', line2: '', city: 'Estepona', state: '', postal_code: '29680', country: 'ES' }
+                : { line1: shipping.address, line2: '', city: shipping.city, state: '', postal_code: shipping.postalCode, country: shipping.country },
             },
           },
         },
@@ -106,12 +111,14 @@ export default function PaymentForm({ clientSecret, shipping, onEditShipping, to
             <span className="text-carbon-900">{shipping.email}</span>
           </div>
           <div className="flex justify-between px-4 py-3 text-carbon-400">
-            <span>Envía a</span>
-            <span className="text-carbon-900 text-right">{shipping.address}, {shipping.city} {shipping.postalCode}</span>
+            <span>{isPickup ? 'Recogida' : 'Envía a'}</span>
+            <span className="text-carbon-900 text-right">
+              {isPickup ? 'QUEVI Wellness Clinic · Estepona' : `${shipping.address}, ${shipping.city} ${shipping.postalCode}`}
+            </span>
           </div>
           <div className="flex justify-between px-4 py-3 text-carbon-400">
             <span>Método</span>
-            <span className="text-carbon-900">Estándar</span>
+            <span className="text-carbon-900">{isPickup ? 'Recoger en tienda' : 'Envío estándar'}</span>
           </div>
         </div>
 
