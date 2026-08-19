@@ -21,6 +21,8 @@ type ShippingAddress = {
   postalCode?: string
   country?: string
   deliveryMethod?: 'ship' | 'pickup'
+  couponCode?: string | null
+  discountCents?: number
   items?: OrderItem[]
 }
 
@@ -179,6 +181,106 @@ function PedidosTab({ orders }: { orders: Order[] }) {
     navigator.clipboard?.writeText(text)
   }
 
+  function printOrder(o: Order) {
+    const a = o.shipping_address ?? {}
+    const items = a.items ?? []
+    const ref = o.stripe_payment_intent_id
+      ? o.stripe_payment_intent_id.replace('pi_', '').slice(-8).toUpperCase()
+      : o.id.slice(0, 8).toUpperCase()
+    const esc = (s: unknown) => String(s ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string))
+    const isPickup = a.deliveryMethod === 'pickup'
+    const discount = o.subtotal_cents + o.shipping_cents - o.total_cents
+
+    const rows = items.map((i) => {
+      const qty = Number(i.quantity) || 1
+      const unit = typeof i.price === 'number' ? i.price : 0
+      return `<tr>
+        <td>${esc(i.name)}${i.vol ? ` <span class="muted">· ${esc(i.vol)}</span>` : ''}${i.sessions && i.sessions > 1 ? ` <span class="muted">· ${i.sessions} sesiones</span>` : ''}</td>
+        <td class="c">${qty}</td>
+        <td class="r">${euros(Math.round(unit * 100))}</td>
+        <td class="r">${euros(Math.round(unit * 100) * qty)}</td>
+      </tr>`
+    }).join('')
+
+    const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+      <title>Pedido #${ref} — QUEVI</title>
+      <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a1d1a; margin: 0; padding: 32px 36px; font-size: 13px; }
+        .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2e4a32; padding-bottom: 16px; margin-bottom: 20px; }
+        .brand { font-size: 22px; letter-spacing: 5px; color: #2e4a32; font-weight: 700; }
+        .brand small { display: block; font-size: 9px; letter-spacing: 3px; color: #5c6158; font-weight: 400; margin-top: 2px; }
+        .ref { text-align: right; }
+        .ref .n { font-size: 20px; font-weight: 700; }
+        .ref .d { font-size: 12px; color: #5c6158; margin-top: 2px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+        .box { border: 1px solid #ddd6c7; border-radius: 8px; padding: 12px 14px; }
+        .box h3 { margin: 0 0 8px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #5c6158; }
+        .box p { margin: 2px 0; line-height: 1.5; }
+        .pickup { background: #e4ecdf; border-color: #2e4a32; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th { text-align: left; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #5c6158; border-bottom: 1.5px solid #2e4a32; padding: 8px 6px; }
+        td { padding: 9px 6px; border-bottom: 1px solid #eee; }
+        th.c, td.c { text-align: center; } th.r, td.r { text-align: right; }
+        .muted { color: #999; font-size: 11px; }
+        .totals { width: 260px; margin-left: auto; }
+        .totals tr td { border: none; padding: 3px 6px; }
+        .totals .tot td { border-top: 1.5px solid #2e4a32; font-weight: 700; font-size: 15px; padding-top: 8px; }
+        .disc td { color: #2e4a32; }
+        .foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid #ddd6c7; font-size: 10px; color: #999; }
+        .pi { font-family: monospace; font-size: 10px; color: #999; }
+        .checklist { margin-top: 22px; border: 1px dashed #bbb; border-radius: 8px; padding: 12px 14px; }
+        .checklist h3 { margin: 0 0 8px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #5c6158; }
+        .checklist label { display: block; margin: 5px 0; }
+        @media print { body { padding: 16px; } .noprint { display: none; } }
+        .noprint { text-align: center; margin-bottom: 18px; }
+        .noprint button { font: inherit; font-size: 13px; font-weight: 600; background: #2e4a32; color: #fff; border: none; border-radius: 999px; padding: 9px 22px; cursor: pointer; }
+      </style></head><body>
+      <div class="noprint"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
+      <div class="head">
+        <div class="brand">QUEVI<small>WELLNESS CLINIC</small></div>
+        <div class="ref"><div class="n">Pedido #${ref}</div><div class="d">${esc(fmtDate(o.created_at))}</div><div class="d">Estado: ${esc(o.status === 'paid' ? 'Pagado' : o.status)}</div></div>
+      </div>
+      <div class="grid">
+        <div class="box">
+          <h3>Cliente</h3>
+          <p><strong>${esc(a.name) || '—'}</strong></p>
+          <p>${esc(a.email) || ''}</p>
+          <p>${esc(a.phone) || ''}</p>
+        </div>
+        <div class="box ${isPickup ? 'pickup' : ''}">
+          <h3>${isPickup ? '🏬 Recoge en tienda' : 'Enviar a'}</h3>
+          ${isPickup
+            ? `<p>El cliente pasa a recoger el pedido en la clínica.</p><p>QUEVI Wellness Clinic · Calle Gibraltar 2, Estepona</p>`
+            : `<p><strong>${esc(a.name)}</strong></p><p>${esc(a.address)}</p><p>${esc(a.postalCode)} ${esc(a.city)}${a.country ? ', ' + esc(a.country) : ''}</p>`}
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Artículo</th><th class="c">Cant.</th><th class="r">Precio</th><th class="r">Total</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="4" class="muted">Sin detalle de artículos</td></tr>'}</tbody>
+      </table>
+      <table class="totals">
+        <tr><td>Subtotal</td><td class="r">${euros(o.subtotal_cents)}</td></tr>
+        <tr><td>${isPickup ? 'Recogida' : 'Envío'}</td><td class="r">${o.shipping_cents === 0 ? 'Gratis' : euros(o.shipping_cents)}</td></tr>
+        ${discount > 0 ? `<tr class="disc"><td>Descuento${a.couponCode ? ' (' + esc(a.couponCode) + ')' : ''}</td><td class="r">− ${euros(discount)}</td></tr>` : ''}
+        <tr class="tot"><td>Total</td><td class="r">${euros(o.total_cents)}</td></tr>
+      </table>
+      <div class="checklist">
+        <h3>Preparación del pedido</h3>
+        ${items.map((i) => `<label>☐ ${esc(i.name)}${i.vol ? ' · ' + esc(i.vol) : ''} × ${Number(i.quantity) || 1}</label>`).join('') || '<p class="muted">—</p>'}
+        <label style="margin-top:8px;">☐ Empaquetado · ☐ Etiqueta de envío · ☐ Albarán incluido</label>
+      </div>
+      <div class="foot">
+        <p class="pi">${esc(o.stripe_payment_intent_id ?? '')}</p>
+        <p>QUEVI Wellness Clinic SL · NIF B88657044 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
+      </div>
+      <script>window.onload = function () { setTimeout(function () { window.print() }, 400) }</script>
+      </body></html>`
+
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close() }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -206,22 +308,36 @@ function PedidosTab({ orders }: { orders: Order[] }) {
               : o.id.slice(0, 8).toUpperCase()
             return (
               <div key={o.id} className="rounded-xl border border-zinc-700/60 bg-zinc-800/30 overflow-hidden">
-                <button
-                  onClick={() => setOpenId(isOpen ? null : o.id)}
-                  className="w-full text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
-                >
-                  <span className="font-mono text-[12px] text-zinc-500 w-[76px]">#{ref}</span>
-                  <span className="text-zinc-200 font-medium min-w-[150px] flex-1">
-                    {a.name || <span className="text-zinc-500">Sin nombre</span>}
-                    {items.length > 0 && (
-                      <span className="text-zinc-500 font-normal"> · {items.reduce((s, i) => s + (i.quantity ?? 1), 0)} art.</span>
-                    )}
-                  </span>
-                  <span className="text-zinc-400 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
-                  <StatusBadge status={o.status} />
-                  <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(o.total_cents)}</span>
-                  <span className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
-                </button>
+                <div className="flex items-stretch">
+                  <button
+                    onClick={() => setOpenId(isOpen ? null : o.id)}
+                    className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
+                  >
+                    <span className="font-mono text-[12px] text-zinc-500 w-[76px]">#{ref}</span>
+                    <span className="text-zinc-200 font-medium min-w-[150px] flex-1">
+                      {a.name || <span className="text-zinc-500">Sin nombre</span>}
+                      {items.length > 0 && (
+                        <span className="text-zinc-500 font-normal"> · {items.reduce((s, i) => s + (i.quantity ?? 1), 0)} art.</span>
+                      )}
+                    </span>
+                    <span className="text-zinc-400 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
+                    <StatusBadge status={o.status} />
+                    <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(o.total_cents)}</span>
+                    <span className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                  </button>
+                  {(o.status === 'paid' || o.status === 'completed') && (
+                    <button
+                      onClick={() => printOrder(o)}
+                      title="Imprimir hoja de pedido"
+                      className="flex-shrink-0 px-4 flex items-center gap-1.5 border-l border-zinc-700/60 text-[12px] font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
+                      </svg>
+                      <span className="hidden sm:inline">Imprimir</span>
+                    </button>
+                  )}
+                </div>
 
                 {isOpen && (
                   <div className="px-4 pb-4 pt-1 border-t border-zinc-700/40 grid gap-4 md:grid-cols-2">
