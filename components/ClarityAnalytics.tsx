@@ -13,7 +13,10 @@ const CONSENT_KEY = 'quevi-cookie-consent'
 export default function ClarityAnalytics() {
   useEffect(() => {
     const projectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID
-    if (!projectId) return
+    if (!projectId) {
+      console.warn('[Clarity] NEXT_PUBLIC_CLARITY_PROJECT_ID no está definida — Clarity no cargará.')
+      return
+    }
 
     let started = false
 
@@ -23,8 +26,9 @@ export default function ClarityAnalytics() {
       try {
         const Clarity = (await import('@microsoft/clarity')).default
         Clarity.init(projectId!)
-      } catch {
-        // no bloquear la web si Clarity falla
+        console.info('[Clarity] Inicializado con proyecto', projectId)
+      } catch (e) {
+        console.error('[Clarity] Error al inicializar:', e)
       }
     }
 
