@@ -4,6 +4,7 @@ import { CartProvider } from '@/lib/cartContext'
 import CartDrawer from '@/components/CartDrawer'
 import CookieBanner from '@/components/CookieBanner'
 import PromoModal from '@/components/PromoModal'
+import ClarityAnalytics from '@/components/ClarityAnalytics'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import './globals.css'
 
@@ -129,6 +130,7 @@ export default function RootLayout({
           {children}
           <CartDrawer />
           <CookieBanner />
+          <ClarityAnalytics />
           <PromoModal />
           <WhatsAppButton />
         </CartProvider>

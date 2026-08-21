@@ -21,11 +21,14 @@ export default function CookieBanner() {
   const accept = () => {
     localStorage.setItem(STORAGE_KEY, 'accepted')
     setConsent('accepted')
+    // Avisa a la analítica (Clarity) para que arranque tras el consentimiento
+    window.dispatchEvent(new CustomEvent('quevi-cookie-consent', { detail: 'accepted' }))
   }
 
   const reject = () => {
     localStorage.setItem(STORAGE_KEY, 'rejected')
     setConsent('rejected')
+    window.dispatchEvent(new CustomEvent('quevi-cookie-consent', { detail: 'rejected' }))
   }
 
   if (!mounted || consent !== null) return null
