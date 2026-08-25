@@ -16,3 +16,6 @@ out/
 WhatsApp Image*
 *.log
 tsconfig.tsbuildinfo
+
+# HTML intermedio de los materiales imprimibles (ver npm run qr)
+print/.*.html
