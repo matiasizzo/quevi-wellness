@@ -10,38 +10,26 @@ los envíos de paquetería.
 | `qr/quevi-resena.svg` | QR vectorial para cualquier otro diseño (bolsas, flyers, packaging) | SVG |
 | `qr/quevi-resena.png` | Lo mismo en 2000 px | PNG |
 
-## ⚠️ Estado actual: falta el enlace de Google
+## A dónde lleva el QR
 
-El QR debe abrir **directamente** la ventana de escribir reseña. Para eso hace
-falta el identificador de la ficha de Google, que solo se puede sacar del perfil
-del negocio. Hay que rellenar **uno** de los dos campos de
-`reviews.config.json` (en la raíz del proyecto):
+Directo a la ventana de escribir reseña de la ficha de QUEVI:
+`https://g.page/r/Cau5BKt0MBMREBM/review`. Sin pasos intermedios ni pasar por
+la web.
 
-| Campo | De dónde sale | Recomendado |
-|---|---|---|
-| `shortLink` | Google Business Profile → **Pide reseñas** → copiar el enlace `https://g.page/r/…` | ✅ sí |
-| `placeId` | <https://developers.google.com/maps/documentation/places/web-service/place-id> | funciona igual, pero genera un QR más denso (49 módulos frente a 37), o sea menos margen de lectura en la tarjeta pequeña |
+Ese enlace vive en `reviews.config.json` (raíz del proyecto), y de ahí lo cogen
+tanto el generador del QR como la página `/resena`. Si algún día cambia, se
+edita ahí y se ejecuta `npm run qr`.
 
-Después:
-
-```bash
-npm run qr
-```
-
-y quedan regenerados el QR y los dos PDF apuntando directos a Google. Sin ese
-dato el comando se para: así no se imprime por error un QR que acabe en un
-buscador en vez de en el formulario de reseña.
-
-**Los PDF que hay ahora en esta carpeta son provisionales**: se generaron en
-modo redirección (`QR_MODE=redirect`) y pasan por
-`queviwellnessclinic.es/resena`, que reenvía a Google. Funcionan, pero se ve un
-parpadeo de carga intermedio. Regenéralos antes de mandar a imprimir.
+También se acepta un `placeId` en lugar del enlace corto
+(<https://developers.google.com/maps/documentation/places/web-service/place-id>),
+pero genera un QR más denso — 49 módulos frente a 37 — o sea menos margen de
+lectura en la tarjeta pequeña. Mejor el enlace corto.
 
 ### Los dos modos
 
 | Modo | Qué codifica el QR | Cuándo usarlo |
 |---|---|---|
-| directo (por defecto) | el enlace de reseña de Google | Lo que quieres normalmente: el móvil abre Google Maps sin pasos intermedios |
+| directo (por defecto, el que está impreso) | el enlace de reseña de Google | Lo normal: el móvil abre Google Maps sin pasos intermedios |
 | `QR_MODE=redirect npm run qr` | `queviwellnessclinic.es/resena` | Si algún día quieres poder cambiar el destino **sin reimprimir**, o medir cuánta gente escanea |
 
 La página `/resena` sigue existiendo en los dos casos y redirige a la ficha de
