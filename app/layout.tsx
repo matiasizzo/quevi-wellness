@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     'QUEVI wellness',
   ],
   authors: [{ name: 'QUEVI Wellness Clinic' }],
-  metadataBase: new URL('https://queviwellnessclinic.es'),
+  metadataBase: new URL('https://www.queviwellnessclinic.es'),
   alternates: {
     canonical: '/',
   },
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: 'QUEVI Wellness Clinic — Estepona, Málaga',
     description:
       'Medicina estética de precisión. Diagnóstico 360° y protocolos personalizados para tu mejor versión.',
-    url: 'https://queviwellnessclinic.es',
+    url: 'https://www.queviwellnessclinic.es',
     siteName: 'QUEVI Wellness Clinic',
     locale: 'es_ES',
     type: 'website',
@@ -86,7 +86,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
   name: 'QUEVI Wellness Clinic',
-  url: 'https://queviwellnessclinic.es',
+  url: 'https://www.queviwellnessclinic.es',
   telephone: '+34 683 462 705',
   email: 'info@queviwellnessclinic.es',
   legalName: 'QUEVI WELLNESS CLINIC SL',

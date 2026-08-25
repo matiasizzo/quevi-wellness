@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { BLOG_POSTS } from '@/lib/blogPosts'
 import { getReadOnlyClient } from '@/lib/supabaseSafe'
 
-const base = 'https://queviwellnessclinic.es'
+const base = 'https://www.queviwellnessclinic.es'
 
 export const revalidate = 3600
 

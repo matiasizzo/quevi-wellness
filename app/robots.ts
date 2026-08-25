@@ -33,7 +33,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: PRIVATE,
       },
     ],
-    sitemap: 'https://queviwellnessclinic.es/sitemap.xml',
-    host: 'https://queviwellnessclinic.es',
+    sitemap: 'https://www.queviwellnessclinic.es/sitemap.xml',
+    host: 'https://www.queviwellnessclinic.es',
   }
 }
