@@ -62,16 +62,16 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/images/about.png',
-        width: 1408,
-        height: 768,
+        url: '/images/og-quevi.jpg',
+        width: 1200,
+        height: 630,
         alt: 'QUEVI Wellness Clinic — Estepona, Málaga',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    images: ['/images/about.png'],
+    images: ['/images/og-quevi.jpg'],
     title: 'QUEVI Wellness Clinic — Estepona, Málaga',
     description:
       'Medicina estética de precisión. Diagnóstico 360° y protocolos personalizados para tu mejor versión.',
@@ -115,7 +115,7 @@ const jsonLd = {
   },
   description:
     'Medicina estética de precisión en Estepona, Málaga. Diagnóstico SKIN-SCAN Multiespectral, terapias ProAging y tecnologías High-Tech.',
-  image: 'https://www.queviwellnessclinic.es/images/about.png',
+  image: 'https://www.queviwellnessclinic.es/images/og-quevi.jpg',
   logo: 'https://www.queviwellnessclinic.es/images/logo.jpeg',
   priceRange: '€€€',
   medicalSpecialty: 'Dermatology',
