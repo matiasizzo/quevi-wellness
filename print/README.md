@@ -10,32 +10,43 @@ los envíos de paquetería.
 | `qr/quevi-resena.svg` | QR vectorial para cualquier otro diseño (bolsas, flyers, packaging) | SVG |
 | `qr/quevi-resena.png` | Lo mismo en 2000 px | PNG |
 
-## Cómo funciona
+## ⚠️ Estado actual: falta el enlace de Google
 
-El QR **no** apunta directamente a Google: apunta a
-`https://queviwellnessclinic.es/resena`, que redirige a la ficha de Google.
+El QR debe abrir **directamente** la ventana de escribir reseña. Para eso hace
+falta el identificador de la ficha de Google, que solo se puede sacar del perfil
+del negocio. Hay que rellenar **uno** de los dos campos de
+`reviews.config.json` (en la raíz del proyecto):
 
-Ventaja: si Google cambia el enlace, o quieres cambiar el destino más adelante,
-se toca una línea de código y **no hay que reimprimir nada**.
+| Campo | De dónde sale | Recomendado |
+|---|---|---|
+| `shortLink` | Google Business Profile → **Pide reseñas** → copiar el enlace `https://g.page/r/…` | ✅ sí |
+| `placeId` | <https://developers.google.com/maps/documentation/places/web-service/place-id> | funciona igual, pero genera un QR más denso (49 módulos frente a 37), o sea menos margen de lectura en la tarjeta pequeña |
 
-## ⚠️ Antes de imprimir: activar el enlace directo
+Después:
 
-Ahora mismo `/resena` abre la ficha del negocio en Google Maps buscando por
-nombre y dirección. Para que abra directamente el formulario de reseña
-(mejor conversión), hay que rellenar uno de estos dos datos en `content.ts` →
-`GOOGLE_REVIEWS`:
+```bash
+npm run qr
+```
 
-1. **Enlace corto** (lo más fácil): en Google Business Profile → *Pide reseñas*
-   → copiar el enlace `https://g.page/r/…` y pegarlo en `shortLink`.
-2. **Place ID**: buscarlo en
-   <https://developers.google.com/maps/documentation/places/web-service/place-id>
-   y pegarlo en `placeId`.
+y quedan regenerados el QR y los dos PDF apuntando directos a Google. Sin ese
+dato el comando se para: así no se imprime por error un QR que acabe en un
+buscador en vez de en el formulario de reseña.
 
-También se puede fijar en Vercel con la variable de entorno
-`NEXT_PUBLIC_GOOGLE_REVIEW_URL` sin tocar código.
+**Los PDF que hay ahora en esta carpeta son provisionales**: se generaron en
+modo redirección (`QR_MODE=redirect`) y pasan por
+`queviwellnessclinic.es/resena`, que reenvía a Google. Funcionan, pero se ve un
+parpadeo de carga intermedio. Regenéralos antes de mandar a imprimir.
 
-Después de configurarlo, comprobar escaneando el QR con el móvil que se abre la
-ventana de escribir reseña.
+### Los dos modos
+
+| Modo | Qué codifica el QR | Cuándo usarlo |
+|---|---|---|
+| directo (por defecto) | el enlace de reseña de Google | Lo que quieres normalmente: el móvil abre Google Maps sin pasos intermedios |
+| `QR_MODE=redirect npm run qr` | `queviwellnessclinic.es/resena` | Si algún día quieres poder cambiar el destino **sin reimprimir**, o medir cuánta gente escanea |
+
+La página `/resena` sigue existiendo en los dos casos y redirige a la ficha de
+Google: es un enlace corto cómodo para WhatsApp, email de postventa o la bio de
+Instagram.
 
 ## Impresión
 
@@ -46,17 +57,19 @@ ventana de escribir reseña.
   visita, entra en cualquier caja o sobre).
 - Imprimir siempre a color: el QR es verde marca sobre blanco. En blanco y
   negro también se lee, pero pierde marca.
+- Antes de encargar una tirada, imprime una hoja y **escanea el QR con dos
+  móviles** (uno Android y uno iPhone) para comprobar que abre lo que debe.
 
 ## Regenerar los archivos
 
 ```bash
-npm run qr
+npm run qr                                  # modo directo (necesita reviews.config.json)
+QR_MODE=redirect npm run qr                 # vía /resena
+QR_URL=https://ejemplo.com npm run qr       # cualquier otra URL
+CHROME_PATH=/ruta/al/chrome npm run qr      # si no encuentra Chrome
 ```
 
-Regenera QR y PDFs. Necesita Chrome/Chromium instalado (si no lo encuentra,
-deja los HTML en `print/` para imprimir a PDF desde el navegador, o se le
-indica la ruta con `CHROME_PATH=/ruta/al/chrome npm run qr`).
-
-Para apuntar el QR a otra URL: `QR_URL=https://... npm run qr`.
+Necesita Chrome/Chromium para los PDF. Si no lo encuentra, deja los HTML en
+`print/` para imprimir a PDF desde el navegador.
 
 Los textos y el diseño de las piezas están en `scripts/qr/generate.mjs`.

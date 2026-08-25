@@ -2,6 +2,8 @@
 // CONTENIDO QUEVI — WELLNESS CLINIC · MÁLAGA
 // ─────────────────────────────────────────────────────────────────────────────
 
+import REVIEWS_CONFIG from './reviews.config.json'
+
 export const SITE = {
   name: 'QUEVI Wellness Clinic',
   tagline: 'Tu nueva historia de vida de piel',
@@ -16,28 +18,15 @@ export const SITE = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RESEÑAS DE GOOGLE
-// El QR impreso apunta SIEMPRE a queviwellnessclinic.es/resena (URL corta y
-// estable). Esta constante define a dónde redirige esa página, así el destino
-// se puede cambiar sin reimprimir nada.
-//
-// Para activar el enlace directo al formulario de reseña:
-//   1. Google Business Profile → Pide reseñas → copia el enlace (g.page/r/…)
-//      y pégalo en `shortLink`; o
-//   2. busca el Place ID en https://developers.google.com/maps/documentation/
-//      places/web-service/place-id y ponlo en `placeId`.
-// Se puede sobreescribir en producción con NEXT_PUBLIC_GOOGLE_REVIEW_URL.
+// El identificador de la ficha vive en reviews.config.json (rellenar shortLink
+// o placeId). De ahí salen tanto el QR imprimible como la página /resena, que
+// sirve como enlace corto para WhatsApp, email o la bio de Instagram.
+// En producción se puede forzar con NEXT_PUBLIC_GOOGLE_REVIEW_URL.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const GOOGLE_REVIEWS = {
-  /** Enlace corto de Google Business Profile ("Pide reseñas"). Prioridad 1. */
-  shortLink: '',
-  /** Place ID de la ficha de Google. Prioridad 2. */
-  placeId: '',
-  /** Ruta del sitio que se codifica en el QR impreso. */
-  path: '/resena',
-}
+export const GOOGLE_REVIEWS = REVIEWS_CONFIG
 
-/** URL final a la que redirige /resena. */
+/** URL de la ventana de escribir reseña en Google. */
 export function googleReviewUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL
   if (fromEnv) return fromEnv
@@ -45,7 +34,7 @@ export function googleReviewUrl(): string {
   if (GOOGLE_REVIEWS.placeId) {
     return `https://search.google.com/local/writereview?placeid=${GOOGLE_REVIEWS.placeId}`
   }
-  // Fallback: abre la ficha en Google Maps buscando por nombre y dirección.
+  // Sin identificador configurado: al menos abre la ficha en Google Maps.
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${SITE.name} ${SITE.address}`
   )}`

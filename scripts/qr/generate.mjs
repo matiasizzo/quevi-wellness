@@ -10,9 +10,16 @@
  *   quevi-resena-cartel-A4.pdf   Cartel A4 para el local
  *   quevi-resena-tarjetas-A4.pdf Hoja A4 con 10 tarjetas 85×55 mm para envíos
  *
- * El QR codifica siempre https://queviwellnessclinic.es/resena, que redirige a
- * Google (ver content.ts → GOOGLE_REVIEWS). Así el destino se puede cambiar
- * sin reimprimir nada.
+ * El QR lleva DIRECTO a la ventana de escribir reseña en Google, usando el
+ * identificador de la ficha que hay en reviews.config.json (shortLink o
+ * placeId). Sin ese dato el script se para: no se imprime un QR que acabe en
+ * un buscador en vez de en el formulario de reseña.
+ *
+ * Alternativas:
+ *   QR_MODE=redirect  el QR apunta a queviwellnessclinic.es/resena, que
+ *                     redirige a Google. Permite cambiar el destino después
+ *                     sin reimprimir, a cambio de un salto intermedio.
+ *   QR_URL=https://…  fuerza cualquier otra URL.
  */
 
 import { execFileSync } from 'node:child_process'
@@ -26,8 +33,43 @@ const ROOT = resolve(HERE, '../..')
 const OUT = join(ROOT, 'print')
 const OUT_QR = join(OUT, 'qr')
 
-const URL_QR = process.env.QR_URL || 'https://queviwellnessclinic.es/resena'
-const URL_VISIBLE = URL_QR.replace(/^https?:\/\//, '')
+const SITE_URL = 'https://queviwellnessclinic.es'
+const REDIRECT_URL = `${SITE_URL}/resena`
+
+/** URL de reseña de Google a partir de reviews.config.json. */
+function googleReviewUrl() {
+  const cfg = JSON.parse(readFileSync(join(ROOT, 'reviews.config.json'), 'utf8'))
+  if (cfg.shortLink) return cfg.shortLink
+  if (cfg.placeId) {
+    return `https://search.google.com/local/writereview?placeid=${cfg.placeId}`
+  }
+  return null
+}
+
+function resolveQrUrl() {
+  if (process.env.QR_URL) return process.env.QR_URL
+  if (process.env.QR_MODE === 'redirect') return REDIRECT_URL
+
+  const direct = googleReviewUrl()
+  if (direct) return direct
+
+  console.error(
+    '✗ Falta el identificador de la ficha de Google.\n\n' +
+      '  Abre reviews.config.json y rellena UNO de los dos campos:\n' +
+      '    shortLink  Google Business Profile → "Pide reseñas" → https://g.page/r/…\n' +
+      '    placeId    https://developers.google.com/maps/documentation/places/web-service/place-id\n\n' +
+      '  Sin eso el QR no puede abrir el formulario de reseña.\n' +
+      '  (QR_MODE=redirect genera el QR apuntando a /resena en su lugar.)'
+  )
+  process.exit(1)
+}
+
+const URL_QR = resolveQrUrl()
+// Texto legible bajo el QR: los enlaces de Google son ilegibles impresos, así
+// que en ese caso se muestra la URL corta del sitio, que lleva al mismo sitio.
+const URL_VISIBLE = URL_QR.startsWith(SITE_URL)
+  ? URL_QR.replace(/^https?:\/\//, '')
+  : REDIRECT_URL.replace(/^https?:\/\//, '')
 
 const COLOR = {
   green: '#2c472f',
