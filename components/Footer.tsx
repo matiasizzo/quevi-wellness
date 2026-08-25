@@ -165,16 +165,11 @@ export default function Footer() {
             ))}
           </div>
           <div className="flex gap-[14px]">
-            <a href="https://www.instagram.com/queviwellness" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
+            <a href="https://www.instagram.com/queviwellness/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
                 <rect x="3" y="3" width="18" height="18" rx="5" />
                 <circle cx="12" cy="12" r="4" />
                 <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
-              </svg>
-            </a>
-            <a href="https://www.facebook.com/queviwellness" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="transition-colors duration-200 hover:text-cream-100" style={{ color: 'rgba(245,242,236,0.55)' }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4">
-                <path d="M14 9h3V6h-3a3 3 0 0 0-3 3v3H8v3h3v6h3v-6h3l1-3h-4V9z" />
               </svg>
             </a>
           </div>
