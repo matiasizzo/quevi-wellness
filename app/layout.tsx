@@ -120,9 +120,13 @@ const jsonLd = {
   priceRange: '€€€',
   medicalSpecialty: 'Dermatology',
   openingHours: 'Mo-Fr 09:00-20:00',
+  // Perfiles que identifican de forma inequívoca a la clínica. El enlace de
+  // Google es el permalink de la ficha de Business Profile (entidad
+  // /g/11z117dvqw en el Knowledge Graph), y ata la web a las reseñas y al
+  // resultado de Maps.
   sameAs: [
-    'https://www.instagram.com/queviwellness',
-    'https://www.facebook.com/queviwellness',
+    'https://www.instagram.com/queviwellness/',
+    'https://share.google/kZ80Cy1QmRgB6QK6M',
   ],
 }
 
