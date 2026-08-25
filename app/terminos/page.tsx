@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import LegalPage from '@/components/LegalPage'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/terminos' },
   title: 'Términos y condiciones de compra',
   robots: { index: false },
 }

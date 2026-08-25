@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import LegalPage from '@/components/LegalPage'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/privacidad' },
   title: 'Política de privacidad',
   robots: { index: false },
 }

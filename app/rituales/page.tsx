@@ -4,6 +4,7 @@ import Rituales from '@/components/Rituales'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/rituales' },
   title: 'Rituales de Firma',
   description:
     'Rituales de Firma Dall\'O Selfcare aplicados en QUEVI: experiencias de 60 minutos en suite privada con Home Care incluido. Cómpralos online o resérvalos con seña de 50 €.',

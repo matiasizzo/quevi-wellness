@@ -6,6 +6,7 @@ import Booking from '@/components/Booking'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/tratamientos' },
   title: 'Terapias Faciales Pro-Aging',
   description:
     'Terapias faciales Quevi Pro-Aging en Estepona: neuromoduladores, ácido hialurónico, PRP, PDRN, inductores de colágeno, peelings y tecnologías BOOST (LED, microneedling RF, láser CO₂, IPL). Reserva con seña de 50 €.',

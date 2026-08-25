@@ -5,6 +5,7 @@ import Footer from '@/components/Footer'
 import { BLOG_POSTS } from '@/lib/blogPosts'
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/blog' },
   title: 'Journal — Ciencia de la piel',
   description:
     'Artículos sobre medicina estética de precisión, diagnóstico genético, fotobiomodulación, cortisol y regeneración cutánea. Por el equipo médico de QUEVI Wellness Clinic.',
