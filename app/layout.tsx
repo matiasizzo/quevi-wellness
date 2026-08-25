@@ -67,6 +67,9 @@ export const metadata: Metadata = {
     description:
       'Medicina estética de precisión. Diagnóstico 360° y protocolos personalizados para tu mejor versión.',
   },
+  verification: {
+    google: 'Qcb4HhgHzVHTpjojQs8aBpiKM0bDLnXxqE9UfzbYd5A',
+  },
   robots: {
     index: true,
     follow: true,
