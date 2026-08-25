@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
 import { getReadOnlyClient } from '@/lib/supabaseSafe'
 
+const BRAND = 'QUEVI Wellness Clinic'
+const CONTEXT =
+  'Cosmética médica Dall\'O Skin. Envío a toda España desde Estepona, Málaga.'
+
 // Convierte 'd-senolytic-serum' en 'D Senolytic Serum' como último recurso
 function slugToName(slug: string) {
   return slug
@@ -17,29 +21,43 @@ export async function generateMetadata({
   const { slug } = await params
 
   let name = slugToName(slug)
-  let description = `${name} de Dall'O Skin, cosmética médica formulada bajo demanda. Disponible en QUEVI Wellness Clinic con envío a toda España.`
+  let detail = ''
 
   try {
     const db = getReadOnlyClient()
     const { data } = db
-      ? await db.from('products').select('name, tagline, description').eq('slug', slug).single()
+      ? await db
+          .from('products')
+          .select('name, tagline, description')
+          .eq('slug', slug)
+          .single()
       : { data: null }
 
     if (data) {
       name = data.name
-      description = data.tagline || data.description || description
+      detail = [data.tagline, data.description].filter(Boolean).join('. ')
     }
   } catch {
     // Sin conexión a Supabase usamos los valores derivados del slug
   }
 
+  // La plantilla de título del layout raíz no se aplica en este segmento,
+  // así que componemos el título completo a mano.
+  const title = `${name} — Dall'O Skin | ${BRAND}`
+
+  // Las taglines de catálogo son muy cortas para una meta description útil:
+  // las completamos con el contexto de marca hasta una longitud razonable.
+  const description = (detail ? `${name}: ${detail}. ${CONTEXT}` : `${name}. ${CONTEXT}`)
+    .replace(/\.\.+/g, '.')
+    .slice(0, 300)
+
   return {
     alternates: { canonical: `/shop/${slug}` },
-    title: name,
-    description: description.slice(0, 300),
+    title: { absolute: title },
+    description,
     openGraph: {
-      title: name,
-      description: description.slice(0, 300),
+      title,
+      description,
       url: `/shop/${slug}`,
       type: 'website',
     },
