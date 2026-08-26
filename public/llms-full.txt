@@ -2,7 +2,7 @@
 
 > Clínica de medicina estética de precisión en Estepona, Málaga (España). Especializada en diagnóstico SKIN-SCAN Multiespectral y protocolos ProAging personalizados con tecnología de precisión. QUEVI es un centro médico con unidad de estética, distribuidor autorizado de los productos Dall'O Skin y aplicador oficial de los protocolos Dall'O Selfcare bajo contrato de gerenciamiento.
 
-Sitio web: https://queviwellnessclinic.es
+Sitio web: https://www.queviwellnessclinic.es
 Teléfono: +34 683 462 705
 Email: info@queviwellnessclinic.es
 Ubicación: Estepona, Málaga, España (CP 29680)
@@ -37,7 +37,7 @@ Precio oficial: 90 €. La primera sesión es cortesía de QUEVI. Tras el análi
 ## Tratamientos médico-estéticos — Terapias Faciales Quevi Pro-Aging
 
 Todos los tratamientos requieren cita previa con valoración médica. Se confirman con una seña de 50 €, descontable del precio final. Los precios indicados son de referencia; el importe final se confirma tras la valoración médica.
-URL: https://queviwellnessclinic.es/tratamientos
+URL: https://www.queviwellnessclinic.es/tratamientos
 
 ### Terapias ProAging
 Terapias que ayudan a estimular la renovación celular y prolongan la vida cutánea.
@@ -74,7 +74,7 @@ Tecnologías de última generación para potenciar la salud y belleza de la piel
 ## Rituales de Firma
 
 Experiencias de 60 minutos en suite privada que combinan alta cosmética de producción propia con biohacking tecnológico. Protocolos oficiales de Dall'O Selfcare, aplicados en QUEVI bajo autorización. Todos los rituales incluyen producto Home Care de continuidad en casa. Se compran online completos o se reservan con una seña de 50 € (el resto se abona en clínica).
-URL: https://queviwellnessclinic.es/rituales
+URL: https://www.queviwellnessclinic.es/rituales
 
 **Ritual Facial D-Purifying — 290 €** (60 min)
 El reset biológico de la piel. Ayuda a revertir los daños del exposoma (polución, radiación, estrés).
@@ -133,7 +133,7 @@ Biohacking muscular y linfático para piernas cansadas: reactiva la circulación
 ## Tienda online
 
 Productos cosméticos médicos Dall'O Skin para uso domiciliario.
-URL: https://queviwellnessclinic.es/shop
+URL: https://www.queviwellnessclinic.es/shop
 Envío gratuito desde 50 €. La compra de productos es independiente de los servicios médicos.
 
 Categorías: Limpiadores · Serums · Aceites
