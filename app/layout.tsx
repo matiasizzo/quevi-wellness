@@ -32,7 +32,7 @@ const cormorant = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: 'QUEVI Wellness Clinic — Estepona, Málaga',
+    default: 'Medicina Estética en Estepona | QUEVI Wellness Clinic',
     template: '%s | QUEVI Wellness Clinic',
   },
   description:
@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'QUEVI Wellness Clinic — Estepona, Málaga',
+    title: 'Medicina Estética en Estepona | QUEVI Wellness Clinic',
     description:
       'Medicina estética de precisión. Diagnóstico 360° y protocolos personalizados para tu mejor versión.',
     url: 'https://www.queviwellnessclinic.es',
@@ -72,7 +72,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     images: ['/images/og-quevi.jpg'],
-    title: 'QUEVI Wellness Clinic — Estepona, Málaga',
+    title: 'Medicina Estética en Estepona | QUEVI Wellness Clinic',
     description:
       'Medicina estética de precisión. Diagnóstico 360° y protocolos personalizados para tu mejor versión.',
   },
