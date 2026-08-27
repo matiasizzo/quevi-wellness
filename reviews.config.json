@@ -1,0 +1,12 @@
+{
+  "_comentario": [
+    "Enlace a la ficha de Google para pedir reseñas. Lo usan la página /resena y",
+    "el generador del QR imprimible (npm run qr).",
+    "Rellena UNO de los dos campos:",
+    "  shortLink: Google Business Profile → 'Pide reseñas' → copiar https://g.page/r/...",
+    "  placeId:   https://developers.google.com/maps/documentation/places/web-service/place-id",
+    "Con cualquiera de los dos, el QR abre directamente la ventana de escribir reseña."
+  ],
+  "shortLink": "https://g.page/r/Cau5BKt0MBMREBM/review",
+  "placeId": ""
+}

@@ -608,8 +608,8 @@ export default function ShopPage() {
           <div className="flex flex-wrap gap-2">
             {[
               'Distribución oficial autorizada',
-              'Fórmulas magistrales',
-              'Formulación de grado clínico',
+              'Fórmulas de Alkimista',
+              'Avalados por médico estético',
             ].map((chip) => (
               <span
                 key={chip}

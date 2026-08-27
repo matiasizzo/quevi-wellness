@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "qr": "node scripts/qr/generate.mjs"
   },
   "dependencies": {
     "@microsoft/clarity": "^1.0.2",
@@ -27,6 +28,7 @@
     "@types/react-dom": "^19.0.2",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.6.2"
   }

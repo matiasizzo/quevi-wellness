@@ -2,6 +2,8 @@
 // CONTENIDO QUEVI — WELLNESS CLINIC · MÁLAGA
 // ─────────────────────────────────────────────────────────────────────────────
 
+import REVIEWS_CONFIG from './reviews.config.json'
+
 export const SITE = {
   name: 'QUEVI Wellness Clinic',
   tagline: 'Tu nueva historia de vida de piel',
@@ -11,6 +13,31 @@ export const SITE = {
   email: 'info@queviwellnessclinic.es',
   address: 'Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga',
   bookingUrl: '#booking',
+  url: 'https://queviwellnessclinic.es',
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESEÑAS DE GOOGLE
+// El identificador de la ficha vive en reviews.config.json (rellenar shortLink
+// o placeId). De ahí salen tanto el QR imprimible como la página /resena, que
+// sirve como enlace corto para WhatsApp, email o la bio de Instagram.
+// En producción se puede forzar con NEXT_PUBLIC_GOOGLE_REVIEW_URL.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const GOOGLE_REVIEWS = REVIEWS_CONFIG
+
+/** URL de la ventana de escribir reseña en Google. */
+export function googleReviewUrl(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_GOOGLE_REVIEW_URL
+  if (fromEnv) return fromEnv
+  if (GOOGLE_REVIEWS.shortLink) return GOOGLE_REVIEWS.shortLink
+  if (GOOGLE_REVIEWS.placeId) {
+    return `https://search.google.com/local/writereview?placeid=${GOOGLE_REVIEWS.placeId}`
+  }
+  // Sin identificador configurado: al menos abre la ficha en Google Maps.
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    `${SITE.name} ${SITE.address}`
+  )}`
 }
 
 export const NAV_LINKS = [
