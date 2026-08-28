@@ -126,20 +126,36 @@ export async function POST(request: Request) {
         }
         const orderItems = (saved?.items?.length ? saved.items : items) ?? []
 
+        let orderId: string | null = existing?.id ?? null
+
         if (existing) {
           const { error } = await supabase
             .from('orders').update({ status: 'paid', total_cents: pi.amount }).eq('id', existing.id)
           if (error) console.error('[webhook/stripe] Order update error:', error)
         } else {
-          const { error } = await supabase.from('orders').insert({
+          const { data: inserted, error } = await supabase.from('orders').insert({
             status: 'paid',
             subtotal_cents: details.subtotalCents,
             shipping_cents: details.shippingCents,
             total_cents: pi.amount,
             stripe_payment_intent_id: pi.id,
             shipping_address: { ...details, items: orderItems },
-          })
+          }).select('id').maybeSingle()
           if (error) console.error('[webhook/stripe] Order insert error:', error)
+          orderId = inserted?.id ?? null
+        }
+
+        // ── Descuento de stock ──
+        // La función SQL es idempotente (marca orders.stock_applied_at), así que
+        // un reintento de Stripe no vuelve a descontar. Si falla, se registra y
+        // se sigue: el pedido ya está cobrado y no se puede tumbar el webhook.
+        if (orderId) {
+          try {
+            const { error: stockErr } = await supabase.rpc('apply_online_sale_stock', { p_order_id: orderId })
+            if (stockErr) console.error('[webhook/stripe] Stock update error:', stockErr.message)
+          } catch (e) {
+            console.error('[webhook/stripe] Stock update threw:', e)
+          }
         }
 
         // ── Contador de usos del cupón ──

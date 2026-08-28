@@ -1001,7 +1001,10 @@ function StockTab({
 
   const allVariants = products.flatMap(p => p.product_variants)
   const lowStock = allVariants.filter(v => v.active && v.stock_quantity <= 5)
-  const outOfStock = allVariants.filter(v => v.active && v.stock_quantity === 0)
+  const outOfStock = allVariants.filter(v => v.active && v.stock_quantity <= 0)
+  // Una compra online puede dejar el stock en negativo: el pago ya está cobrado
+  // y no se puede rechazar. El negativo dice cuántas unidades se deben.
+  const negativeStock = allVariants.filter(v => v.active && v.stock_quantity < 0)
 
   const activeSales = storeSales.filter(s => s.status !== 'cancelled')
   const startOfToday = new Date()
@@ -1010,7 +1013,7 @@ function StockTab({
   const todayTotal = todaySales.reduce((sum, s) => sum + s.total_cents, 0)
 
   function stockColor(qty: number) {
-    if (qty === 0) return 'text-red-400'
+    if (qty <= 0) return 'text-red-400'
     if (qty <= 5) return 'text-amber-400'
     return 'text-emerald-400'
   }
@@ -1040,7 +1043,11 @@ function StockTab({
         <StatCard label="Productos" value={products.filter(p => p.active).length} sub={`${products.filter(p => !p.active).length} inactivos`} />
         <StatCard label="Variantes totales" value={allVariants.length} />
         <StatCard label="Stock bajo (≤5)" value={lowStock.length} />
-        <StatCard label="Sin stock" value={outOfStock.length} />
+        <StatCard
+          label="Sin stock"
+          value={outOfStock.length}
+          sub={negativeStock.length > 0 ? `${negativeStock.length} en negativo` : undefined}
+        />
         <StatCard label="Ventas hoy en tienda" value={euros(todayTotal)} sub={`${todaySales.length} ventas`} />
       </div>
 
@@ -1094,6 +1101,11 @@ function StockTab({
                           {v.stock_quantity}
                         </span>
                         <span className="text-[11px] text-zinc-600">uds.</span>
+                        {v.stock_quantity < 0 && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-500/30 text-red-300 border border-red-500/50 whitespace-nowrap">
+                            FALTAN {Math.abs(v.stock_quantity)}
+                          </span>
+                        )}
                         {v.stock_quantity === 0 && (
                           <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 border border-red-500/30">AGOTADO</span>
                         )}
