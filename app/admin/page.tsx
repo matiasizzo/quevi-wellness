@@ -99,12 +99,37 @@ type GiftCard = {
   expires_at: string | null
 }
 
+type StoreSaleItem = {
+  variant_id: string | null
+  product_name: string
+  variant_name: string
+  quantity: number
+  unit_price_cents: number
+}
+
+type StoreSale = {
+  id: string
+  sold_at: string
+  payment_method: string
+  customer_name: string | null
+  customer_phone: string | null
+  subtotal_cents: number
+  discount_cents: number
+  total_cents: number
+  items: StoreSaleItem[]
+  notes: string | null
+  status: string
+  cancelled_at: string | null
+  created_at: string
+}
+
 type AdminData = {
   orders: Order[]
   appointments: Appointment[]
   bookings: Booking[]
   products: Product[]
   giftCards: GiftCard[]
+  storeSales: StoreSale[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -528,10 +553,461 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
 
 // ── Tab: Stock ────────────────────────────────────────────────────────────────
 
-function StockTab({ products }: { products: Product[] }) {
+// ── Venta en tienda: modal ────────────────────────────────────────────────────
+
+type SaleLine = { variantId: string; quantity: number; unitPrice: string }
+
+type VariantOption = {
+  id: string
+  label: string
+  productName: string
+  variantName: string
+  priceCents: number
+  stock: number
+}
+
+// Acepta "12,50" y "12.50"
+function toCents(value: string): number {
+  const n = Number(value.replace(',', '.').trim())
+  if (!Number.isFinite(n) || n < 0) return 0
+  return Math.round(n * 100)
+}
+
+function localNow() {
+  const d = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+const PAYMENT_LABELS: Record<string, string> = {
+  efectivo: 'Efectivo',
+  tarjeta: 'Tarjeta',
+  bizum: 'Bizum',
+  otro: 'Otro',
+}
+
+const inputCls =
+  'w-full bg-zinc-900/60 border border-zinc-700 rounded-lg px-3 py-2 text-[13px] text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-500 transition-colors'
+
+function VentaTiendaModal({
+  products,
+  pw,
+  onClose,
+  onSaved,
+}: {
+  products: Product[]
+  pw: string
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [lines, setLines] = useState<SaleLine[]>([{ variantId: '', quantity: 1, unitPrice: '' }])
+  const [paymentMethod, setPaymentMethod] = useState('efectivo')
+  const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
+  const [discount, setDiscount] = useState('')
+  const [soldAt, setSoldAt] = useState(localNow)
+  const [notes, setNotes] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const options: VariantOption[] = products
+    .filter(p => p.active)
+    .flatMap(p =>
+      p.product_variants
+        .filter(v => v.active)
+        .map(v => ({
+          id: v.id,
+          label: `${p.name} · ${v.name}`,
+          productName: p.name,
+          variantName: v.name,
+          priceCents: v.price_cents,
+          stock: v.stock_quantity,
+        })),
+    )
+
+  const byId = new Map(options.map(o => [o.id, o]))
+  const chosen = new Set(lines.map(l => l.variantId).filter(Boolean))
+
+  function updateLine(index: number, patch: Partial<SaleLine>) {
+    setLines(prev => prev.map((l, i) => (i === index ? { ...l, ...patch } : l)))
+  }
+
+  function pickVariant(index: number, variantId: string) {
+    const opt = byId.get(variantId)
+    updateLine(index, {
+      variantId,
+      // El precio de catálogo entra por defecto, pero se puede editar
+      unitPrice: opt ? (opt.priceCents / 100).toFixed(2) : '',
+    })
+  }
+
+  const subtotalCents = lines.reduce((sum, l) => {
+    if (!l.variantId) return sum
+    return sum + toCents(l.unitPrice) * Math.max(0, l.quantity)
+  }, 0)
+  const discountCents = Math.min(toCents(discount), subtotalCents)
+  const totalCents = subtotalCents - discountCents
+
+  const filled = lines.filter(l => l.variantId)
+  const overStock = filled.filter(l => {
+    const opt = byId.get(l.variantId)
+    return opt ? l.quantity > opt.stock : false
+  })
+  const badQty = filled.some(l => !Number.isFinite(l.quantity) || l.quantity < 1)
+  const canSave = filled.length > 0 && overStock.length === 0 && !badQty && !saving
+
+  async function submit() {
+    setError('')
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/store-sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+        body: JSON.stringify({
+          action: 'create',
+          items: filled.map(l => ({
+            variant_id: l.variantId,
+            quantity: l.quantity,
+            unit_price_cents: toCents(l.unitPrice),
+          })),
+          paymentMethod,
+          customerName,
+          customerPhone,
+          discountCents,
+          notes,
+          soldAt,
+        }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error ?? 'No se pudo registrar la venta')
+        return
+      }
+      onSaved()
+      onClose()
+    } catch {
+      setError('Error de red')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 px-4 py-8"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-[720px] rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
+          <div>
+            <h2 className="text-[17px] font-semibold text-zinc-100">Venta en tienda</h2>
+            <p className="text-[12px] text-zinc-500 mt-0.5">Se descuenta del stock al guardar</p>
+          </div>
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200 text-[20px] leading-none px-2">
+            ×
+          </button>
+        </div>
+
+        <div className="px-6 py-5 space-y-5">
+          {/* Líneas de producto */}
+          <div className="space-y-2">
+            <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500">Productos</p>
+            {lines.map((line, i) => {
+              const opt = byId.get(line.variantId)
+              const excess = opt ? line.quantity > opt.stock : false
+              return (
+                <div key={i} className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={line.variantId}
+                      onChange={e => pickVariant(i, e.target.value)}
+                      className={`${inputCls} flex-1 min-w-[200px]`}
+                    >
+                      <option value="">Selecciona producto…</option>
+                      {options.map(o => (
+                        <option
+                          key={o.id}
+                          value={o.id}
+                          disabled={o.id !== line.variantId && chosen.has(o.id)}
+                        >
+                          {o.label} — {o.stock} uds.
+                        </option>
+                      ))}
+                    </select>
+
+                    <input
+                      type="number"
+                      min={1}
+                      value={line.quantity}
+                      onChange={e => updateLine(i, { quantity: Math.trunc(Number(e.target.value)) })}
+                      className={`${inputCls} w-[80px] tabular-nums`}
+                      aria-label="Cantidad"
+                    />
+
+                    <div className="relative w-[110px]">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={line.unitPrice}
+                        onChange={e => updateLine(i, { unitPrice: e.target.value })}
+                        placeholder="0,00"
+                        className={`${inputCls} pr-6 tabular-nums`}
+                        aria-label="Precio unitario"
+                      />
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-zinc-600">€</span>
+                    </div>
+
+                    {lines.length > 1 && (
+                      <button
+                        onClick={() => setLines(prev => prev.filter((_, idx) => idx !== i))}
+                        className="px-2.5 py-2 rounded-lg border border-zinc-700 text-[12px] text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors"
+                      >
+                        Quitar
+                      </button>
+                    )}
+                  </div>
+                  {excess && opt && (
+                    <p className="text-[12px] text-red-400 pl-1">
+                      Solo quedan {opt.stock} uds. de {opt.label}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+
+            <button
+              onClick={() => setLines(prev => [...prev, { variantId: '', quantity: 1, unitPrice: '' }])}
+              className="mt-1 px-3 py-1.5 rounded-lg border border-zinc-700 text-[12px] text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors"
+            >
+              + Añadir producto
+            </button>
+          </div>
+
+          {/* Datos de la venta */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[12px] text-zinc-400 mb-1.5">Método de pago</label>
+              <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className={inputCls}>
+                {Object.entries(PAYMENT_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[12px] text-zinc-400 mb-1.5">Fecha de la venta</label>
+              <input
+                type="datetime-local"
+                value={soldAt}
+                onChange={e => setSoldAt(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] text-zinc-400 mb-1.5">Cliente <span className="text-zinc-600">(opcional)</span></label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                placeholder="Nombre"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] text-zinc-400 mb-1.5">Teléfono <span className="text-zinc-600">(opcional)</span></label>
+              <input
+                type="tel"
+                value={customerPhone}
+                onChange={e => setCustomerPhone(e.target.value)}
+                placeholder="+34 …"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] text-zinc-400 mb-1.5">Descuento <span className="text-zinc-600">(€, opcional)</span></label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={discount}
+                onChange={e => setDiscount(e.target.value)}
+                placeholder="0,00"
+                className={`${inputCls} tabular-nums`}
+              />
+            </div>
+            <div>
+              <label className="block text-[12px] text-zinc-400 mb-1.5">Notas <span className="text-zinc-600">(opcional)</span></label>
+              <input
+                type="text"
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Ej. venta tras tratamiento"
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          {/* Totales */}
+          <div className="rounded-xl border border-zinc-700/60 bg-zinc-800/40 px-5 py-4 space-y-1.5">
+            <div className="flex justify-between text-[13px] text-zinc-400">
+              <span>Subtotal</span>
+              <span className="tabular-nums">{euros(subtotalCents)}</span>
+            </div>
+            {discountCents > 0 && (
+              <div className="flex justify-between text-[13px] text-amber-300">
+                <span>Descuento</span>
+                <span className="tabular-nums">− {euros(discountCents)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-[16px] font-semibold text-zinc-100 pt-1.5 border-t border-zinc-700/50">
+              <span>Total</span>
+              <span className="tabular-nums">{euros(totalCents)}</span>
+            </div>
+          </div>
+
+          {error && <p className="text-[13px] text-red-400">{error}</p>}
+        </div>
+
+        <div className="flex justify-end gap-3 border-t border-zinc-800 px-6 py-4">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-lg border border-zinc-700 text-[13px] text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={submit}
+            disabled={!canSave}
+            className="px-5 py-2 rounded-lg bg-zinc-100 text-zinc-900 text-[13px] font-semibold transition-opacity disabled:opacity-40"
+          >
+            {saving ? 'Guardando…' : 'Registrar venta'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Venta en tienda: listado ──────────────────────────────────────────────────
+
+function VentasTiendaList({
+  sales,
+  pw,
+  onChanged,
+}: {
+  sales: StoreSale[]
+  pw: string
+  onChanged: () => void
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [error, setError] = useState('')
+
+  async function voidSale(id: string) {
+    if (!confirm('¿Anular esta venta? El stock volverá a como estaba antes.')) return
+    setError('')
+    setBusyId(id)
+    try {
+      const res = await fetch('/api/admin/store-sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+        body: JSON.stringify({ action: 'void', id }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error ?? 'No se pudo anular la venta')
+        return
+      }
+      onChanged()
+    } catch {
+      setError('Error de red')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  if (sales.length === 0) {
+    return (
+      <p className="text-[13px] text-zinc-600 italic px-1">
+        Todavía no hay ventas registradas en el local.
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {error && <p className="text-[13px] text-red-400">{error}</p>}
+      {sales.map(s => {
+        const cancelled = s.status === 'cancelled'
+        const units = (s.items ?? []).reduce((n, it) => n + (it.quantity ?? 0), 0)
+        return (
+          <div
+            key={s.id}
+            className={`rounded-xl border border-zinc-700/60 bg-zinc-800/30 px-5 py-3.5 ${cancelled ? 'opacity-50' : ''}`}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-[14px] font-semibold text-zinc-100 tabular-nums">{euros(s.total_cents)}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-700/60 text-zinc-300 border border-zinc-600 uppercase tracking-[0.06em]">
+                    {PAYMENT_LABELS[s.payment_method] ?? s.payment_method}
+                  </span>
+                  {cancelled && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-red-500/20 text-red-300 border border-red-500/30 uppercase tracking-[0.06em]">
+                      anulada
+                    </span>
+                  )}
+                </div>
+                <p className="text-[13px] text-zinc-400 mt-1">
+                  {(s.items ?? []).map(it => `${it.quantity}× ${it.product_name} (${it.variant_name})`).join(' · ') || '—'}
+                </p>
+                <p className="text-[11px] text-zinc-600 mt-1">
+                  {fmtDate(s.sold_at)} · {units} uds.
+                  {s.customer_name ? ` · ${s.customer_name}` : ''}
+                  {s.discount_cents > 0 ? ` · dto. ${euros(s.discount_cents)}` : ''}
+                  {s.notes ? ` · ${s.notes}` : ''}
+                </p>
+              </div>
+
+              {!cancelled && (
+                <button
+                  onClick={() => voidSale(s.id)}
+                  disabled={busyId === s.id}
+                  className="px-3.5 py-1.5 rounded-lg border border-zinc-700 text-[12px] text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                >
+                  {busyId === s.id ? 'Anulando…' : 'Anular'}
+                </button>
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function StockTab({
+  products,
+  storeSales,
+  pw,
+  onChanged,
+}: {
+  products: Product[]
+  storeSales: StoreSale[]
+  pw: string
+  onChanged: () => void
+}) {
+  const [saleOpen, setSaleOpen] = useState(false)
+
   const allVariants = products.flatMap(p => p.product_variants)
   const lowStock = allVariants.filter(v => v.active && v.stock_quantity <= 5)
   const outOfStock = allVariants.filter(v => v.active && v.stock_quantity === 0)
+
+  const activeSales = storeSales.filter(s => s.status !== 'cancelled')
+  const startOfToday = new Date()
+  startOfToday.setHours(0, 0, 0, 0)
+  const todaySales = activeSales.filter(s => new Date(s.sold_at) >= startOfToday)
+  const todayTotal = todaySales.reduce((sum, s) => sum + s.total_cents, 0)
 
   function stockColor(qty: number) {
     if (qty === 0) return 'text-red-400'
@@ -541,12 +1017,48 @@ function StockTab({ products }: { products: Product[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500">Stock</p>
+          <p className="text-[13px] text-zinc-500 mt-0.5">
+            Registra aquí las ventas del local para que el stock cuadre con la tienda online
+          </p>
+        </div>
+        <button
+          onClick={() => setSaleOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-100 text-zinc-900 text-[13px] font-semibold hover:opacity-90 transition-opacity"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 6h18l-1.5 11.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5Z" />
+            <path d="M8 6V4.5A2.5 2.5 0 0 1 10.5 2h3A2.5 2.5 0 0 1 16 4.5V6" />
+          </svg>
+          Venta en tienda
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <StatCard label="Productos" value={products.filter(p => p.active).length} sub={`${products.filter(p => !p.active).length} inactivos`} />
         <StatCard label="Variantes totales" value={allVariants.length} />
         <StatCard label="Stock bajo (≤5)" value={lowStock.length} />
         <StatCard label="Sin stock" value={outOfStock.length} />
+        <StatCard label="Ventas hoy en tienda" value={euros(todayTotal)} sub={`${todaySales.length} ventas`} />
       </div>
+
+      <div className="space-y-3">
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500">Ventas en tienda</p>
+        <VentasTiendaList sales={storeSales} pw={pw} onChanged={onChanged} />
+      </div>
+
+      {saleOpen && (
+        <VentaTiendaModal
+          products={products}
+          pw={pw}
+          onClose={() => setSaleOpen(false)}
+          onSaved={onChanged}
+        />
+      )}
+
+      <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500 pt-2">Inventario</p>
 
       {products.length === 0 ? <Empty label="No hay productos en Supabase" /> : (
         <div className="space-y-3">
@@ -916,7 +1428,14 @@ export default function AdminPage() {
             {tab === 'pedidos' && <PedidosTab orders={data.orders} />}
             {tab === 'citas'   && <CitasTab appointments={data.appointments} bookings={data.bookings} />}
             {tab === 'vales'   && <ValesTab giftCards={data.giftCards ?? []} pw={savedPw} onChanged={() => fetchData(savedPw)} />}
-            {tab === 'stock'   && <StockTab products={data.products} />}
+            {tab === 'stock'   && (
+              <StockTab
+                products={data.products}
+                storeSales={data.storeSales ?? []}
+                pw={savedPw}
+                onChanged={() => fetchData(savedPw)}
+              />
+            )}
           </>
         )}
       </main>
