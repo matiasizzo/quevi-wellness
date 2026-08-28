@@ -1,13 +1,19 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { usePathname } from 'next/navigation'
 
 // Se puede sobreescribir con NEXT_PUBLIC_WHATSAPP_NUMBER (formato internacional, solo dígitos)
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '34683462705'
 
 export default function WhatsAppButton() {
+  const pathname = usePathname()
   const message = encodeURIComponent('Hola, me gustaría más información sobre QUEVI Wellness Clinic.')
   const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`
+
+  // El panel de administración es para el personal: ahí este botón no pinta
+  // nada y el sitio lo ocupa el de "Venta en tienda".
+  if (pathname?.startsWith('/admin')) return null
 
   return (
     <motion.a

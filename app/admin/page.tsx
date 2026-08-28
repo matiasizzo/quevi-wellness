@@ -151,7 +151,7 @@ function StatusBadge({ status }: { status: string }) {
     cancelled: 'bg-red-500/20 text-red-300 border-red-500/30',
     refunded: 'bg-red-500/20 text-red-300 border-red-500/30',
   }
-  const cls = map[status] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600'
+  const cls = map[status] ?? 'bg-zinc-700/50 text-zinc-300 border-zinc-500'
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase ${cls}`}>
       {status}
@@ -163,10 +163,10 @@ function StatusBadge({ status }: { status: string }) {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-xl border border-zinc-700/60 bg-zinc-800/50 px-5 py-4">
-      <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500 mb-1">{label}</p>
+    <div className="rounded-xl border border-zinc-600/80 bg-zinc-800/60 px-5 py-4">
+      <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400 mb-1">{label}</p>
       <p className="font-mono text-[26px] font-semibold text-zinc-100 leading-none">{value}</p>
-      {sub && <p className="text-[12px] text-zinc-500 mt-1">{sub}</p>}
+      {sub && <p className="text-[12px] text-zinc-400 mt-1">{sub}</p>}
     </div>
   )
 }
@@ -175,7 +175,7 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 
 function Empty({ label }: { label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-zinc-600">
+    <div className="flex flex-col items-center justify-center py-20 text-zinc-400">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="mb-3 opacity-40">
         <rect x="3" y="3" width="18" height="18" rx="3" />
         <path d="M9 9h6M9 12h6M9 15h4" />
@@ -319,7 +319,7 @@ function PedidosTab({ orders }: { orders: Order[] }) {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Buscar por cliente, email, teléfono, ciudad o ID…"
-        className="w-full bg-zinc-800/60 border border-zinc-700 rounded-lg px-4 py-2.5 text-[13px] text-zinc-200 placeholder:text-zinc-500 outline-none focus:border-zinc-500 transition-colors"
+        className="w-full bg-zinc-800/60 border border-zinc-600 rounded-lg px-4 py-2.5 text-[13px] text-zinc-200 placeholder:text-zinc-400 outline-none focus:border-zinc-500 transition-colors"
       />
 
       {filtered.length === 0 ? <Empty label={query ? 'Sin resultados' : 'No hay pedidos todavía'} /> : (
@@ -332,29 +332,29 @@ function PedidosTab({ orders }: { orders: Order[] }) {
               ? o.stripe_payment_intent_id.replace('pi_', '').slice(-8).toUpperCase()
               : o.id.slice(0, 8).toUpperCase()
             return (
-              <div key={o.id} className="rounded-xl border border-zinc-700/60 bg-zinc-800/30 overflow-hidden">
+              <div key={o.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
                 <div className="flex items-stretch">
                   <button
                     onClick={() => setOpenId(isOpen ? null : o.id)}
                     className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
                   >
-                    <span className="font-mono text-[12px] text-zinc-500 w-[76px]">#{ref}</span>
+                    <span className="font-mono text-[12px] text-zinc-400 w-[76px]">#{ref}</span>
                     <span className="text-zinc-200 font-medium min-w-[150px] flex-1">
-                      {a.name || <span className="text-zinc-500">Sin nombre</span>}
+                      {a.name || <span className="text-zinc-400">Sin nombre</span>}
                       {items.length > 0 && (
-                        <span className="text-zinc-500 font-normal"> · {items.reduce((s, i) => s + (i.quantity ?? 1), 0)} art.</span>
+                        <span className="text-zinc-400 font-normal"> · {items.reduce((s, i) => s + (i.quantity ?? 1), 0)} art.</span>
                       )}
                     </span>
-                    <span className="text-zinc-400 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
+                    <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
                     <StatusBadge status={o.status} />
                     <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(o.total_cents)}</span>
-                    <span className={`text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                    <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
                   </button>
                   {(o.status === 'paid' || o.status === 'completed') && (
                     <button
                       onClick={() => printOrder(o)}
                       title="Imprimir hoja de pedido"
-                      className="flex-shrink-0 px-4 flex items-center gap-1.5 border-l border-zinc-700/60 text-[12px] font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                      className="flex-shrink-0 px-4 flex items-center gap-1.5 border-l border-zinc-600/80 text-[12px] font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
                     >
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
@@ -365,31 +365,31 @@ function PedidosTab({ orders }: { orders: Order[] }) {
                 </div>
 
                 {isOpen && (
-                  <div className="px-4 pb-4 pt-1 border-t border-zinc-700/40 grid gap-4 md:grid-cols-2">
+                  <div className="px-4 pb-4 pt-1 border-t border-zinc-600/60 grid gap-4 md:grid-cols-2">
                     {/* Artículos */}
                     <div>
-                      <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-500 mb-2">Artículos</p>
+                      <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">Artículos</p>
                       {items.length === 0 ? (
-                        <p className="text-[13px] text-zinc-500">Sin detalle de artículos</p>
+                        <p className="text-[13px] text-zinc-400">Sin detalle de artículos</p>
                       ) : (
                         <ul className="space-y-1.5 m-0 p-0 list-none">
                           {items.map((i, n) => (
                             <li key={n} className="flex justify-between gap-3 text-[13px]">
-                              <span className="text-zinc-300">
+                              <span className="text-zinc-200">
                                 {i.name}
-                                {i.vol ? <span className="text-zinc-500"> · {i.vol}</span> : null}
-                                <span className="text-zinc-500"> × {i.quantity ?? 1}</span>
+                                {i.vol ? <span className="text-zinc-400"> · {i.vol}</span> : null}
+                                <span className="text-zinc-400"> × {i.quantity ?? 1}</span>
                               </span>
-                              <span className="text-zinc-400 whitespace-nowrap">
+                              <span className="text-zinc-300 whitespace-nowrap">
                                 {typeof i.price === 'number' ? euros(Math.round(i.price * 100) * (i.quantity ?? 1)) : '—'}
                               </span>
                             </li>
                           ))}
                         </ul>
                       )}
-                      <div className="mt-3 pt-3 border-t border-zinc-700/40 space-y-1 text-[12px]">
-                        <div className="flex justify-between text-zinc-400"><span>Subtotal</span><span>{euros(o.subtotal_cents)}</span></div>
-                        <div className="flex justify-between text-zinc-400"><span>Envío</span><span>{o.shipping_cents === 0 ? 'Gratis' : euros(o.shipping_cents)}</span></div>
+                      <div className="mt-3 pt-3 border-t border-zinc-600/60 space-y-1 text-[12px]">
+                        <div className="flex justify-between text-zinc-300"><span>Subtotal</span><span>{euros(o.subtotal_cents)}</span></div>
+                        <div className="flex justify-between text-zinc-300"><span>Envío</span><span>{o.shipping_cents === 0 ? 'Gratis' : euros(o.shipping_cents)}</span></div>
                         {o.subtotal_cents + o.shipping_cents !== o.total_cents && (
                           <div className="flex justify-between text-emerald-400">
                             <span>Descuento</span>
@@ -402,42 +402,42 @@ function PedidosTab({ orders }: { orders: Order[] }) {
 
                     {/* Cliente y envío */}
                     <div>
-                      <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-500 mb-2">Cliente y envío</p>
-                      <div className="space-y-1.5 text-[13px] text-zinc-300">
+                      <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">Cliente y envío</p>
+                      <div className="space-y-1.5 text-[13px] text-zinc-200">
                         {a.email && (
                           <div className="flex items-center gap-2">
-                            <a href={`mailto:${a.email}`} className="text-zinc-300 hover:text-zinc-100 underline underline-offset-2">{a.email}</a>
-                            <button onClick={() => copy(a.email!)} className="text-[11px] text-zinc-500 hover:text-zinc-300">copiar</button>
+                            <a href={`mailto:${a.email}`} className="text-zinc-200 hover:text-zinc-100 underline underline-offset-2">{a.email}</a>
+                            <button onClick={() => copy(a.email!)} className="text-[11px] text-zinc-400 hover:text-zinc-200">copiar</button>
                           </div>
                         )}
                         {a.phone && (
                           <div className="flex items-center gap-2">
-                            <a href={`https://wa.me/${a.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-zinc-300 hover:text-zinc-100 underline underline-offset-2">{a.phone}</a>
-                            <span className="text-[11px] text-zinc-500">WhatsApp</span>
+                            <a href={`https://wa.me/${a.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-zinc-200 hover:text-zinc-100 underline underline-offset-2">{a.phone}</a>
+                            <span className="text-[11px] text-zinc-400">WhatsApp</span>
                           </div>
                         )}
                         {a.deliveryMethod === 'pickup' ? (
                           <div className="pt-1 leading-relaxed">
                             <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">🏬 Recoge en tienda</span>
-                            <p className="text-zinc-500 text-[12px] mt-0.5 m-0">El cliente pasa a recoger el pedido en la clínica. No hay que enviarlo.</p>
+                            <p className="text-zinc-400 text-[12px] mt-0.5 m-0">El cliente pasa a recoger el pedido en la clínica. No hay que enviarlo.</p>
                           </div>
                         ) : a.address ? (
-                          <div className="pt-1 leading-relaxed text-zinc-400">
+                          <div className="pt-1 leading-relaxed text-zinc-300">
                             {a.name}<br />
                             {a.address}<br />
                             {a.postalCode} {a.city}{a.country ? `, ${a.country}` : ''}
                             <button
                               onClick={() => copy(`${a.name}\n${a.address}\n${a.postalCode} ${a.city}, ${a.country}`)}
-                              className="ml-2 text-[11px] text-zinc-500 hover:text-zinc-300"
+                              className="ml-2 text-[11px] text-zinc-400 hover:text-zinc-200"
                             >
                               copiar dirección
                             </button>
                           </div>
                         ) : (
-                          <p className="text-zinc-500 pt-1">Sin dirección — pedido sin envío (ritual, tratamiento o regalo)</p>
+                          <p className="text-zinc-400 pt-1">Sin dirección — pedido sin envío (ritual, tratamiento o regalo)</p>
                         )}
                         {o.stripe_payment_intent_id && (
-                          <p className="pt-2 font-mono text-[11px] text-zinc-600 m-0">{o.stripe_payment_intent_id}</p>
+                          <p className="pt-2 font-mono text-[11px] text-zinc-400 m-0">{o.stripe_payment_intent_id}</p>
                         )}
                       </div>
                     </div>
@@ -475,9 +475,9 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
             className="px-4 py-2 rounded-lg text-[13px] font-medium transition-colors"
             style={{
               background: view === v ? 'rgba(255,255,255,0.1)' : 'transparent',
-              color: view === v ? '#f4f4f5' : '#71717a',
+              color: view === v ? '#f4f4f5' : '#a1a1aa',
               border: '1px solid',
-              borderColor: view === v ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.06)',
+              borderColor: view === v ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.12)',
             }}
           >
             {v === 'appointments' ? `Citas con seña (${appointments.length})` : `Formulario contacto (${bookings.length})`}
@@ -487,24 +487,24 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
 
       {view === 'appointments' && (
         appointments.length === 0 ? <Empty label="No hay citas todavía" /> : (
-          <div className="rounded-xl border border-zinc-700/60 overflow-hidden">
+          <div className="rounded-xl border border-zinc-600/80 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="border-b border-zinc-700/60 bg-zinc-800/80">
+                  <tr className="border-b border-zinc-600/80 bg-zinc-800/80">
                     {['Fecha solicitud', 'Nombre', 'Email', 'Servicio', 'Cita', 'Importe', 'Estado'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-500 font-medium whitespace-nowrap">{h}</th>
+                      <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-400 font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-700/40">
+                <tbody className="divide-y divide-zinc-700">
                   {appointments.map(a => (
                     <tr key={a.id} className="hover:bg-zinc-700/20 transition-colors">
-                      <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{fmtDate(a.created_at)}</td>
+                      <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{fmtDate(a.created_at)}</td>
                       <td className="px-4 py-3 text-zinc-200 font-medium">{a.name}</td>
-                      <td className="px-4 py-3 text-zinc-400">{a.email}</td>
-                      <td className="px-4 py-3 text-zinc-300 max-w-[160px] truncate">{a.service}</td>
-                      <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
+                      <td className="px-4 py-3 text-zinc-300">{a.email}</td>
+                      <td className="px-4 py-3 text-zinc-200 max-w-[160px] truncate">{a.service}</td>
+                      <td className="px-4 py-3 text-zinc-200 whitespace-nowrap">
                         {a.appointment_date} {a.appointment_time && `· ${a.appointment_time}`}
                       </td>
                       <td className="px-4 py-3 text-zinc-100 font-semibold whitespace-nowrap">{euros(a.amount_cents)}</td>
@@ -520,24 +520,24 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
 
       {view === 'bookings' && (
         bookings.length === 0 ? <Empty label="No hay solicitudes todavía" /> : (
-          <div className="rounded-xl border border-zinc-700/60 overflow-hidden">
+          <div className="rounded-xl border border-zinc-600/80 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
                 <thead>
-                  <tr className="border-b border-zinc-700/60 bg-zinc-800/80">
+                  <tr className="border-b border-zinc-600/80 bg-zinc-800/80">
                     {['Fecha', 'Nombre', 'Email', 'Teléfono', 'Servicio', 'Estado'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-500 font-medium whitespace-nowrap">{h}</th>
+                      <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-400 font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-700/40">
+                <tbody className="divide-y divide-zinc-700">
                   {bookings.map(b => (
                     <tr key={b.id} className="hover:bg-zinc-700/20 transition-colors">
-                      <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{fmtDate(b.created_at)}</td>
+                      <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{fmtDate(b.created_at)}</td>
                       <td className="px-4 py-3 text-zinc-200 font-medium">{b.name}</td>
-                      <td className="px-4 py-3 text-zinc-400">{b.email}</td>
-                      <td className="px-4 py-3 text-zinc-400">{b.phone ?? '—'}</td>
-                      <td className="px-4 py-3 text-zinc-300">{b.service ?? '—'}</td>
+                      <td className="px-4 py-3 text-zinc-300">{b.email}</td>
+                      <td className="px-4 py-3 text-zinc-300">{b.phone ?? '—'}</td>
+                      <td className="px-4 py-3 text-zinc-200">{b.service ?? '—'}</td>
                       <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                     </tr>
                   ))}
@@ -587,7 +587,7 @@ const PAYMENT_LABELS: Record<string, string> = {
 }
 
 const inputCls =
-  'w-full bg-zinc-900/60 border border-zinc-700 rounded-lg px-3 py-2 text-[13px] text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-500 transition-colors'
+  'w-full bg-zinc-950/70 border border-zinc-600 rounded-lg px-3 py-2 text-[13px] text-zinc-100 placeholder-zinc-500 outline-none focus:border-zinc-500 transition-colors'
 
 function VentaTiendaModal({
   products,
@@ -698,15 +698,15 @@ function VentaTiendaModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[720px] rounded-2xl border border-zinc-700/60 bg-zinc-900 shadow-2xl"
+        className="w-full max-w-[720px] rounded-2xl border border-zinc-600/80 bg-zinc-900 shadow-2xl"
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-zinc-700 px-6 py-4">
           <div>
             <h2 className="text-[17px] font-semibold text-zinc-100">Venta en tienda</h2>
-            <p className="text-[12px] text-zinc-500 mt-0.5">Se descuenta del stock al guardar</p>
+            <p className="text-[12px] text-zinc-400 mt-0.5">Se descuenta del stock al guardar</p>
           </div>
-          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-200 text-[20px] leading-none px-2">
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 text-[20px] leading-none px-2">
             ×
           </button>
         </div>
@@ -714,7 +714,7 @@ function VentaTiendaModal({
         <div className="px-6 py-5 space-y-5">
           {/* Líneas de producto */}
           <div className="space-y-2">
-            <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500">Productos</p>
+            <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Productos</p>
             {lines.map((line, i) => {
               const opt = byId.get(line.variantId)
               const excess = opt ? line.quantity > opt.stock : false
@@ -757,13 +757,13 @@ function VentaTiendaModal({
                         className={`${inputCls} pr-6 tabular-nums`}
                         aria-label="Precio unitario"
                       />
-                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-zinc-600">€</span>
+                      <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[12px] text-zinc-400">€</span>
                     </div>
 
                     {lines.length > 1 && (
                       <button
                         onClick={() => setLines(prev => prev.filter((_, idx) => idx !== i))}
-                        className="px-2.5 py-2 rounded-lg border border-zinc-700 text-[12px] text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors"
+                        className="px-2.5 py-2 rounded-lg border border-zinc-600 text-[12px] text-zinc-400 hover:text-red-400 hover:border-red-500/40 transition-colors"
                       >
                         Quitar
                       </button>
@@ -780,7 +780,7 @@ function VentaTiendaModal({
 
             <button
               onClick={() => setLines(prev => [...prev, { variantId: '', quantity: 1, unitPrice: '' }])}
-              className="mt-1 px-3 py-1.5 rounded-lg border border-zinc-700 text-[12px] text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors"
+              className="mt-1 px-3 py-1.5 rounded-lg border border-zinc-600 text-[12px] text-zinc-300 hover:text-zinc-200 hover:border-zinc-500 transition-colors"
             >
               + Añadir producto
             </button>
@@ -789,7 +789,7 @@ function VentaTiendaModal({
           {/* Datos de la venta */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5">Método de pago</label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5">Método de pago</label>
               <select value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)} className={inputCls}>
                 {Object.entries(PAYMENT_LABELS).map(([value, label]) => (
                   <option key={value} value={value}>{label}</option>
@@ -797,7 +797,7 @@ function VentaTiendaModal({
               </select>
             </div>
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5">Fecha de la venta</label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5">Fecha de la venta</label>
               <input
                 type="datetime-local"
                 value={soldAt}
@@ -806,7 +806,7 @@ function VentaTiendaModal({
               />
             </div>
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5">Cliente <span className="text-zinc-600">(opcional)</span></label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5">Cliente <span className="text-zinc-400">(opcional)</span></label>
               <input
                 type="text"
                 value={customerName}
@@ -816,7 +816,7 @@ function VentaTiendaModal({
               />
             </div>
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5">Teléfono <span className="text-zinc-600">(opcional)</span></label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5">Teléfono <span className="text-zinc-400">(opcional)</span></label>
               <input
                 type="tel"
                 value={customerPhone}
@@ -826,7 +826,7 @@ function VentaTiendaModal({
               />
             </div>
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5">Descuento <span className="text-zinc-600">(€, opcional)</span></label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5">Descuento <span className="text-zinc-400">(€, opcional)</span></label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -837,7 +837,7 @@ function VentaTiendaModal({
               />
             </div>
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5">Notas <span className="text-zinc-600">(opcional)</span></label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5">Notas <span className="text-zinc-400">(opcional)</span></label>
               <input
                 type="text"
                 value={notes}
@@ -849,8 +849,8 @@ function VentaTiendaModal({
           </div>
 
           {/* Totales */}
-          <div className="rounded-xl border border-zinc-700/60 bg-zinc-800/40 px-5 py-4 space-y-1.5">
-            <div className="flex justify-between text-[13px] text-zinc-400">
+          <div className="rounded-xl border border-zinc-600/80 bg-zinc-800/60 px-5 py-4 space-y-1.5">
+            <div className="flex justify-between text-[13px] text-zinc-300">
               <span>Subtotal</span>
               <span className="tabular-nums">{euros(subtotalCents)}</span>
             </div>
@@ -860,7 +860,7 @@ function VentaTiendaModal({
                 <span className="tabular-nums">− {euros(discountCents)}</span>
               </div>
             )}
-            <div className="flex justify-between text-[16px] font-semibold text-zinc-100 pt-1.5 border-t border-zinc-700/50">
+            <div className="flex justify-between text-[16px] font-semibold text-zinc-100 pt-1.5 border-t border-zinc-600/70">
               <span>Total</span>
               <span className="tabular-nums">{euros(totalCents)}</span>
             </div>
@@ -869,10 +869,10 @@ function VentaTiendaModal({
           {error && <p className="text-[13px] text-red-400">{error}</p>}
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-zinc-800 px-6 py-4">
+        <div className="flex justify-end gap-3 border-t border-zinc-700 px-6 py-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg border border-zinc-700 text-[13px] text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="px-4 py-2 rounded-lg border border-zinc-600 text-[13px] text-zinc-300 hover:text-zinc-200 transition-colors"
           >
             Cancelar
           </button>
@@ -928,7 +928,7 @@ function VentasTiendaList({
 
   if (sales.length === 0) {
     return (
-      <p className="text-[13px] text-zinc-600 italic px-1">
+      <p className="text-[13px] text-zinc-400 italic px-1">
         Todavía no hay ventas registradas en el local.
       </p>
     )
@@ -943,13 +943,13 @@ function VentasTiendaList({
         return (
           <div
             key={s.id}
-            className={`rounded-xl border border-zinc-700/60 bg-zinc-800/30 px-5 py-3.5 ${cancelled ? 'opacity-50' : ''}`}
+            className={`rounded-xl border border-zinc-600/80 bg-zinc-800/50 px-5 py-3.5 ${cancelled ? 'opacity-50' : ''}`}
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-[14px] font-semibold text-zinc-100 tabular-nums">{euros(s.total_cents)}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-700/60 text-zinc-300 border border-zinc-600 uppercase tracking-[0.06em]">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-700/60 text-zinc-200 border border-zinc-500 uppercase tracking-[0.06em]">
                     {PAYMENT_LABELS[s.payment_method] ?? s.payment_method}
                   </span>
                   {cancelled && (
@@ -958,10 +958,10 @@ function VentasTiendaList({
                     </span>
                   )}
                 </div>
-                <p className="text-[13px] text-zinc-400 mt-1">
+                <p className="text-[13px] text-zinc-300 mt-1">
                   {(s.items ?? []).map(it => `${it.quantity}× ${it.product_name} (${it.variant_name})`).join(' · ') || '—'}
                 </p>
-                <p className="text-[11px] text-zinc-600 mt-1">
+                <p className="text-[11px] text-zinc-400 mt-1">
                   {fmtDate(s.sold_at)} · {units} uds.
                   {s.customer_name ? ` · ${s.customer_name}` : ''}
                   {s.discount_cents > 0 ? ` · dto. ${euros(s.discount_cents)}` : ''}
@@ -973,7 +973,7 @@ function VentasTiendaList({
                 <button
                   onClick={() => voidSale(s.id)}
                   disabled={busyId === s.id}
-                  className="px-3.5 py-1.5 rounded-lg border border-zinc-700 text-[12px] text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
+                  className="px-3.5 py-1.5 rounded-lg border border-zinc-600 text-[12px] text-zinc-400 hover:text-red-400 hover:border-red-500/40 transition-colors disabled:opacity-50 whitespace-nowrap flex-shrink-0"
                 >
                   {busyId === s.id ? 'Anulando…' : 'Anular'}
                 </button>
@@ -997,8 +997,6 @@ function StockTab({
   pw: string
   onChanged: () => void
 }) {
-  const [saleOpen, setSaleOpen] = useState(false)
-
   const allVariants = products.flatMap(p => p.product_variants)
   const lowStock = allVariants.filter(v => v.active && v.stock_quantity <= 5)
   const outOfStock = allVariants.filter(v => v.active && v.stock_quantity <= 0)
@@ -1020,23 +1018,12 @@ function StockTab({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500">Stock</p>
-          <p className="text-[13px] text-zinc-500 mt-0.5">
-            Registra aquí las ventas del local para que el stock cuadre con la tienda online
-          </p>
-        </div>
-        <button
-          onClick={() => setSaleOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-zinc-100 text-zinc-900 text-[13px] font-semibold hover:opacity-90 transition-opacity"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 6h18l-1.5 11.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5Z" />
-            <path d="M8 6V4.5A2.5 2.5 0 0 1 10.5 2h3A2.5 2.5 0 0 1 16 4.5V6" />
-          </svg>
-          Venta en tienda
-        </button>
+      <div>
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Stock</p>
+        <p className="text-[13px] text-zinc-400 mt-0.5">
+          Registra las ventas del local con el botón <span className="text-zinc-200">Venta en tienda</span> de
+          abajo a la izquierda, para que el stock cuadre con la tienda online
+        </p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -1052,33 +1039,24 @@ function StockTab({
       </div>
 
       <div className="space-y-3">
-        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500">Ventas en tienda</p>
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Ventas en tienda</p>
         <VentasTiendaList sales={storeSales} pw={pw} onChanged={onChanged} />
       </div>
 
-      {saleOpen && (
-        <VentaTiendaModal
-          products={products}
-          pw={pw}
-          onClose={() => setSaleOpen(false)}
-          onSaved={onChanged}
-        />
-      )}
-
-      <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-500 pt-2">Inventario</p>
+      <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400 pt-2">Inventario</p>
 
       {products.length === 0 ? <Empty label="No hay productos en Supabase" /> : (
         <div className="space-y-3">
           {products.map(p => (
-            <div key={p.id} className="rounded-xl border border-zinc-700/60 bg-zinc-800/30 overflow-hidden">
-              <div className="flex items-center gap-3 px-5 py-3 border-b border-zinc-700/40">
+            <div key={p.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
+              <div className="flex items-center gap-3 px-5 py-3 border-b border-zinc-600/60">
                 <div className="flex-1 min-w-0">
                   <p className="text-[14px] font-medium text-zinc-200 truncate">{p.name}</p>
-                  <p className="text-[11px] text-zinc-500 font-mono">{p.slug}</p>
+                  <p className="text-[11px] text-zinc-400 font-mono">{p.slug}</p>
                 </div>
                 <div className="flex gap-2">
                   {!p.active && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-700 text-zinc-400 border border-zinc-600">inactivo</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-700 text-zinc-300 border border-zinc-500">inactivo</span>
                   )}
                   {p.featured && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">destacado</span>
@@ -1087,20 +1065,20 @@ function StockTab({
               </div>
 
               {p.product_variants.length === 0 ? (
-                <p className="px-5 py-3 text-[13px] text-zinc-600 italic">Sin variantes</p>
+                <p className="px-5 py-3 text-[13px] text-zinc-400 italic">Sin variantes</p>
               ) : (
-                <div className="divide-y divide-zinc-700/30">
+                <div className="divide-y divide-zinc-700">
                   {p.product_variants.map(v => (
                     <div key={v.id} className="flex items-center gap-4 px-5 py-2.5">
-                      <span className="text-[13px] text-zinc-300 flex-1">{v.name}</span>
-                      <span className="text-[13px] text-zinc-400 tabular-nums">
+                      <span className="text-[13px] text-zinc-200 flex-1">{v.name}</span>
+                      <span className="text-[13px] text-zinc-300 tabular-nums">
                         {(v.price_cents / 100).toFixed(2)} €
                       </span>
                       <div className="flex items-center gap-2 min-w-[80px] justify-end">
                         <span className={`text-[14px] font-mono font-semibold tabular-nums ${stockColor(v.stock_quantity)}`}>
                           {v.stock_quantity}
                         </span>
-                        <span className="text-[11px] text-zinc-600">uds.</span>
+                        <span className="text-[11px] text-zinc-400">uds.</span>
                         {v.stock_quantity < 0 && (
                           <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-500/30 text-red-300 border border-red-500/50 whitespace-nowrap">
                             FALTAN {Math.abs(v.stock_quantity)}
@@ -1114,7 +1092,7 @@ function StockTab({
                         )}
                       </div>
                       {!v.active && (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-500 border border-zinc-600">off</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-zinc-700 text-zinc-400 border border-zinc-500">off</span>
                       )}
                     </div>
                   ))}
@@ -1135,7 +1113,7 @@ function GiftStatusBadge({ card }: { card: GiftCard }) {
   const status = expired && card.status === 'active' ? 'expired' : card.status
   const map: Record<string, { label: string; cls: string }> = {
     active:    { label: 'Activo',    cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' },
-    redeemed:  { label: 'Canjeado',  cls: 'bg-zinc-600/40 text-zinc-300 border-zinc-500/40' },
+    redeemed:  { label: 'Canjeado',  cls: 'bg-zinc-600/40 text-zinc-200 border-zinc-500/40' },
     cancelled: { label: 'Cancelado', cls: 'bg-red-500/20 text-red-300 border-red-500/30' },
     expired:   { label: 'Caducado',  cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30' },
   }
@@ -1190,7 +1168,7 @@ function ValesTab({ giftCards, pw, onChanged }: { giftCards: GiftCard[]; pw: str
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="Buscar por código, destinatario o experiencia…"
-        className="w-full bg-zinc-900/60 border border-zinc-700 rounded-lg px-4 py-2.5 text-[13px] text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+        className="w-full bg-zinc-950/70 border border-zinc-600 rounded-lg px-4 py-2.5 text-[13px] text-zinc-100 placeholder-zinc-500 outline-none focus:border-zinc-500 transition-colors"
       />
 
       {filtered.length === 0 ? <Empty label="No hay vales regalo" /> : (
@@ -1200,21 +1178,21 @@ function ValesTab({ giftCards, pw, onChanged }: { giftCards: GiftCard[]; pw: str
             const expired = c.expires_at ? new Date(c.expires_at) < new Date() : false
             const canUse = c.status === 'active' && !expired && left > 0
             return (
-              <div key={c.id} className="rounded-xl border border-zinc-700/60 bg-zinc-800/40 p-5">
+              <div key={c.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/60 p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="font-mono text-[15px] font-semibold text-zinc-100 tracking-[0.08em]">{c.code}</span>
                       <GiftStatusBadge card={c} />
                     </div>
-                    <p className="text-[14px] text-zinc-300 mt-1.5">{c.item_name}</p>
-                    <p className="text-[12px] text-zinc-500 mt-0.5">
-                      Para <span className="text-zinc-400">{c.recipient_name ?? '—'}</span>
+                    <p className="text-[14px] text-zinc-200 mt-1.5">{c.item_name}</p>
+                    <p className="text-[12px] text-zinc-400 mt-0.5">
+                      Para <span className="text-zinc-300">{c.recipient_name ?? '—'}</span>
                       {c.recipient_email ? ` · ${c.recipient_email}` : ''}
                       {c.purchaser_name ? ` · de ${c.purchaser_name}` : ''}
                     </p>
-                    {c.message && <p className="text-[12px] text-zinc-500 italic mt-1">"{c.message}"</p>}
-                    <p className="text-[11px] text-zinc-600 mt-1.5">
+                    {c.message && <p className="text-[12px] text-zinc-400 italic mt-1">"{c.message}"</p>}
+                    <p className="text-[11px] text-zinc-400 mt-1.5">
                       {euros(c.amount_cents)} · {left}/{c.total_sessions} sesiones disponibles
                       {c.expires_at ? ` · caduca ${fmtDate(c.expires_at)}` : ''}
                     </p>
@@ -1234,7 +1212,7 @@ function ValesTab({ giftCards, pw, onChanged }: { giftCards: GiftCard[]; pw: str
                       <button
                         onClick={() => act(c.id, 'reactivate')}
                         disabled={busyId === c.id}
-                        className="px-4 py-2 rounded-lg border border-zinc-700 text-[12px] text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        className="px-4 py-2 rounded-lg border border-zinc-600 text-[12px] text-zinc-300 hover:text-zinc-200 transition-colors disabled:opacity-50 whitespace-nowrap"
                       >
                         Reactivar
                       </button>
@@ -1242,7 +1220,7 @@ function ValesTab({ giftCards, pw, onChanged }: { giftCards: GiftCard[]; pw: str
                       <button
                         onClick={() => act(c.id, 'cancel')}
                         disabled={busyId === c.id}
-                        className="px-4 py-2 rounded-lg border border-zinc-700 text-[12px] text-zinc-500 hover:text-red-400 hover:border-red-500/40 transition-colors disabled:opacity-50 whitespace-nowrap"
+                        className="px-4 py-2 rounded-lg border border-zinc-600 text-[12px] text-zinc-400 hover:text-red-400 hover:border-red-500/40 transition-colors disabled:opacity-50 whitespace-nowrap"
                       >
                         Cancelar
                       </button>
@@ -1268,6 +1246,7 @@ export default function AdminPage() {
   const [data, setData] = useState<AdminData | null>(null)
   const [tab, setTab] = useState<'pedidos' | 'citas' | 'stock' | 'vales'>('pedidos')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+  const [saleOpen, setSaleOpen] = useState(false)
 
   const fetchData = useCallback(async (pwd: string) => {
     setLoading(true)
@@ -1320,16 +1299,16 @@ export default function AdminPage() {
 
   if (!authed) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f0f10' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#17171a' }}>
         <div className="w-full max-w-[360px] px-4">
           <div className="mb-8 text-center">
-            <p className="text-[11px] tracking-[0.28em] uppercase text-zinc-500 mb-2">QUEVI Wellness</p>
+            <p className="text-[11px] tracking-[0.28em] uppercase text-zinc-400 mb-2">QUEVI Wellness</p>
             <h1 className="text-[26px] font-semibold text-zinc-100">Panel de administración</h1>
           </div>
 
-          <form onSubmit={handleLogin} className="rounded-2xl border border-zinc-700/60 bg-zinc-800/60 p-6 space-y-4">
+          <form onSubmit={handleLogin} className="rounded-2xl border border-zinc-600/80 bg-zinc-800/60 p-6 space-y-4">
             <div>
-              <label className="block text-[12px] text-zinc-400 mb-1.5 tracking-[0.06em]">Contraseña</label>
+              <label className="block text-[12px] text-zinc-300 mb-1.5 tracking-[0.06em]">Contraseña</label>
               <input
                 type="password"
                 value={password}
@@ -1337,7 +1316,7 @@ export default function AdminPage() {
                 placeholder="••••••••"
                 required
                 autoFocus
-                className="w-full bg-zinc-900/60 border border-zinc-700 rounded-lg px-4 py-2.5 text-[14px] text-zinc-100 placeholder-zinc-600 outline-none focus:border-zinc-500 transition-colors"
+                className="w-full bg-zinc-950/70 border border-zinc-600 rounded-lg px-4 py-2.5 text-[14px] text-zinc-100 placeholder-zinc-500 outline-none focus:border-zinc-500 transition-colors"
               />
             </div>
             {error && (
@@ -1368,24 +1347,24 @@ export default function AdminPage() {
   const savedPw = typeof window !== 'undefined' ? sessionStorage.getItem('quevi-admin-pw') ?? '' : ''
 
   return (
-    <div className="min-h-screen" style={{ background: '#0f0f10', color: '#f4f4f5' }}>
+    <div className="min-h-screen" style={{ background: '#17171a', color: '#f4f4f5' }}>
       {/* Top bar */}
-      <header className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-zinc-700 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-[11px] tracking-[0.22em] uppercase text-zinc-500">QUEVI</span>
-          <span className="text-zinc-700">/</span>
-          <span className="text-[14px] font-medium text-zinc-300">Admin</span>
+          <span className="text-[11px] tracking-[0.22em] uppercase text-zinc-400">QUEVI</span>
+          <span className="text-zinc-400">/</span>
+          <span className="text-[14px] font-medium text-zinc-200">Admin</span>
         </div>
         <div className="flex items-center gap-4">
           {lastRefresh && (
-            <span className="text-[11px] text-zinc-600 hidden sm:block">
+            <span className="text-[11px] text-zinc-400 hidden sm:block">
               Actualizado: {lastRefresh.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
           <button
             onClick={() => fetchData(savedPw)}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-700 text-[12px] text-zinc-400 hover:text-zinc-200 hover:border-zinc-600 transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-600 text-[12px] text-zinc-300 hover:text-zinc-200 hover:border-zinc-500 transition-colors disabled:opacity-50"
           >
             <svg className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -1397,7 +1376,7 @@ export default function AdminPage() {
           </button>
           <button
             onClick={handleLogout}
-            className="px-3 py-1.5 rounded-lg border border-zinc-700 text-[12px] text-zinc-400 hover:text-red-400 hover:border-red-500/40 transition-colors"
+            className="px-3 py-1.5 rounded-lg border border-zinc-600 text-[12px] text-zinc-300 hover:text-red-400 hover:border-red-500/40 transition-colors"
           >
             Salir
           </button>
@@ -1405,7 +1384,7 @@ export default function AdminPage() {
       </header>
 
       {/* Tabs */}
-      <div className="border-b border-zinc-800 px-6">
+      <div className="border-b border-zinc-700 px-6">
         <div className="flex gap-1">
           {TABS.map(t => (
             <button
@@ -1414,13 +1393,13 @@ export default function AdminPage() {
               className="flex items-center gap-2 px-4 py-3.5 text-[13px] font-medium border-b-2 transition-colors"
               style={{
                 borderBottomColor: tab === t.id ? '#f4f4f5' : 'transparent',
-                color: tab === t.id ? '#f4f4f5' : '#71717a',
+                color: tab === t.id ? '#f4f4f5' : '#a1a1aa',
               }}
             >
               {t.label}
               <span
                 className="px-1.5 py-0.5 rounded-full text-[11px] tabular-nums"
-                style={{ background: tab === t.id ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)', color: tab === t.id ? '#d4d4d8' : '#52525b' }}
+                style={{ background: tab === t.id ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)', color: tab === t.id ? '#e4e4e7' : '#a1a1aa' }}
               >
                 {t.count}
               </span>
@@ -1433,7 +1412,7 @@ export default function AdminPage() {
       <main className="max-w-[1400px] mx-auto px-6 py-8">
         {!data ? (
           <div className="flex items-center justify-center py-32">
-            <span className="text-zinc-600 text-[14px]">Cargando…</span>
+            <span className="text-zinc-400 text-[14px]">Cargando…</span>
           </div>
         ) : (
           <>
@@ -1451,6 +1430,32 @@ export default function AdminPage() {
           </>
         )}
       </main>
+
+      {/* Botón flotante: ocupa el sitio del de WhatsApp, que en el admin no
+          pinta nada. Disponible desde cualquier pestaña. */}
+      <button
+        onClick={() => setSaleOpen(true)}
+        aria-label="Registrar una venta en tienda"
+        className="group fixed left-4 bottom-4 sm:left-6 sm:bottom-6 z-40 flex items-center gap-0 hover:gap-2.5 h-14 pl-4 pr-4 rounded-full bg-emerald-500 text-emerald-950 shadow-lg hover:bg-emerald-400 transition-all"
+        style={{ boxShadow: '0 6px 24px -4px rgba(16,185,129,0.55)' }}
+      >
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+          <path d="M3 6h18l-1.5 11.5a2 2 0 0 1-2 1.5H6.5a2 2 0 0 1-2-1.5Z" />
+          <path d="M8 6V4.5A2.5 2.5 0 0 1 10.5 2h3A2.5 2.5 0 0 1 16 4.5V6" />
+        </svg>
+        <span className="max-w-0 overflow-hidden whitespace-nowrap text-[14px] font-semibold transition-all duration-300 group-hover:max-w-[160px]">
+          Venta en tienda
+        </span>
+      </button>
+
+      {saleOpen && data && (
+        <VentaTiendaModal
+          products={data.products}
+          pw={savedPw}
+          onClose={() => setSaleOpen(false)}
+          onSaved={() => fetchData(savedPw)}
+        />
+      )}
     </div>
   )
 }
