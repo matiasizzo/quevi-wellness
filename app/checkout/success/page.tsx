@@ -3,12 +3,16 @@
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/lib/cartContext'
+import { trackPurchase } from '@/lib/gtag'
 import Navbar from '@/components/Navbar'
 
 export default function CheckoutSuccessPage() {
-  const { clearCart } = useCart()
+  const { clearCart, total } = useCart()
 
   useEffect(() => {
+    // El valor se lee antes de vaciar el carrito, que es lo único que queda del
+    // pedido en el cliente. Conversión secundaria: se mide, no se optimiza.
+    if (total > 0) trackPurchase({ value: total })
     clearCart()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])

@@ -8,7 +8,13 @@ const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '34683462705'
 
 export default function WhatsAppButton() {
   const pathname = usePathname()
-  const message = encodeURIComponent('Hola, me gustaría más información sobre QUEVI Wellness Clinic.')
+  // Las páginas bajo /en son la versión inglesa: el mensaje va en su idioma
+  const isEnglish = pathname?.startsWith('/en') ?? false
+  const message = encodeURIComponent(
+    isEnglish
+      ? 'Hello, I would like more information about QUEVI Wellness Clinic.'
+      : 'Hola, me gustaría más información sobre QUEVI Wellness Clinic.'
+  )
   const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`
 
   // El panel de administración es para el personal: ahí este botón no pinta

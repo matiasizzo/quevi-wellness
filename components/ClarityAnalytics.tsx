@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { CONSENT_EVENT, currentConsent, type StoredConsent } from '@/lib/consent'
 
 /**
  * Microsoft Clarity (mapas de calor + grabaciones de sesión).
@@ -8,7 +9,6 @@ import { useEffect } from 'react'
  * con el RGPD. El ID del proyecto se pone en la variable de entorno
  * NEXT_PUBLIC_CLARITY_PROJECT_ID (Vercel), así no queda escrito en el código.
  */
-const CONSENT_KEY = 'quevi-cookie-consent'
 
 export default function ClarityAnalytics() {
   useEffect(() => {
@@ -32,21 +32,19 @@ export default function ClarityAnalytics() {
       }
     }
 
-    // Arranca si ya había consentimiento previo
-    let consent: string | null = null
-    try { consent = localStorage.getItem(CONSENT_KEY) } catch { /* ignore */ }
-    if (consent === 'accepted') {
+    // Arranca si ya había consentimiento analítico previo
+    if (currentConsent().analytics) {
       start()
       return
     }
 
     // Si aún no ha decidido, esperamos a que acepte (evento del banner de cookies)
     function onConsent(e: Event) {
-      const detail = (e as CustomEvent).detail
-      if (detail === 'accepted') start()
+      const detail = (e as CustomEvent).detail as StoredConsent | undefined
+      if (detail?.analytics) start()
     }
-    window.addEventListener('quevi-cookie-consent', onConsent)
-    return () => window.removeEventListener('quevi-cookie-consent', onConsent)
+    window.addEventListener(CONSENT_EVENT, onConsent)
+    return () => window.removeEventListener(CONSENT_EVENT, onConsent)
   }, [])
 
   return null

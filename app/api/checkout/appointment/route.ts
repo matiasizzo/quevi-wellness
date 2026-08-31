@@ -14,7 +14,18 @@ function getSupabaseServiceClient() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { name, email, phone, service, date, time, notes } = body
+    const { name, email, phone, service, date, time, notes, attribution } = body
+
+    // Identificadores de campaña: permiten la conversión offline en Google Ads
+    const attr = (attribution ?? {}) as Record<string, string | undefined>
+    const campaign = {
+      gclid: attr.gclid ?? null,
+      wbraid: attr.wbraid ?? null,
+      gbraid: attr.gbraid ?? null,
+      utm_source: attr.utm_source ?? null,
+      utm_medium: attr.utm_medium ?? null,
+      utm_campaign: attr.utm_campaign ?? null,
+    }
 
     if (!name || !email || !service || !date || !time) {
       return NextResponse.json(
@@ -34,6 +45,7 @@ export async function POST(request: Request) {
         notes: notes ?? null,
         amount_cents: 5000,
         status: 'pending',
+        ...campaign,
       })
       if (dbError) console.error('[checkout/appointment] Supabase insert error:', dbError)
     }

@@ -5,6 +5,8 @@ import CartDrawer from '@/components/CartDrawer'
 import CookieBanner from '@/components/CookieBanner'
 import PromoModal from '@/components/PromoModal'
 import ClarityAnalytics from '@/components/ClarityAnalytics'
+import GoogleTags from '@/components/GoogleTags'
+import TrackingProvider from '@/components/TrackingProvider'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import './globals.css'
 
@@ -142,6 +144,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Debe ir en el <head>: fija el consentimiento por defecto antes de gtag.js */}
+        <GoogleTags />
       </head>
       <body>
         <CartProvider>
@@ -149,6 +153,7 @@ export default function RootLayout({
           <CartDrawer />
           <CookieBanner />
           <ClarityAnalytics />
+          <TrackingProvider />
           <PromoModal />
           <WhatsAppButton />
         </CartProvider>
