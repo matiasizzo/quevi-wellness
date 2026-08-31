@@ -17,6 +17,16 @@ export interface Database {
           message:    string | null
           status:     string
           created_at: string
+          // Atribución de campaña — ver supabase/attribution.sql
+          gclid:        string | null
+          wbraid:       string | null
+          gbraid:       string | null
+          utm_source:   string | null
+          utm_medium:   string | null
+          utm_campaign: string | null
+          landing_page: string | null
+          locale:       string | null
+          source:       string | null
         }
         Insert: {
           id?:        string
@@ -27,6 +37,15 @@ export interface Database {
           message?:   string | null
           status?:    string
           created_at?: string
+          gclid?:        string | null
+          wbraid?:       string | null
+          gbraid?:       string | null
+          utm_source?:   string | null
+          utm_medium?:   string | null
+          utm_campaign?: string | null
+          landing_page?: string | null
+          locale?:       string | null
+          source?:       string | null
         }
         Update: Partial<Database['public']['Tables']['bookings']['Insert']>
         Relationships: []

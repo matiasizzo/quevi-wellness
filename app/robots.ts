@@ -1,7 +1,16 @@
 import type { MetadataRoute } from 'next'
 
-// Rutas transaccionales o privadas: no aportan nada en búsqueda y diluyen el rastreo
-const PRIVATE = ['/admin', '/cuenta', '/checkout', '/cita', '/vale', '/api']
+// Rutas transaccionales o privadas: no aportan nada en búsqueda y diluyen el rastreo.
+// Ojo: /cita NO se bloquea entero — /cita/diagnostico es la landing de campaña y
+// tiene que ser rastreable. Solo se excluyen los pasos finales del embudo.
+const PRIVATE = [
+  '/admin',
+  '/cuenta',
+  '/checkout',
+  '/cita/confirmada',
+  '/vale',
+  '/api',
+]
 
 export default function robots(): MetadataRoute.Robots {
   return {

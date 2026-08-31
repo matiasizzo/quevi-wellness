@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { isPaidTraffic } from '@/lib/attribution'
 
 /**
  * Banner promocional de bienvenida. Se muestra una vez por sesión del navegador
@@ -32,11 +34,21 @@ const PROMO_ITEMS = [
   },
 ]
 
+/** Páginas donde el modal nunca aparece: son las que tienen que convertir. */
+const NO_PROMO_PATHS = ['/cita', '/en', '/checkout', '/admin']
+
 export default function PromoModal() {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
+    // En una landing de campaña, o con tráfico que hemos pagado, el modal es un
+    // tapón de conversión: tapa el formulario justo cuando el usuario acaba de
+    // llegar. Google además lo puntúa como mala experiencia de destino.
+    if (NO_PROMO_PATHS.some((p) => pathname?.startsWith(p))) return
+    if (isPaidTraffic()) return
+
     try {
       if (sessionStorage.getItem(PROMO_KEY)) return
     } catch {
@@ -54,7 +66,7 @@ export default function PromoModal() {
       }
     }, 400)
     return () => { clearInterval(poll); clearTimeout(timer) }
-  }, [])
+  }, [pathname])
 
   const close = () => {
     setOpen(false)

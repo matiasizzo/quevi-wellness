@@ -13,6 +13,7 @@ import {
   Lock,
 } from 'lucide-react'
 import { SITE, RITUALES, TREATMENTS, ritualBookingLabel } from '@/content'
+import { getAttribution } from '@/lib/attribution'
 import { fadeUp, staggerContainer, slideInLeft, slideInRight } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
@@ -416,6 +417,7 @@ function Step3Payment({
           date,
           time,
           notes: form.notes,
+          attribution: getAttribution(),
         }),
       })
       const data = await res.json()

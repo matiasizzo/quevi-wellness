@@ -2,6 +2,7 @@ import { CheckCircle2, CalendarDays, Clock, Stethoscope, ArrowLeft } from 'lucid
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import PurchaseConversion from '@/components/PurchaseConversion'
 
 export const metadata = {
   title: '¡Cita confirmada! — QUEVI Wellness Clinic',
@@ -18,6 +19,8 @@ export default async function CitaConfirmadaPage({
 
   return (
     <>
+      {/* Seña de la cita: 50 € */}
+      <PurchaseConversion value={50} transactionId={sessionId} />
       <Navbar />
       <main className="min-h-screen bg-cream-200 flex flex-col">
         <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-24">

@@ -15,6 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/rituales`, lastModified: now, changeFrequency: 'monthly', priority: 0.9 },
     { url: `${base}/shop`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    // Landings de campaña: reciben el tráfico de Google Ads, pero también son
+    // páginas legítimas de captación en orgánico
+    { url: `${base}/cita/diagnostico`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${base}/en/skin-consultation`, lastModified: now, changeFrequency: 'monthly', priority: 0.8 },
   ]
 
   const posts: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
