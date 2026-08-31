@@ -185,25 +185,112 @@ function Empty({ label }: { label: string }) {
   )
 }
 
-// ── Tab: Pedidos ──────────────────────────────────────────────────────────────
+// ── Tab: Ventas (pedidos online cobrados + ventas manuales en tienda) ─────────
 
-function PedidosTab({ orders }: { orders: Order[] }) {
+// Un pedido online solo es una venta cuando se ha cobrado. Los "pending" son
+// checkouts que nadie llegó a pagar: ensucian la lista y no se muestran.
+const ORDER_SALE_STATUSES = ['paid', 'completed', 'refunded']
+
+type SaleRow =
+  | { kind: 'online'; key: string; date: string; total: number; counted: boolean; order: Order }
+  | { kind: 'manual'; key: string; date: string; total: number; counted: boolean; sale: StoreSale }
+
+function VentasTab({
+  orders,
+  storeSales,
+  pw,
+  onChanged,
+}: {
+  orders: Order[]
+  storeSales: StoreSale[]
+  pw: string
+  onChanged: () => void
+}) {
   const [openId, setOpenId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [kind, setKind] = useState<'all' | 'online' | 'manual'>('all')
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [actionError, setActionError] = useState('')
 
-  const paid = orders.filter(o => o.status === 'paid' || o.status === 'completed')
-  const total = paid.reduce((s, o) => s + o.total_cents, 0)
+  const onlineRows: SaleRow[] = orders
+    .filter(o => ORDER_SALE_STATUSES.includes(o.status))
+    .map(o => ({
+      kind: 'online',
+      key: `order-${o.id}`,
+      date: o.created_at,
+      total: o.total_cents,
+      counted: o.status === 'paid' || o.status === 'completed',
+      order: o,
+    }))
 
-  const filtered = orders.filter(o => {
-    if (!query.trim()) return true
-    const q = query.toLowerCase()
-    const a = o.shipping_address
-    return [a?.name, a?.email, a?.phone, a?.city, o.id, o.stripe_payment_intent_id]
-      .filter(Boolean).some(v => String(v).toLowerCase().includes(q))
+  // Las ventas de mostrador aparecen aquí en cuanto se registran, junto a las
+  // online, ordenadas por fecha
+  const manualRows: SaleRow[] = storeSales.map(s => ({
+    kind: 'manual',
+    key: `store-${s.id}`,
+    date: s.sold_at,
+    total: s.total_cents,
+    counted: s.status !== 'cancelled',
+    sale: s,
+  }))
+
+  const hiddenPending = orders.length - onlineRows.length
+
+  const rows = [...onlineRows, ...manualRows]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  const counted = rows.filter(r => r.counted)
+  const total = counted.reduce((s, r) => s + r.total, 0)
+
+  const byKind = kind === 'all' ? rows : rows.filter(r => r.kind === kind)
+
+  const q = query.trim().toLowerCase()
+  const filtered = !q ? byKind : byKind.filter(r => {
+    const fields: (string | null | undefined)[] = r.kind === 'online'
+      ? [
+          r.order.shipping_address?.name,
+          r.order.shipping_address?.email,
+          r.order.shipping_address?.phone,
+          r.order.shipping_address?.city,
+          r.order.id,
+          r.order.stripe_payment_intent_id,
+          ...(r.order.shipping_address?.items ?? []).map(i => i.name),
+        ]
+      : [
+          r.sale.customer_name,
+          r.sale.customer_phone,
+          r.sale.notes,
+          r.sale.id,
+          ...(r.sale.items ?? []).map(i => `${i.product_name} ${i.variant_name}`),
+        ]
+    return fields.filter(Boolean).some(v => String(v).toLowerCase().includes(q))
   })
 
   function copy(text: string) {
     navigator.clipboard?.writeText(text)
+  }
+
+  async function voidSale(id: string) {
+    if (!confirm('¿Anular esta venta? El stock volverá a como estaba antes.')) return
+    setActionError('')
+    setBusyId(id)
+    try {
+      const res = await fetch('/api/admin/store-sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': pw },
+        body: JSON.stringify({ action: 'void', id }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setActionError(json.error ?? 'No se pudo anular la venta')
+        return
+      }
+      onChanged()
+    } catch {
+      setActionError('Error de red')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   function printOrder(o: Order) {
@@ -308,34 +395,172 @@ function PedidosTab({ orders }: { orders: Order[] }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Total pedidos" value={orders.length} />
-        <StatCard label="Pagados" value={paid.length} />
-        <StatCard label="Facturación" value={euros(total)} sub="solo pedidos pagados" />
-        <StatCard label="Ticket medio" value={paid.length ? euros(Math.round(total / paid.length)) : '—'} />
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <StatCard label="Ventas" value={rows.length} sub="online + tienda" />
+        <StatCard label="Online" value={onlineRows.length} sub={hiddenPending > 0 ? `${hiddenPending} sin pagar ocultos` : undefined} />
+        <StatCard label="Manuales" value={manualRows.length} sub="registradas en tienda" />
+        <StatCard label="Facturación" value={euros(total)} sub="ventas cobradas" />
+        <StatCard label="Ticket medio" value={counted.length ? euros(Math.round(total / counted.length)) : '—'} />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {([
+          { id: 'all', label: `Todas (${rows.length})` },
+          { id: 'online', label: `Online (${onlineRows.length})` },
+          { id: 'manual', label: `Manuales (${manualRows.length})` },
+        ] as const).map(f => (
+          <button
+            key={f.id}
+            onClick={() => setKind(f.id)}
+            className="px-4 py-2 rounded-lg text-[13px] font-medium transition-colors"
+            style={{
+              background: kind === f.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+              color: kind === f.id ? '#f4f4f5' : '#a1a1aa',
+              border: '1px solid',
+              borderColor: kind === f.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.12)',
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Buscar por cliente, email, teléfono, ciudad o ID…"
+        placeholder="Buscar por cliente, email, teléfono, producto o ID…"
         className="w-full bg-zinc-800/60 border border-zinc-600 rounded-lg px-4 py-2.5 text-[13px] text-zinc-200 placeholder:text-zinc-400 outline-none focus:border-zinc-500 transition-colors"
       />
 
-      {filtered.length === 0 ? <Empty label={query ? 'Sin resultados' : 'No hay pedidos todavía'} /> : (
+      {actionError && <p className="text-[13px] text-red-400">{actionError}</p>}
+
+      {filtered.length === 0 ? <Empty label={query ? 'Sin resultados' : 'No hay ventas todavía'} /> : (
         <div className="space-y-2">
-          {filtered.map(o => {
+          {filtered.map(row => {
+            if (row.kind === 'manual') {
+              const s = row.sale
+              const isOpen = openId === row.key
+              const cancelled = s.status === 'cancelled'
+              const saleItems = s.items ?? []
+              const units = saleItems.reduce((n, it) => n + (it.quantity ?? 0), 0)
+              const ref = s.id.slice(0, 8).toUpperCase()
+              return (
+                <div
+                  key={row.key}
+                  className={`rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden ${cancelled ? 'opacity-50' : ''}`}
+                >
+                  <div className="flex items-stretch">
+                    <button
+                      onClick={() => setOpenId(isOpen ? null : row.key)}
+                      className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
+                    >
+                      <span className="font-mono text-[12px] text-zinc-400 w-[76px]">#{ref}</span>
+                      <span className="text-zinc-200 font-medium min-w-[150px] flex-1">
+                        {s.customer_name || <span className="text-zinc-400">Venta en tienda</span>}
+                        {units > 0 && <span className="text-zinc-400 font-normal"> · {units} art.</span>}
+                      </span>
+                      <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(s.sold_at)}</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-sky-500/20 text-sky-300 border-sky-500/30">
+                        manual
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] bg-zinc-700/60 text-zinc-200 border border-zinc-500 uppercase tracking-[0.06em]">
+                        {PAYMENT_LABELS[s.payment_method] ?? s.payment_method}
+                      </span>
+                      {cancelled && <StatusBadge status="cancelled" />}
+                      <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(s.total_cents)}</span>
+                      <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                    </button>
+                    {!cancelled && (
+                      <button
+                        onClick={() => voidSale(s.id)}
+                        disabled={busyId === s.id}
+                        title="Anular la venta y devolver el stock"
+                        className="flex-shrink-0 px-4 flex items-center border-l border-zinc-600/80 text-[12px] font-medium text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50 whitespace-nowrap"
+                      >
+                        {busyId === s.id ? 'Anulando…' : 'Anular'}
+                      </button>
+                    )}
+                  </div>
+
+                  {isOpen && (
+                    <div className="px-4 pb-4 pt-1 border-t border-zinc-600/60 grid gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">Artículos</p>
+                        {saleItems.length === 0 ? (
+                          <p className="text-[13px] text-zinc-400">Sin detalle de artículos</p>
+                        ) : (
+                          <ul className="space-y-1.5 m-0 p-0 list-none">
+                            {saleItems.map((it, n) => (
+                              <li key={n} className="flex justify-between gap-3 text-[13px]">
+                                <span className="text-zinc-200">
+                                  {it.product_name}
+                                  <span className="text-zinc-400"> · {it.variant_name}</span>
+                                  <span className="text-zinc-400"> × {it.quantity}</span>
+                                </span>
+                                <span className="text-zinc-300 whitespace-nowrap">
+                                  {euros(it.unit_price_cents * (it.quantity ?? 1))}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <div className="mt-3 pt-3 border-t border-zinc-600/60 space-y-1 text-[12px]">
+                          <div className="flex justify-between text-zinc-300"><span>Subtotal</span><span>{euros(s.subtotal_cents)}</span></div>
+                          {s.discount_cents > 0 && (
+                            <div className="flex justify-between text-emerald-400">
+                              <span>Descuento</span>
+                              <span>− {euros(s.discount_cents)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-zinc-100 font-semibold pt-1"><span>Total</span><span>{euros(s.total_cents)}</span></div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">Venta en tienda</p>
+                        <div className="space-y-1.5 text-[13px] text-zinc-200">
+                          <p className="m-0">Cobrado en {PAYMENT_LABELS[s.payment_method] ?? s.payment_method}</p>
+                          {s.customer_name && <p className="m-0">{s.customer_name}</p>}
+                          {s.customer_phone && (
+                            <div className="flex items-center gap-2">
+                              <a
+                                href={`https://wa.me/${s.customer_phone.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-zinc-200 hover:text-zinc-100 underline underline-offset-2"
+                              >
+                                {s.customer_phone}
+                              </a>
+                              <span className="text-[11px] text-zinc-400">WhatsApp</span>
+                            </div>
+                          )}
+                          {s.notes && <p className="text-zinc-300 italic m-0">{s.notes}</p>}
+                          {cancelled && (
+                            <p className="text-red-400 m-0">
+                              Anulada{s.cancelled_at ? ` el ${fmtDate(s.cancelled_at)}` : ''} · stock devuelto
+                            </p>
+                          )}
+                          <p className="pt-2 font-mono text-[11px] text-zinc-400 m-0">{s.id}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
+            const o = row.order
             const a = o.shipping_address ?? {}
             const items = a.items ?? []
-            const isOpen = openId === o.id
+            const isOpen = openId === row.key
             const ref = o.stripe_payment_intent_id
               ? o.stripe_payment_intent_id.replace('pi_', '').slice(-8).toUpperCase()
               : o.id.slice(0, 8).toUpperCase()
             return (
-              <div key={o.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
+              <div key={row.key} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
                 <div className="flex items-stretch">
                   <button
-                    onClick={() => setOpenId(isOpen ? null : o.id)}
+                    onClick={() => setOpenId(isOpen ? null : row.key)}
                     className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
                   >
                     <span className="font-mono text-[12px] text-zinc-400 w-[76px]">#{ref}</span>
@@ -346,6 +571,9 @@ function PedidosTab({ orders }: { orders: Order[] }) {
                       )}
                     </span>
                     <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-zinc-700/50 text-zinc-300 border-zinc-500">
+                      online
+                    </span>
                     <StatusBadge status={o.status} />
                     <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(o.total_cents)}</span>
                     <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
@@ -1244,7 +1472,7 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<AdminData | null>(null)
-  const [tab, setTab] = useState<'pedidos' | 'citas' | 'stock' | 'vales'>('pedidos')
+  const [tab, setTab] = useState<'ventas' | 'citas' | 'stock' | 'vales'>('ventas')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [saleOpen, setSaleOpen] = useState(false)
 
@@ -1337,8 +1565,14 @@ export default function AdminPage() {
 
   // ── Dashboard ────────────────────────────────────────────────────────────
 
+  // El contador de ventas cuenta lo mismo que se ve en la lista: pedidos
+  // online cobrados + ventas registradas a mano
+  const ventasCount =
+    (data?.orders ?? []).filter(o => ORDER_SALE_STATUSES.includes(o.status)).length +
+    (data?.storeSales?.length ?? 0)
+
   const TABS = [
-    { id: 'pedidos', label: 'Pedidos', count: data?.orders.length ?? 0 },
+    { id: 'ventas', label: 'Ventas', count: ventasCount },
     { id: 'citas',   label: 'Citas',   count: (data?.appointments.length ?? 0) + (data?.bookings.length ?? 0) },
     { id: 'vales',   label: 'Vales regalo', count: data?.giftCards?.length ?? 0 },
     { id: 'stock',   label: 'Stock',   count: data?.products.length ?? 0 },
@@ -1416,7 +1650,14 @@ export default function AdminPage() {
           </div>
         ) : (
           <>
-            {tab === 'pedidos' && <PedidosTab orders={data.orders} />}
+            {tab === 'ventas'  && (
+              <VentasTab
+                orders={data.orders}
+                storeSales={data.storeSales ?? []}
+                pw={savedPw}
+                onChanged={() => fetchData(savedPw)}
+              />
+            )}
             {tab === 'citas'   && <CitasTab appointments={data.appointments} bookings={data.bookings} />}
             {tab === 'vales'   && <ValesTab giftCards={data.giftCards ?? []} pw={savedPw} onChanged={() => fetchData(savedPw)} />}
             {tab === 'stock'   && (
