@@ -393,6 +393,95 @@ function VentasTab({
     if (w) { w.document.write(html); w.document.close() }
   }
 
+  // Mismo ticket que el de los pedidos online, con los datos de mostrador
+  function printSale(s: StoreSale) {
+    const saleItems = s.items ?? []
+    const ref = s.id.slice(0, 8).toUpperCase()
+    const esc = (v: unknown) => String(v ?? '').replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string))
+    const payment = PAYMENT_LABELS[s.payment_method] ?? s.payment_method
+    const cancelled = s.status === 'cancelled'
+
+    const rows = saleItems.map((i) => {
+      const qty = Number(i.quantity) || 1
+      return `<tr>
+        <td>${esc(i.product_name)}${i.variant_name ? ` <span class="muted">· ${esc(i.variant_name)}</span>` : ''}</td>
+        <td class="c">${qty}</td>
+        <td class="r">${euros(i.unit_price_cents)}</td>
+        <td class="r">${euros(i.unit_price_cents * qty)}</td>
+      </tr>`
+    }).join('')
+
+    const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+      <title>Ticket #${ref} — QUEVI</title>
+      <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a1d1a; margin: 0; padding: 32px 36px; font-size: 13px; }
+        .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2e4a32; padding-bottom: 16px; margin-bottom: 20px; }
+        .brand { font-size: 22px; letter-spacing: 5px; color: #2e4a32; font-weight: 700; }
+        .brand small { display: block; font-size: 9px; letter-spacing: 3px; color: #5c6158; font-weight: 400; margin-top: 2px; }
+        .ref { text-align: right; }
+        .ref .n { font-size: 20px; font-weight: 700; }
+        .ref .d { font-size: 12px; color: #5c6158; margin-top: 2px; }
+        .void { border: 1.5px solid #b3261e; color: #b3261e; border-radius: 8px; padding: 8px 12px; margin-bottom: 18px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-size: 11px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+        .box { border: 1px solid #ddd6c7; border-radius: 8px; padding: 12px 14px; }
+        .box h3 { margin: 0 0 8px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #5c6158; }
+        .box p { margin: 2px 0; line-height: 1.5; }
+        .store { background: #e4ecdf; border-color: #2e4a32; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        th { text-align: left; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: #5c6158; border-bottom: 1.5px solid #2e4a32; padding: 8px 6px; }
+        td { padding: 9px 6px; border-bottom: 1px solid #eee; }
+        th.c, td.c { text-align: center; } th.r, td.r { text-align: right; }
+        .muted { color: #999; font-size: 11px; }
+        .totals { width: 260px; margin-left: auto; }
+        .totals tr td { border: none; padding: 3px 6px; }
+        .totals .tot td { border-top: 1.5px solid #2e4a32; font-weight: 700; font-size: 15px; padding-top: 8px; }
+        .disc td { color: #2e4a32; }
+        .foot { margin-top: 30px; padding-top: 14px; border-top: 1px solid #ddd6c7; font-size: 10px; color: #999; }
+        .pi { font-family: monospace; font-size: 10px; color: #999; }
+        @media print { body { padding: 16px; } .noprint { display: none; } }
+        .noprint { text-align: center; margin-bottom: 18px; }
+        .noprint button { font: inherit; font-size: 13px; font-weight: 600; background: #2e4a32; color: #fff; border: none; border-radius: 999px; padding: 9px 22px; cursor: pointer; }
+      </style></head><body>
+      <div class="noprint"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
+      <div class="head">
+        <div class="brand">QUEVI<small>WELLNESS CLINIC</small></div>
+        <div class="ref"><div class="n">Ticket #${ref}</div><div class="d">${esc(fmtDate(s.sold_at))}</div><div class="d">Pago: ${esc(payment)}</div></div>
+      </div>
+      ${cancelled ? `<div class="void">Venta anulada${s.cancelled_at ? ` el ${esc(fmtDate(s.cancelled_at))}` : ''} · stock devuelto</div>` : ''}
+      <div class="grid">
+        <div class="box">
+          <h3>Cliente</h3>
+          <p><strong>${esc(s.customer_name) || 'Cliente de mostrador'}</strong></p>
+          <p>${esc(s.customer_phone) || ''}</p>
+        </div>
+        <div class="box store">
+          <h3>🏬 Venta en tienda</h3>
+          <p>Entregado en mano en la clínica.</p>
+          <p>QUEVI Wellness Clinic · Calle Gibraltar 2, Estepona</p>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Artículo</th><th class="c">Cant.</th><th class="r">Precio</th><th class="r">Total</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="4" class="muted">Sin detalle de artículos</td></tr>'}</tbody>
+      </table>
+      <table class="totals">
+        <tr><td>Subtotal</td><td class="r">${euros(s.subtotal_cents)}</td></tr>
+        ${s.discount_cents > 0 ? `<tr class="disc"><td>Descuento</td><td class="r">− ${euros(s.discount_cents)}</td></tr>` : ''}
+        <tr class="tot"><td>Total</td><td class="r">${euros(s.total_cents)}</td></tr>
+      </table>
+      ${s.notes ? `<p class="muted">${esc(s.notes)}</p>` : ''}
+      <div class="foot">
+        <p class="pi">${esc(s.id)}</p>
+        <p>QUEVI Wellness Clinic SL · NIF B88657044 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
+      </div>
+      <script>window.onload = function () { setTimeout(function () { window.print() }, 400) }</script>
+      </body></html>`
+
+    const w = window.open('', '_blank')
+    if (w) { w.document.write(html); w.document.close() }
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -469,6 +558,16 @@ function VentasTab({
                       {cancelled && <StatusBadge status="cancelled" />}
                       <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(s.total_cents)}</span>
                       <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                    </button>
+                    <button
+                      onClick={() => printSale(s)}
+                      title="Imprimir ticket de la venta"
+                      className="flex-shrink-0 px-4 flex items-center gap-1.5 border-l border-zinc-600/80 text-[12px] font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
+                      </svg>
+                      <span className="hidden sm:inline">Imprimir</span>
                     </button>
                     {!cancelled && (
                       <button
