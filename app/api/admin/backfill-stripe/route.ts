@@ -44,6 +44,9 @@ export async function POST(req: NextRequest) {
   let withoutData = 0
   let failed = 0
   let pending = 0
+  // Qué encontró Stripe en cada venta, para poder ver desde el panel por qué
+  // alguna sigue sin nombre
+  const report: { fecha: string; importe: number; nombre: string; email: string; telefono: string; origen: string }[] = []
 
   // ── Pedidos cobrados sin nombre ni email ──────────────────────────────────
   const { data: orders, error: ordersErr } = await db
@@ -58,15 +61,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: ordersErr.message }, { status: 500 })
   }
 
+  // Falta el nombre o falta el email: los links de pago que no piden la
+  // dirección de facturación dejan uno de los dos vacío
   const blankOrders = (orders ?? []).filter(o => {
     const a = (o.shipping_address ?? {}) as Json
-    return !a?.name && !a?.email
+    return !a?.name || !a?.email
   })
   pending += Math.max(0, blankOrders.length - BATCH)
 
   for (const o of blankOrders.slice(0, BATCH)) {
     try {
       const payer = await fetchPayerDetailsById(stripe, o.stripe_payment_intent_id as string)
+      report.push({
+        fecha: String(o.created_at ?? '').slice(0, 10),
+        importe: (o.total_cents ?? 0) / 100,
+        nombre: payer.name,
+        email: payer.email,
+        telefono: payer.phone,
+        origen: payer.source,
+      })
       if (!payer.name && !payer.email && !payer.phone) {
         withoutData++
         continue
@@ -143,5 +156,8 @@ export async function POST(req: NextRequest) {
     withoutData,
     failed,
     pending,
+    // Las ventas en las que Stripe tampoco tiene nombre: sirven para saber si
+    // hay que activar la recogida de nombre y teléfono en el link de pago
+    sinNombre: report.filter(r => !r.nombre),
   })
 }

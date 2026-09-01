@@ -221,6 +221,7 @@ function VentasTab({
   const [actionError, setActionError] = useState('')
   const [syncing, setSyncing] = useState(false)
   const [syncMsg, setSyncMsg] = useState('')
+  const [syncSinNombre, setSyncSinNombre] = useState<{ fecha: string; importe: number; email: string; telefono: string }[]>([])
 
   const onlineRows: SaleRow[] = orders
     .filter(o => ORDER_SALE_STATUSES.includes(o.status))
@@ -284,6 +285,7 @@ function VentasTab({
   // ellos (cobros con link de pago y señas anteriores al arreglo del webhook)
   async function syncStripeData() {
     setSyncMsg('')
+    setSyncSinNombre([])
     setActionError('')
     setSyncing(true)
     try {
@@ -304,6 +306,7 @@ function VentasTab({
         json.pending ? `quedan ${json.pending}, vuelve a pulsar` : '',
       ].filter(Boolean)
       setSyncMsg(partes.join(' · '))
+      setSyncSinNombre(Array.isArray(json.sinNombre) ? json.sinNombre : [])
       onChanged()
     } catch {
       setActionError('Error de red')
@@ -567,6 +570,25 @@ function VentasTab({
 
       {syncMsg && <p className="text-[13px] text-emerald-400">{syncMsg}</p>}
 
+      {syncSinNombre.length > 0 && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-[13px] text-amber-200">
+          <p className="m-0 font-medium">
+            En {syncSinNombre.length} {syncSinNombre.length === 1 ? 'venta' : 'ventas'} Stripe no guarda el nombre del cliente:
+          </p>
+          <ul className="mt-2 mb-2 space-y-1 list-none p-0">
+            {syncSinNombre.slice(0, 10).map((r, n) => (
+              <li key={n} className="text-amber-100/90">
+                {r.fecha} · {r.importe.toFixed(2)} € · {r.email || r.telefono || 'sin ningún dato'}
+              </li>
+            ))}
+          </ul>
+          <p className="m-0 text-amber-200/80">
+            Para que lo guarde en los próximos, activa en el link de pago de Stripe la recogida del nombre
+            (dirección de facturación) y del teléfono.
+          </p>
+        </div>
+      )}
+
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -717,7 +739,7 @@ function VentasTab({
                   >
                     <span className="font-mono text-[12px] text-zinc-400 w-[76px]">#{ref}</span>
                     <span className="text-zinc-200 font-medium min-w-[150px] flex-1">
-                      {a.name || <span className="text-zinc-400">Sin nombre</span>}
+                      {a.name || a.email || a.phone || <span className="text-zinc-400">Sin nombre</span>}
                       {items.length > 0 && (
                         <span className="text-zinc-400 font-normal"> · {items.reduce((s, i) => s + (i.quantity ?? 1), 0)} art.</span>
                       )}

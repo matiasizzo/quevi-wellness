@@ -14,10 +14,12 @@ export type PayerDetails = {
   // stripe_checkout = página de pago de Stripe (p. ej. seña de cita)
   // stripe          = cobro suelto, sin sesión de pago
   source: 'payment_link' | 'stripe_checkout' | 'stripe'
+  // Cliente de Stripe asociado al cobro, si lo hay
+  customerId?: string
 }
 
 export async function fetchPayerDetails(stripe: Stripe, pi: Stripe.PaymentIntent): Promise<PayerDetails> {
-  const payer: PayerDetails = { name: '', email: '', phone: '', items: [], source: 'stripe' }
+  const payer: PayerDetails = { name: '', email: '', phone: '', items: [], source: 'stripe', customerId: '' }
 
   try {
     const sessions = await stripe.checkout.sessions.list({ payment_intent: pi.id, limit: 1 })
@@ -28,6 +30,7 @@ export async function fetchPayerDetails(stripe: Stripe, pi: Stripe.PaymentIntent
       // El teléfono solo llega si el link de pago tiene activada su recogida
       payer.phone = session.customer_details?.phone ?? ''
       payer.source = session.payment_link ? 'payment_link' : 'stripe_checkout'
+      payer.customerId = typeof session.customer === 'string' ? session.customer : (session.customer?.id ?? '')
 
       try {
         const lines = await stripe.checkout.sessions.listLineItems(session.id, { limit: 50 })
@@ -57,6 +60,26 @@ export async function fetchPayerDetails(stripe: Stripe, pi: Stripe.PaymentIntent
       payer.phone = payer.phone || (charge?.billing_details?.phone ?? '')
     } catch (e) {
       console.error('[stripePayer] No se pudieron leer los datos del cargo:', e)
+    }
+  }
+
+  // Último respaldo: la ficha de cliente que Stripe crea con el cobro. Muchos
+  // links de pago no piden la dirección de facturación, y entonces el nombre
+  // solo está aquí.
+  if (!payer.name || !payer.email || !payer.phone) {
+    try {
+      const customerId = payer.customerId
+        || (typeof pi.customer === 'string' ? pi.customer : pi.customer?.id ?? '')
+      if (customerId) {
+        const customer = await stripe.customers.retrieve(customerId)
+        if (!customer.deleted) {
+          payer.name = payer.name || (customer.name ?? '')
+          payer.email = payer.email || (customer.email ?? '')
+          payer.phone = payer.phone || (customer.phone ?? '')
+        }
+      }
+    } catch (e) {
+      console.error('[stripePayer] No se pudo leer la ficha de cliente:', e)
     }
   }
 
