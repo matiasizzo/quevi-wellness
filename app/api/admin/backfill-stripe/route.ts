@@ -62,9 +62,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Falta el nombre o falta el email: los links de pago que no piden la
-  // dirección de facturación dejan uno de los dos vacío
+  // dirección de facturación dejan uno de los dos vacío. Las ya consultadas
+  // quedan marcadas para no repetirlas: si no, el lote se atasca en las mismas
+  // y nunca llega a las más antiguas.
   const blankOrders = (orders ?? []).filter(o => {
     const a = (o.shipping_address ?? {}) as Json
+    if (a?.stripeCheckedAt) return false
     return !a?.name || !a?.email
   })
   pending += Math.max(0, blankOrders.length - BATCH)
@@ -80,11 +83,8 @@ export async function POST(req: NextRequest) {
         telefono: payer.phone,
         origen: payer.source,
       })
-      if (!payer.name && !payer.email && !payer.phone) {
-        withoutData++
-        continue
-      }
       const previous = (o.shipping_address ?? {}) as Json
+      const nothingFound = !payer.name && !payer.email && !payer.phone
       const next = {
         ...previous,
         name: previous?.name || payer.name,
@@ -92,11 +92,16 @@ export async function POST(req: NextRequest) {
         phone: previous?.phone || payer.phone,
         source: previous?.source ?? payer.source,
         items: previous?.items?.length ? previous.items : payer.items,
+        // Ya le preguntamos a Stripe por esta venta: lo que no esté aquí, no lo
+        // tiene, y no hace falta volver a consultarla
+        stripeCheckedAt: new Date().toISOString(),
       }
       const { error } = await db.from('orders').update({ shipping_address: next }).eq('id', o.id)
       if (error) {
         console.error('[backfill-stripe] Order update error:', error.message)
         failed++
+      } else if (nothingFound) {
+        withoutData++
       } else {
         updated++
       }
@@ -111,12 +116,14 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: appts } = await (db as any)
     .from('appointments')
-    .select('id, name, email, phone, service, stripe_session_id, created_at')
+    .select('id, name, email, phone, service, notes, stripe_session_id, created_at')
     .not('stripe_session_id', 'is', null)
     .order('created_at', { ascending: false })
     .limit(300)
 
-  const blankAppts = ((appts ?? []) as Json[]).filter(a => !a.name || !a.service)
+  const SIN_DATOS = 'Stripe no guarda más datos de este pago'
+  const blankAppts = ((appts ?? []) as Json[]).filter(a =>
+    (!a.name || !a.service) && !String(a.notes ?? '').includes(SIN_DATOS))
   pending += Math.max(0, blankAppts.length - BATCH)
 
   for (const a of blankAppts.slice(0, BATCH)) {
@@ -132,15 +139,16 @@ export async function POST(req: NextRequest) {
         if (concept) patch.service = concept
       }
       if (Object.keys(patch).length === 0) {
+        // Se deja constancia de que ya se consultó, para no repetirla siempre
+        patch.notes = a.notes ? `${a.notes} · ${SIN_DATOS}` : SIN_DATOS
         withoutData++
-        continue
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (db as any).from('appointments').update(patch).eq('id', a.id)
       if (error) {
         console.error('[backfill-stripe] Appointment update error:', error.message)
         failed++
-      } else {
+      } else if (!patch.notes || Object.keys(patch).length > 1) {
         apptsUpdated++
       }
     } catch (e) {
