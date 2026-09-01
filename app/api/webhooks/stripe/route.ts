@@ -14,6 +14,69 @@ function getSupabaseServiceClient() {
   return createClient(url, serviceKey, { auth: { persistSession: false } })
 }
 
+// ── Datos de quien paga, según Stripe ────────────────────────────────────────
+// Hay cobros que no nacen del checkout de la web: links de pago que se envían a
+// mano (reservas de un servicio) y señas de cita. En esos no hay fila previa ni
+// metadata nuestra, así que el pedido caía en el CRM con el importe y nada más.
+// Stripe sí guarda quién pagó, y aquí se lo pedimos.
+type PayerDetails = {
+  name: string
+  email: string
+  phone: string
+  items: { name: string; quantity: number; price: number }[]
+  // payment_link  = link de pago enviado a mano
+  // stripe_checkout = página de pago de Stripe (p. ej. seña de cita)
+  // stripe        = cobro suelto, sin sesión de pago
+  source: 'payment_link' | 'stripe_checkout' | 'stripe'
+}
+
+async function fetchPayerDetails(stripe: Stripe, pi: Stripe.PaymentIntent): Promise<PayerDetails> {
+  const payer: PayerDetails = { name: '', email: '', phone: '', items: [], source: 'stripe' }
+
+  try {
+    const sessions = await stripe.checkout.sessions.list({ payment_intent: pi.id, limit: 1 })
+    const session = sessions.data[0]
+    if (session) {
+      payer.name = session.customer_details?.name ?? ''
+      payer.email = session.customer_email ?? session.customer_details?.email ?? ''
+      // El teléfono solo llega si el link de pago tiene activada su recogida
+      payer.phone = session.customer_details?.phone ?? ''
+      payer.source = session.payment_link ? 'payment_link' : 'stripe_checkout'
+
+      try {
+        const lines = await stripe.checkout.sessions.listLineItems(session.id, { limit: 50 })
+        payer.items = lines.data.map(l => {
+          const qty = Math.max(1, l.quantity ?? 1)
+          return {
+            name: l.description ?? 'Concepto sin nombre',
+            quantity: qty,
+            price: Math.round((l.amount_total ?? 0) / qty) / 100,
+          }
+        })
+      } catch (e) {
+        console.error('[webhook/stripe] No se pudieron leer las líneas de la sesión:', e)
+      }
+    }
+  } catch (e) {
+    console.error('[webhook/stripe] No se pudo leer la sesión de pago:', e)
+  }
+
+  // Respaldo: los datos de facturación de la tarjeta
+  if (!payer.name || !payer.email || !payer.phone) {
+    try {
+      const chargeId = typeof pi.latest_charge === 'string' ? pi.latest_charge : pi.latest_charge?.id
+      const charge = chargeId ? await stripe.charges.retrieve(chargeId) : null
+      payer.name = payer.name || (charge?.billing_details?.name ?? '')
+      payer.email = payer.email || charge?.billing_details?.email || pi.receipt_email || ''
+      payer.phone = payer.phone || (charge?.billing_details?.phone ?? '')
+    } catch (e) {
+      console.error('[webhook/stripe] No se pudieron leer los datos del cargo:', e)
+    }
+  }
+
+  return payer
+}
+
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
   const body = await request.text()
@@ -47,6 +110,25 @@ export async function POST(request: Request) {
       ? session.payment_intent
       : (session.payment_intent?.id ?? null)
 
+    // Los links de pago no traen nuestra metadata: el nombre, el teléfono y el
+    // concepto salen de lo que Stripe le pidió al cliente al pagar
+    const fromPaymentLink = Boolean(session.payment_link)
+    const customerName = name || session.customer_details?.name || ''
+    const customerPhone = phone || session.customer_details?.phone || null
+
+    let serviceName = service ?? ''
+    if (!serviceName) {
+      try {
+        const lines = await stripe.checkout.sessions.listLineItems(session.id, { limit: 20 })
+        serviceName = lines.data.map(l => l.description).filter(Boolean).join(' · ')
+      } catch (e) {
+        console.error('[webhook/stripe] No se pudo leer el concepto de la sesión:', e)
+      }
+    }
+
+    const appointmentNotes = notes
+      ?? (fromPaymentLink ? 'Pagado con un link de pago de Stripe' : null)
+
     const supabase = getSupabaseServiceClient()
     if (supabase) {
       const { data: existing } = await supabase
@@ -60,9 +142,9 @@ export async function POST(request: Request) {
         if (error) console.error('[webhook/stripe] Update error:', error)
       } else {
         const { error } = await supabase.from('appointments').insert({
-          name: name ?? '', email: customerEmail, phone: phone ?? null,
-          service: service ?? '', appointment_date: appointment_date ?? '',
-          appointment_time: appointment_time ?? '', notes: notes ?? null,
+          name: customerName, email: customerEmail, phone: customerPhone,
+          service: serviceName, appointment_date: appointment_date ?? '',
+          appointment_time: appointment_time ?? '', notes: appointmentNotes,
           amount_cents: session.amount_total ?? 5000, status: 'paid',
           stripe_session_id: session.id, stripe_payment_intent_id: paymentIntentId,
         })
@@ -106,11 +188,17 @@ export async function POST(request: Request) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const saved: any = (existing?.shipping_address as any) ?? null
 
+        // Sin fila previa = el cobro no salió del checkout de la web (link de
+        // pago, seña de cita). Le pedimos a Stripe quién pagó para no dejar la
+        // venta en el CRM con el importe y nada más.
+        const payer = existing ? null : await fetchPayerDetails(stripe, pi)
+        const external = payer !== null && payer.source !== 'stripe'
+
         // Datos: primero de la base de datos, y como respaldo, de la metadata de Stripe
         const details = {
-          name: saved?.name ?? meta.shipping_name ?? '',
-          email: saved?.email ?? meta.shipping_email ?? '',
-          phone: saved?.phone ?? meta.shipping_phone ?? '',
+          name: saved?.name ?? meta.shipping_name ?? payer?.name ?? '',
+          email: saved?.email ?? meta.shipping_email ?? payer?.email ?? '',
+          phone: saved?.phone ?? meta.shipping_phone ?? payer?.phone ?? '',
           address: saved?.address ?? meta.shipping_address ?? '',
           city: saved?.city ?? meta.shipping_city ?? '',
           postalCode: saved?.postalCode ?? meta.shipping_postal_code ?? '',
@@ -118,13 +206,16 @@ export async function POST(request: Request) {
           deliveryMethod: (saved?.deliveryMethod ?? 'ship') as 'ship' | 'pickup',
           couponCode: saved?.couponCode ?? meta.coupon_code ?? '',
           discountCents: Number(saved?.discountCents ?? meta.discount_cents ?? 0),
-          subtotalCents: Number(existing?.subtotal_cents ?? meta.subtotal_cents ?? 0),
+          // En los cobros de fuera de la web no hay desglose: el subtotal es el importe
+          subtotalCents: Number(existing?.subtotal_cents ?? meta.subtotal_cents ?? (payer ? pi.amount : 0)),
           shippingCents: Number(existing?.shipping_cents ?? meta.shipping_cents ?? 0),
           gift: saved?.gift ?? (meta.is_gift === '1'
             ? { isGift: true, recipientName: meta.gift_recipient_name ?? '', recipientEmail: meta.gift_recipient_email ?? '', message: meta.gift_message ?? '' }
             : null),
+          // De dónde viene el cobro, para distinguirlo en el CRM
+          source: payer?.source ?? null,
         }
-        const orderItems = (saved?.items?.length ? saved.items : items) ?? []
+        const orderItems = (saved?.items?.length ? saved.items : (items.length ? items : payer?.items ?? [])) ?? []
 
         let orderId: string | null = existing?.id ?? null
 
@@ -215,7 +306,10 @@ export async function POST(request: Request) {
         }
 
         // ── Emails de confirmación (comprador + clínica) ──
-        if (details.email) {
+        // Para los cobros de fuera de la web (links de pago, señas) no se manda
+        // el email de pedido: Stripe ya envía su recibo y no es una compra de la
+        // tienda.
+        if (details.email && !external) {
           try {
             await sendOrderEmails({
               orderRef: pi.id.replace('pi_', '').slice(-8).toUpperCase(),
@@ -239,7 +333,7 @@ export async function POST(request: Request) {
           } catch (err) {
             console.error('[webhook/stripe] Failed sending order emails:', err)
           }
-        } else {
+        } else if (!external) {
           console.error('[webhook/stripe] Pedido sin email de cliente. PI:', pi.id)
         }
       }

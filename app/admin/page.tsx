@@ -24,6 +24,14 @@ type ShippingAddress = {
   couponCode?: string | null
   discountCents?: number
   items?: OrderItem[]
+  // De dónde vino el cobro cuando no salió del checkout de la web
+  source?: 'payment_link' | 'stripe_checkout' | 'stripe' | null
+}
+
+// Etiqueta para los cobros que no nacen de la tienda online
+const ORDER_SOURCE_LABELS: Record<string, string> = {
+  payment_link: 'link de pago',
+  stripe_checkout: 'cobro stripe',
 }
 
 type Order = {
@@ -671,7 +679,7 @@ function VentasTab({
                     </span>
                     <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(o.created_at)}</span>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-zinc-700/50 text-zinc-300 border-zinc-500">
-                      online
+                      {a.source ? ORDER_SOURCE_LABELS[a.source] ?? 'online' : 'online'}
                     </span>
                     <StatusBadge status={o.status} />
                     <span className="font-semibold text-zinc-100 whitespace-nowrap min-w-[70px] text-right">{euros(o.total_cents)}</span>
@@ -759,6 +767,13 @@ function VentasTab({
                             >
                               copiar dirección
                             </button>
+                          </div>
+                        ) : a.source && ORDER_SOURCE_LABELS[a.source] ? (
+                          <div className="pt-1 leading-relaxed">
+                            <span className="text-zinc-300">Cobrado con {ORDER_SOURCE_LABELS[a.source]} de Stripe</span>
+                            <p className="text-zinc-400 text-[12px] mt-0.5 m-0">
+                              Fuera de la tienda online, sin envío. Los datos son los que dejó el cliente al pagar.
+                            </p>
                           </div>
                         ) : (
                           <p className="text-zinc-400 pt-1">Sin dirección — pedido sin envío (ritual, tratamiento o regalo)</p>
