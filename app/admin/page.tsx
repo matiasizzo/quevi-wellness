@@ -219,6 +219,8 @@ function VentasTab({
   const [kind, setKind] = useState<'all' | 'online' | 'manual'>('all')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [actionError, setActionError] = useState('')
+  const [syncing, setSyncing] = useState(false)
+  const [syncMsg, setSyncMsg] = useState('')
 
   const onlineRows: SaleRow[] = orders
     .filter(o => ORDER_SALE_STATUSES.includes(o.status))
@@ -276,6 +278,38 @@ function VentasTab({
 
   function copy(text: string) {
     navigator.clipboard?.writeText(text)
+  }
+
+  // Recupera de Stripe los datos de las ventas antiguas que se guardaron sin
+  // ellos (cobros con link de pago y señas anteriores al arreglo del webhook)
+  async function syncStripeData() {
+    setSyncMsg('')
+    setActionError('')
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/admin/backfill-stripe', {
+        method: 'POST',
+        headers: { 'x-admin-password': pw },
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setActionError(json.error ?? 'No se pudieron recuperar los datos de Stripe')
+        return
+      }
+      const partes = [
+        `${json.orders} ventas actualizadas`,
+        json.appointments ? `${json.appointments} citas actualizadas` : '',
+        json.withoutData ? `${json.withoutData} sin datos en Stripe` : '',
+        json.failed ? `${json.failed} con error` : '',
+        json.pending ? `quedan ${json.pending}, vuelve a pulsar` : '',
+      ].filter(Boolean)
+      setSyncMsg(partes.join(' · '))
+      onChanged()
+    } catch {
+      setActionError('Error de red')
+    } finally {
+      setSyncing(false)
+    }
   }
 
   async function voidSale(id: string) {
@@ -520,7 +554,18 @@ function VentasTab({
             {f.label}
           </button>
         ))}
+
+        <button
+          onClick={syncStripeData}
+          disabled={syncing}
+          title="Busca en Stripe el nombre, email y teléfono de las ventas que se guardaron sin datos (links de pago y señas)"
+          className="ml-auto px-4 py-2 rounded-lg border border-zinc-600 text-[13px] font-medium text-zinc-300 hover:text-zinc-100 hover:border-zinc-500 transition-colors disabled:opacity-50"
+        >
+          {syncing ? 'Buscando en Stripe…' : 'Recuperar datos de Stripe'}
+        </button>
       </div>
+
+      {syncMsg && <p className="text-[13px] text-emerald-400">{syncMsg}</p>}
 
       <input
         value={query}
