@@ -1645,6 +1645,170 @@ function ValesTab({ giftCards, pw, onChanged }: { giftCards: GiftCard[]; pw: str
   )
 }
 
+// ── Tab: Banco (dinero de Stripe) ────────────────────────────────────────────
+
+type Payout = {
+  id: string
+  amount: number
+  status: string
+  arrivalDate: number | null
+  created: number
+  automatic: boolean
+  bank: { bank: string; last4: string } | null
+  failureMessage: string | null
+}
+
+type StripeMoney = {
+  available: number
+  pending: number
+  inTransit: number
+  paidLast30: number
+  payouts: Payout[]
+  schedule: { interval: string | null; delayDays: number | null; weeklyAnchor: string | null; monthlyAnchor: number | null } | null
+}
+
+const PAYOUT_LABELS: Record<string, string> = {
+  paid: 'En la cuenta',
+  in_transit: 'En camino',
+  pending: 'Programada',
+  canceled: 'Cancelada',
+  failed: 'Fallida',
+}
+
+function payoutBadgeCls(status: string) {
+  if (status === 'paid') return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+  if (status === 'failed' || status === 'canceled') return 'bg-red-500/20 text-red-300 border-red-500/30'
+  return 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+}
+
+function scheduleText(s: StripeMoney['schedule']) {
+  if (!s) return undefined
+  const dias = s.delayDays ? ` · el dinero tarda ${s.delayDays} días en liberarse` : ''
+  if (s.interval === 'daily') return `Transferencias automáticas cada día${dias}`
+  if (s.interval === 'weekly') return `Transferencias automáticas cada semana${dias}`
+  if (s.interval === 'monthly') return `Transferencias automáticas cada mes${dias}`
+  if (s.interval === 'manual') return 'Transferencias manuales: las lanzas tú desde Stripe'
+  return undefined
+}
+
+function BancoTab({ pw }: { pw: string }) {
+  const [data, setData] = useState<StripeMoney | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin/stripe-balance', { headers: { 'x-admin-password': pw } })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error ?? 'No se pudo consultar Stripe')
+        return
+      }
+      setData(json as StripeMoney)
+    } catch {
+      setError('Error de red')
+    } finally {
+      setLoading(false)
+    }
+  }, [pw])
+
+  useEffect(() => { load() }, [load])
+
+  if (loading && !data) {
+    return <div className="flex items-center justify-center py-24 text-zinc-400 text-[14px]">Consultando Stripe…</div>
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <p className="text-[13px] text-red-400">{error}</p>
+        <button onClick={load} className="px-4 py-2 rounded-lg border border-zinc-600 text-[13px] text-zinc-300 hover:text-zinc-100 transition-colors">
+          Reintentar
+        </button>
+      </div>
+    )
+  }
+
+  if (!data) return <Empty label="Sin datos de Stripe" />
+
+  const proxima = data.payouts.find(p => p.status === 'pending' || p.status === 'in_transit')
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Dinero en Stripe</p>
+        <p className="text-[13px] text-zinc-400 mt-0.5">
+          Solo lo cobrado por Stripe: tienda online, links de pago y señas. Las ventas registradas a mano
+          en el CRM (efectivo o datáfono del local) no pasan por Stripe y no cuentan aquí.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <StatCard label="Disponible" value={euros(data.available)} sub="listo para transferir" />
+        <StatCard label="Pendiente" value={euros(data.pending)} sub="cobrado, aún retenido" />
+        <StatCard
+          label="En camino al banco"
+          value={euros(data.inTransit)}
+          sub={proxima?.arrivalDate ? `llega el ${fmtDate(new Date(proxima.arrivalDate).toISOString())}` : undefined}
+        />
+        <StatCard label="Transferido (30 días)" value={euros(data.paidLast30)} sub={scheduleText(data.schedule)} />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Transferencias a la cuenta corriente</p>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="px-3 py-1.5 rounded-lg border border-zinc-600 text-[12px] text-zinc-300 hover:text-zinc-100 hover:border-zinc-500 transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Actualizando…' : 'Actualizar'}
+        </button>
+      </div>
+
+      {data.payouts.length === 0 ? (
+        <Empty label="Todavía no hay transferencias al banco" />
+      ) : (
+        <div className="rounded-xl border border-zinc-600/80 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-zinc-600/80 bg-zinc-800/80">
+                  {['Llega al banco', 'Importe', 'Estado', 'Cuenta', 'Enviada'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-400 font-medium whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-700">
+                {data.payouts.map(p => (
+                  <tr key={p.id} className="hover:bg-zinc-700/20 transition-colors">
+                    <td className="px-4 py-3 text-zinc-200 whitespace-nowrap">
+                      {p.arrivalDate ? fmtDate(new Date(p.arrivalDate).toISOString()) : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-100 font-semibold tabular-nums whitespace-nowrap">{euros(p.amount)}</td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase ${payoutBadgeCls(p.status)}`}>
+                        {PAYOUT_LABELS[p.status] ?? p.status}
+                      </span>
+                      {p.failureMessage && <p className="text-[12px] text-red-400 mt-1 m-0">{p.failureMessage}</p>}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">
+                      {p.bank ? `${p.bank.bank || 'Cuenta'} ····${p.bank.last4}` : '—'}
+                      {!p.automatic && <span className="text-zinc-400"> · manual</span>}
+                    </td>
+                    <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{fmtDate(new Date(p.created).toISOString())}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -1653,7 +1817,7 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<AdminData | null>(null)
-  const [tab, setTab] = useState<'ventas' | 'citas' | 'stock' | 'vales'>('ventas')
+  const [tab, setTab] = useState<'ventas' | 'citas' | 'stock' | 'vales' | 'banco'>('ventas')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [saleOpen, setSaleOpen] = useState(false)
 
@@ -1757,6 +1921,7 @@ export default function AdminPage() {
     { id: 'citas',   label: 'Citas',   count: (data?.appointments.length ?? 0) + (data?.bookings.length ?? 0) },
     { id: 'vales',   label: 'Vales regalo', count: data?.giftCards?.length ?? 0 },
     { id: 'stock',   label: 'Stock',   count: data?.products.length ?? 0 },
+    { id: 'banco',   label: 'Banco',   count: undefined },
   ] as const
 
   const savedPw = typeof window !== 'undefined' ? sessionStorage.getItem('quevi-admin-pw') ?? '' : ''
@@ -1812,12 +1977,14 @@ export default function AdminPage() {
               }}
             >
               {t.label}
-              <span
-                className="px-1.5 py-0.5 rounded-full text-[11px] tabular-nums"
-                style={{ background: tab === t.id ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)', color: tab === t.id ? '#e4e4e7' : '#a1a1aa' }}
-              >
-                {t.count}
-              </span>
+              {t.count !== undefined && (
+                <span
+                  className="px-1.5 py-0.5 rounded-full text-[11px] tabular-nums"
+                  style={{ background: tab === t.id ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.08)', color: tab === t.id ? '#e4e4e7' : '#a1a1aa' }}
+                >
+                  {t.count}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -1841,6 +2008,7 @@ export default function AdminPage() {
             )}
             {tab === 'citas'   && <CitasTab appointments={data.appointments} bookings={data.bookings} />}
             {tab === 'vales'   && <ValesTab giftCards={data.giftCards ?? []} pw={savedPw} onChanged={() => fetchData(savedPw)} />}
+            {tab === 'banco'   && <BancoTab pw={savedPw} />}
             {tab === 'stock'   && (
               <StockTab
                 products={data.products}
