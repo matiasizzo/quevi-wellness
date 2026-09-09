@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { SECTIONS, DECLARACION, medicalFlags, type Field } from '@/lib/skinQuestionnaire'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1809,6 +1810,331 @@ function BancoTab({ pw }: { pw: string }) {
   )
 }
 
+// ── Tab: Cuestionarios de piel ────────────────────────────────────────────────
+
+type Questionnaire = {
+  id: string
+  created_at: string
+  patient_name: string
+  patient_email: string
+  patient_phone: string | null
+  patient_age: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  answers: Record<string, any>
+  signed_at: string | null
+  consent: boolean
+  content_hash: string | null
+  signature?: string | null
+  ip?: string | null
+  user_agent?: string | null
+}
+
+// Una respuesta, en el formato en el que se puede leer de un vistazo
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function answerLines(field: Field, answers: Record<string, any>): { label: string; value: string }[] {
+  const raw = answers[field.id]
+  const detalle = answers[`${field.id}_detalle`]
+  const out: { label: string; value: string }[] = []
+
+  if (field.type === 'matrix') {
+    for (const row of field.rows) {
+      const v = raw && typeof raw === 'object' ? raw[row.id] : ''
+      out.push({ label: row.label, value: typeof v === 'string' && v ? v : '—' })
+    }
+    return out
+  }
+
+  let value = '—'
+  if (Array.isArray(raw)) value = raw.length ? raw.join(' · ') : '—'
+  else if (typeof raw === 'string' && raw.trim()) value = raw
+  else if (typeof raw === 'number') value = String(raw)
+
+  out.push({ label: field.label, value })
+  if (typeof detalle === 'string' && detalle.trim()) {
+    const etiqueta = field.type === 'yesno' && field.detail ? field.detail : 'Detalle'
+    out.push({ label: `↳ ${etiqueta}`, value: detalle })
+  }
+  return out
+}
+
+function CuestionariosTab({ pw }: { pw: string }) {
+  const [rows, setRows] = useState<Questionnaire[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [openId, setOpenId] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const [printing, setPrinting] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/admin/questionnaires', { headers: { 'x-admin-password': pw } })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error ?? 'No se pudieron cargar los cuestionarios')
+        return
+      }
+      setRows(json.questionnaires ?? [])
+    } catch {
+      setError('Error de red')
+    } finally {
+      setLoading(false)
+    }
+  }, [pw])
+
+  useEffect(() => { load() }, [load])
+
+  // La firma no viaja en el listado: se pide solo al imprimir
+  async function printOne(id: string) {
+    setPrinting(id)
+    try {
+      const res = await fetch(`/api/admin/questionnaires?id=${encodeURIComponent(id)}`, {
+        headers: { 'x-admin-password': pw },
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error ?? 'No se pudo abrir el cuestionario')
+        return
+      }
+      printQuestionnaire(json.questionnaire as Questionnaire)
+    } catch {
+      setError('Error de red')
+    } finally {
+      setPrinting(null)
+    }
+  }
+
+  const q = query.trim().toLowerCase()
+  const filtered = q
+    ? rows.filter(r =>
+        [r.patient_name, r.patient_email, r.patient_phone].filter(Boolean)
+          .some(v => String(v).toLowerCase().includes(q)))
+    : rows
+
+  if (loading && rows.length === 0) {
+    return <div className="flex items-center justify-center py-24 text-zinc-400 text-[14px]">Cargando cuestionarios…</div>
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Cuestionarios de piel</p>
+        <p className="text-[13px] text-zinc-400 mt-0.5">
+          Los que las pacientes rellenan y firman en{' '}
+          <span className="text-zinc-200">queviwellnessclinic.es/chequeo-piel</span>. Pásales el enlace por
+          WhatsApp o email, o abre esa página en la tablet de la clínica.
+        </p>
+      </div>
+
+      {error && (
+        <p className="text-[13px] text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
+      )}
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <StatCard label="Cuestionarios" value={rows.length} />
+        <StatCard
+          label="Con avisos médicos"
+          value={rows.filter(r => medicalFlags(r.answers ?? {}).length > 0).length}
+          sub="alergias, fotosensibles…"
+        />
+        <StatCard
+          label="Últimos 30 días"
+          value={rows.filter(r => Date.now() - new Date(r.created_at).getTime() < 30 * 24 * 3600 * 1000).length}
+        />
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Buscar por nombre, email o teléfono…"
+          className="flex-1 bg-zinc-800/60 border border-zinc-600 rounded-lg px-4 py-2.5 text-[13px] text-zinc-200 placeholder:text-zinc-400 outline-none focus:border-zinc-500 transition-colors"
+        />
+        <button
+          onClick={load}
+          disabled={loading}
+          className="px-4 py-2 rounded-lg border border-zinc-600 text-[13px] text-zinc-300 hover:text-zinc-100 hover:border-zinc-500 transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Actualizando…' : 'Actualizar'}
+        </button>
+      </div>
+
+      {filtered.length === 0 ? (
+        <Empty label={query ? 'Sin resultados' : 'Todavía no hay cuestionarios completados'} />
+      ) : (
+        <div className="space-y-2">
+          {filtered.map(r => {
+            const isOpen = openId === r.id
+            const flags = medicalFlags(r.answers ?? {})
+            return (
+              <div key={r.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
+                <div className="flex items-stretch">
+                  <button
+                    onClick={() => setOpenId(isOpen ? null : r.id)}
+                    className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
+                  >
+                    <span className="text-zinc-200 font-medium min-w-[160px]">{r.patient_name}</span>
+                    <span className="text-zinc-300 text-[12px] flex-1 min-w-[180px]">{r.patient_email}</span>
+                    <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(r.created_at)}</span>
+                    {flags.length > 0 ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-amber-500/20 text-amber-300 border-amber-500/30">
+                        {flags.length} {flags.length === 1 ? 'aviso' : 'avisos'}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-emerald-500/20 text-emerald-300 border-emerald-500/30">
+                        sin avisos
+                      </span>
+                    )}
+                    <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
+                  </button>
+                  <button
+                    onClick={() => printOne(r.id)}
+                    disabled={printing === r.id}
+                    title="Imprimir el cuestionario firmado"
+                    className="flex-shrink-0 px-4 flex items-center gap-1.5 border-l border-zinc-600/80 text-[12px] font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9V2h12v7" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
+                    </svg>
+                    <span className="hidden sm:inline">{printing === r.id ? 'Abriendo…' : 'Imprimir'}</span>
+                  </button>
+                </div>
+
+                {isOpen && (
+                  <div className="px-4 pb-5 pt-1 border-t border-zinc-600/60 space-y-5">
+                    {flags.length > 0 && (
+                      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                        <p className="text-[12px] tracking-[0.1em] uppercase text-amber-300 m-0 mb-2">
+                          Revisar antes del tratamiento
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {flags.map(f => (
+                            <span key={f} className="px-2.5 py-1 rounded-full text-[12px] bg-amber-500/20 text-amber-100 border border-amber-500/30">
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid gap-1.5 text-[13px] sm:grid-cols-2">
+                      <div className="text-zinc-300">
+                        Teléfono: <span className="text-zinc-200">{r.patient_phone || '—'}</span>
+                      </div>
+                      <div className="text-zinc-300">
+                        Edad: <span className="text-zinc-200">{r.patient_age || '—'}</span>
+                      </div>
+                      <div className="text-zinc-300">
+                        Firmado: <span className="text-zinc-200">{r.signed_at ? fmtDate(r.signed_at) : '—'}</span>
+                      </div>
+                      <div className="text-zinc-300">
+                        Consentimiento: <span className="text-zinc-200">{r.consent ? 'sí' : 'no'}</span>
+                      </div>
+                    </div>
+
+                    {SECTIONS.filter(s => s.id !== 'datos').map(section => (
+                      <div key={section.id}>
+                        <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">{section.title}</p>
+                        <div className="rounded-xl border border-zinc-600/60 divide-y divide-zinc-700/70">
+                          {section.fields.flatMap(field => answerLines(field, r.answers ?? {})).map((line, n) => (
+                            <div key={n} className="flex flex-wrap justify-between gap-x-4 gap-y-1 px-4 py-2 text-[13px]">
+                              <span className="text-zinc-400 max-w-[60%]">{line.label}</span>
+                              <span className={line.value === '—' ? 'text-zinc-500' : 'text-zinc-100'}>{line.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {r.content_hash && (
+                      <p className="font-mono text-[11px] text-zinc-500 m-0 break-all">
+                        Huella del documento firmado: {r.content_hash}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Hoja imprimible del cuestionario, con la firma, para la historia clínica
+function printQuestionnaire(q: Questionnaire) {
+  const esc = (s: unknown) => String(s ?? '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string))
+  const flags = medicalFlags(q.answers ?? {})
+
+  const secciones = SECTIONS.filter(s => s.id !== 'datos').map(section => {
+    const filas = section.fields
+      .flatMap(field => answerLines(field, q.answers ?? {}))
+      .map(l => `<tr><td class="q">${esc(l.label)}</td><td class="a">${esc(l.value)}</td></tr>`)
+      .join('')
+    return `<h2>${esc(section.title)}</h2><table>${filas}</table>`
+  }).join('')
+
+  const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
+    <title>Cuestionario de piel — ${esc(q.patient_name)}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a1d1a; margin: 0; padding: 32px 36px; font-size: 12px; }
+      .head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #2e4a32; padding-bottom: 16px; margin-bottom: 20px; }
+      .brand { font-size: 22px; letter-spacing: 5px; color: #2e4a32; font-weight: 700; }
+      .brand small { display: block; font-size: 9px; letter-spacing: 3px; color: #5c6158; font-weight: 400; margin-top: 2px; }
+      .ref { text-align: right; font-size: 12px; color: #5c6158; }
+      .ref .n { font-size: 16px; font-weight: 700; color: #1a1d1a; }
+      .flags { border: 1.5px solid #b3261e; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; }
+      .flags h3 { margin: 0 0 6px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #b3261e; }
+      .flags span { display: inline-block; border: 1px solid #b3261e; color: #b3261e; border-radius: 999px; padding: 2px 10px; margin: 3px 4px 0 0; font-size: 11px; }
+      h2 { font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: #2e4a32; margin: 22px 0 6px; border-bottom: 1px solid #ddd6c7; padding-bottom: 4px; }
+      table { width: 100%; border-collapse: collapse; }
+      td { padding: 5px 6px; border-bottom: 1px solid #f0eee8; vertical-align: top; }
+      td.q { color: #5c6158; width: 60%; }
+      td.a { color: #1a1d1a; font-weight: 600; }
+      .decl { margin-top: 26px; border: 1px solid #ddd6c7; border-radius: 8px; padding: 14px; }
+      .sign { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 18px; gap: 24px; }
+      .sign img { max-height: 90px; }
+      .sign .line { border-top: 1px solid #999; padding-top: 4px; font-size: 11px; color: #5c6158; min-width: 200px; }
+      .foot { margin-top: 26px; padding-top: 12px; border-top: 1px solid #ddd6c7; font-size: 9px; color: #999; }
+      .hash { font-family: monospace; font-size: 9px; color: #999; word-break: break-all; }
+      @media print { body { padding: 14px; } .noprint { display: none; } }
+      .noprint { text-align: center; margin-bottom: 16px; }
+      .noprint button { font: inherit; font-size: 13px; font-weight: 600; background: #2e4a32; color: #fff; border: none; border-radius: 999px; padding: 9px 22px; cursor: pointer; }
+    </style></head><body>
+    <div class="noprint"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>
+    <div class="head">
+      <div class="brand">QUEVI<small>WELLNESS CLINIC</small></div>
+      <div class="ref">
+        <div class="n">${esc(q.patient_name)}</div>
+        <div>${esc(q.patient_email)}${q.patient_phone ? ` · ${esc(q.patient_phone)}` : ''}</div>
+        <div>${q.patient_age ? `${esc(q.patient_age)} años · ` : ''}Cuestionario del ${esc(fmtDate(q.created_at))}</div>
+      </div>
+    </div>
+    ${flags.length ? `<div class="flags"><h3>Revisar antes del tratamiento</h3>${flags.map(f => `<span>${esc(f)}</span>`).join('')}</div>` : ''}
+    ${secciones}
+    <div class="decl">
+      <p style="margin:0 0 8px;">${esc(DECLARACION)}</p>
+      <div class="sign">
+        <div>
+          ${q.signature ? `<img src="${q.signature}" alt="Firma" />` : ''}
+          <div class="line">Firma de la paciente</div>
+        </div>
+        <div class="line">Fecha: ${esc(q.signed_at ? fmtDate(q.signed_at) : fmtDate(q.created_at))}</div>
+      </div>
+    </div>
+    <div class="foot">
+      <p class="hash">Huella del documento firmado (sha-256): ${esc(q.content_hash ?? '')}</p>
+      <p>QUEVI Wellness Clinic SL · NIF B88657044 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
+    </div>
+    </body></html>`
+
+  const w = window.open('', '_blank')
+  if (w) { w.document.write(html); w.document.close() }
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
@@ -1817,7 +2143,7 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<AdminData | null>(null)
-  const [tab, setTab] = useState<'ventas' | 'citas' | 'stock' | 'vales' | 'banco'>('ventas')
+  const [tab, setTab] = useState<'ventas' | 'citas' | 'cuestionarios' | 'stock' | 'vales' | 'banco'>('ventas')
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
   const [saleOpen, setSaleOpen] = useState(false)
 
@@ -1921,6 +2247,7 @@ export default function AdminPage() {
     { id: 'citas',   label: 'Citas',   count: (data?.appointments.length ?? 0) + (data?.bookings.length ?? 0) },
     { id: 'vales',   label: 'Vales regalo', count: data?.giftCards?.length ?? 0 },
     { id: 'stock',   label: 'Stock',   count: data?.products.length ?? 0 },
+    { id: 'cuestionarios', label: 'Cuestionarios', count: undefined },
     { id: 'banco',   label: 'Banco',   count: undefined },
   ] as const
 
@@ -2008,6 +2335,7 @@ export default function AdminPage() {
             )}
             {tab === 'citas'   && <CitasTab appointments={data.appointments} bookings={data.bookings} />}
             {tab === 'vales'   && <ValesTab giftCards={data.giftCards ?? []} pw={savedPw} onChanged={() => fetchData(savedPw)} />}
+            {tab === 'cuestionarios' && <CuestionariosTab pw={savedPw} />}
             {tab === 'banco'   && <BancoTab pw={savedPw} />}
             {tab === 'stock'   && (
               <StockTab

@@ -35,7 +35,7 @@ const PROMO_ITEMS = [
 ]
 
 /** Páginas donde el modal nunca aparece: son las que tienen que convertir. */
-const NO_PROMO_PATHS = ['/cita', '/en', '/checkout', '/admin']
+const NO_PROMO_PATHS = ['/cita', '/en', '/checkout', '/admin', '/chequeo-piel']
 
 export default function PromoModal() {
   const [open, setOpen] = useState(false)
