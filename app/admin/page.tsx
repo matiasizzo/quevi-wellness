@@ -1,7 +1,15 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { SECTIONS, DECLARACION, medicalFlags, type Field } from '@/lib/skinQuestionnaire'
+import {
+  FORMS,
+  FORM_KEYS,
+  medicalFlags,
+  isFormKey,
+  CONSENTIMIENTOS_OPCIONALES,
+  type Field,
+  type FormKey,
+} from '@/lib/questionnaires'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1815,18 +1823,29 @@ function BancoTab({ pw }: { pw: string }) {
 type Questionnaire = {
   id: string
   created_at: string
+  // 'piel' | 'capilar'
+  form: string
   patient_name: string
   patient_email: string
   patient_phone: string | null
-  patient_age: string | null
+  patient_dni: string | null
+  patient_birth_date: string | null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   answers: Record<string, any>
   signed_at: string | null
   consent: boolean
+  consent_photos: boolean
+  consent_comms: boolean
+  consent_promo: boolean
   content_hash: string | null
   signature?: string | null
   ip?: string | null
   user_agent?: string | null
+}
+
+// De qué cuestionario es la fila; las guardadas antes del capilar son de piel
+function formOf(q: { form?: string }): FormKey {
+  return isFormKey(q.form) ? q.form : 'piel'
 }
 
 // Una respuesta, en el formato en el que se puede leer de un vistazo
@@ -1863,6 +1882,7 @@ function CuestionariosTab({ pw }: { pw: string }) {
   const [error, setError] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [formFilter, setFormFilter] = useState<'todos' | FormKey>('todos')
   const [printing, setPrinting] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -1905,12 +1925,14 @@ function CuestionariosTab({ pw }: { pw: string }) {
     }
   }
 
+  const byForm = formFilter === 'todos' ? rows : rows.filter(r => formOf(r) === formFilter)
+
   const q = query.trim().toLowerCase()
   const filtered = q
-    ? rows.filter(r =>
-        [r.patient_name, r.patient_email, r.patient_phone].filter(Boolean)
+    ? byForm.filter(r =>
+        [r.patient_name, r.patient_email, r.patient_phone, r.patient_dni].filter(Boolean)
           .some(v => String(v).toLowerCase().includes(q)))
-    : rows
+    : byForm
 
   if (loading && rows.length === 0) {
     return <div className="flex items-center justify-center py-24 text-zinc-400 text-[14px]">Cargando cuestionarios…</div>
@@ -1921,27 +1943,54 @@ function CuestionariosTab({ pw }: { pw: string }) {
       <div>
         <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Cuestionarios de piel</p>
         <p className="text-[13px] text-zinc-400 mt-0.5">
-          Los que las pacientes rellenan y firman en{' '}
-          <span className="text-zinc-200">queviwellnessclinic.es/chequeo-piel</span>. Pásales el enlace por
-          WhatsApp o email, o abre esa página en la tablet de la clínica.
+          Los que las pacientes rellenan y firman. Pásales el enlace por WhatsApp o email, o abre esa
+          página en la tablet de la clínica:
         </p>
+        <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2">
+          {FORM_KEYS.map(k => (
+            <span key={k} className="text-[13px] text-zinc-300">
+              <span className="text-zinc-400">{FORMS[k].label}:</span>{' '}
+              <span className="text-zinc-100">queviwellnessclinic.es{FORMS[k].slug}</span>
+            </span>
+          ))}
+        </div>
       </div>
 
       {error && (
         <p className="text-[13px] text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard label="Cuestionarios" value={rows.length} />
+        {FORM_KEYS.map(k => (
+          <StatCard key={k} label={FORMS[k].label} value={rows.filter(r => formOf(r) === k).length} />
+        ))}
         <StatCard
           label="Con avisos médicos"
-          value={rows.filter(r => medicalFlags(r.answers ?? {}).length > 0).length}
-          sub="alergias, fotosensibles…"
+          value={rows.filter(r => medicalFlags(formOf(r), r.answers ?? {}).length > 0).length}
+          sub="alergias, medicación…"
         />
-        <StatCard
-          label="Últimos 30 días"
-          value={rows.filter(r => Date.now() - new Date(r.created_at).getTime() < 30 * 24 * 3600 * 1000).length}
-        />
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {([
+          { id: 'todos' as const, label: `Todos (${rows.length})` },
+          ...FORM_KEYS.map(k => ({ id: k, label: `${FORMS[k].label} (${rows.filter(r => formOf(r) === k).length})` })),
+        ]).map(f => (
+          <button
+            key={f.id}
+            onClick={() => setFormFilter(f.id)}
+            className="px-4 py-2 rounded-lg text-[13px] font-medium transition-colors"
+            style={{
+              background: formFilter === f.id ? 'rgba(255,255,255,0.1)' : 'transparent',
+              color: formFilter === f.id ? '#f4f4f5' : '#a1a1aa',
+              border: '1px solid',
+              borderColor: formFilter === f.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.12)',
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       <div className="flex gap-2">
@@ -1966,7 +2015,8 @@ function CuestionariosTab({ pw }: { pw: string }) {
         <div className="space-y-2">
           {filtered.map(r => {
             const isOpen = openId === r.id
-            const flags = medicalFlags(r.answers ?? {})
+            const form = formOf(r)
+            const flags = medicalFlags(form, r.answers ?? {})
             return (
               <div key={r.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
                 <div className="flex items-stretch">
@@ -1975,6 +2025,16 @@ function CuestionariosTab({ pw }: { pw: string }) {
                     className="flex-1 min-w-0 text-left px-4 py-3 hover:bg-zinc-700/20 transition-colors flex flex-wrap items-center gap-x-4 gap-y-2"
                   >
                     <span className="text-zinc-200 font-medium min-w-[160px]">{r.patient_name}</span>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase ${
+                        form === 'capilar'
+                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+                          : 'bg-violet-500/20 text-violet-300 border-violet-500/30'
+                      }`}
+                      title={FORMS[form].title}
+                    >
+                      {FORMS[form].label}
+                    </span>
                     <span className="text-zinc-300 text-[12px] flex-1 min-w-[180px]">{r.patient_email}</span>
                     <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(r.created_at)}</span>
                     {flags.length > 0 ? (
@@ -2020,20 +2080,46 @@ function CuestionariosTab({ pw }: { pw: string }) {
 
                     <div className="grid gap-1.5 text-[13px] sm:grid-cols-2">
                       <div className="text-zinc-300">
+                        Cuestionario: <span className="text-zinc-200">{FORMS[form].title}</span>
+                      </div>
+                      <div className="text-zinc-300">
                         Teléfono: <span className="text-zinc-200">{r.patient_phone || '—'}</span>
                       </div>
                       <div className="text-zinc-300">
-                        Edad: <span className="text-zinc-200">{r.patient_age || '—'}</span>
+                        DNI: <span className="text-zinc-200">{r.patient_dni || '—'}</span>
+                      </div>
+                      <div className="text-zinc-300">
+                        Fecha de nacimiento: <span className="text-zinc-200">{r.patient_birth_date || '—'}</span>
                       </div>
                       <div className="text-zinc-300">
                         Firmado: <span className="text-zinc-200">{r.signed_at ? fmtDate(r.signed_at) : '—'}</span>
                       </div>
                       <div className="text-zinc-300">
-                        Consentimiento: <span className="text-zinc-200">{r.consent ? 'sí' : 'no'}</span>
+                        Datos de salud: <span className="text-zinc-200">{r.consent ? 'autorizado' : 'no'}</span>
                       </div>
                     </div>
 
-                    {SECTIONS.filter(s => s.id !== 'datos').map(section => (
+                    {/* Autorizaciones opcionales: saber si se le pueden hacer fotos o escribirle */}
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { label: 'Fotos y vídeos médicos', ok: r.consent_photos },
+                        { label: 'Comunicaciones (WhatsApp, email, SMS)', ok: r.consent_comms },
+                        { label: 'Uso de fotos con fines docentes', ok: r.consent_promo },
+                      ].map(c => (
+                        <span
+                          key={c.label}
+                          className={`px-2.5 py-1 rounded-full text-[12px] border ${
+                            c.ok
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : 'bg-zinc-700/40 text-zinc-400 border-zinc-600'
+                          }`}
+                        >
+                          {c.ok ? '✓' : '✕'} {c.label}
+                        </span>
+                      ))}
+                    </div>
+
+                    {FORMS[form].sections.filter(s => s.id !== 'datos').map(section => (
                       <div key={section.id}>
                         <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">{section.title}</p>
                         <div className="rounded-xl border border-zinc-600/60 divide-y divide-zinc-700/70">
@@ -2066,9 +2152,11 @@ function CuestionariosTab({ pw }: { pw: string }) {
 // Hoja imprimible del cuestionario, con la firma, para la historia clínica
 function printQuestionnaire(q: Questionnaire) {
   const esc = (s: unknown) => String(s ?? '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string))
-  const flags = medicalFlags(q.answers ?? {})
+  const form = formOf(q)
+  const config = FORMS[form]
+  const flags = medicalFlags(form, q.answers ?? {})
 
-  const secciones = SECTIONS.filter(s => s.id !== 'datos').map(section => {
+  const secciones = config.sections.filter(s => s.id !== 'datos').map(section => {
     const filas = section.fields
       .flatMap(field => answerLines(field, q.answers ?? {}))
       .map(l => `<tr><td class="q">${esc(l.label)}</td><td class="a">${esc(l.value)}</td></tr>`)
@@ -2077,7 +2165,7 @@ function printQuestionnaire(q: Questionnaire) {
   }).join('')
 
   const html = `<!doctype html><html lang="es"><head><meta charset="utf-8">
-    <title>Cuestionario de piel — ${esc(q.patient_name)}</title>
+    <title>${esc(config.title)} — ${esc(q.patient_name)}</title>
     <style>
       * { box-sizing: border-box; }
       body { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; color: #1a1d1a; margin: 0; padding: 32px 36px; font-size: 12px; }
@@ -2110,13 +2198,22 @@ function printQuestionnaire(q: Questionnaire) {
       <div class="ref">
         <div class="n">${esc(q.patient_name)}</div>
         <div>${esc(q.patient_email)}${q.patient_phone ? ` · ${esc(q.patient_phone)}` : ''}</div>
-        <div>${q.patient_age ? `${esc(q.patient_age)} años · ` : ''}Cuestionario del ${esc(fmtDate(q.created_at))}</div>
+        <div>${q.patient_dni ? `${esc(q.patient_dni)} · ` : ''}${q.patient_birth_date ? `${esc(q.patient_birth_date)} · ` : ''}${esc(fmtDate(q.created_at))}</div>
+        <div>${esc(config.title)}</div>
       </div>
     </div>
     ${flags.length ? `<div class="flags"><h3>Revisar antes del tratamiento</h3>${flags.map(f => `<span>${esc(f)}</span>`).join('')}</div>` : ''}
     ${secciones}
     <div class="decl">
-      <p style="margin:0 0 8px;">${esc(DECLARACION)}</p>
+      <p style="margin:0 0 8px;">${esc(config.declaracion)}</p>
+      <p style="margin:0 0 8px;font-size:11px;color:#5c6158;">
+        Autorizaciones: datos de salud ${q.consent ? 'SÍ' : 'NO'} ·
+        ${CONSENTIMIENTOS_OPCIONALES.map(c => {
+          const ok = c.id === 'fotos' ? q.consent_photos : c.id === 'comunicaciones' ? q.consent_comms : q.consent_promo
+          const nombre = c.id === 'fotos' ? 'fotos médicas' : c.id === 'comunicaciones' ? 'comunicaciones' : 'fotos docentes'
+          return `${nombre} ${ok ? 'SÍ' : 'NO'}`
+        }).join(' · ')}
+      </p>
       <div class="sign">
         <div>
           ${q.signature ? `<img src="${q.signature}" alt="Firma" />` : ''}

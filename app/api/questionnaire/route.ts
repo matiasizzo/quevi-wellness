@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
+import { isFormKey, CONSENTIMIENTOS_OPCIONALES } from '@/lib/questionnaires'
 
 export const dynamic = 'force-dynamic'
 
-// Guarda el cuestionario previo al chequeo de piel que rellena la paciente en
-// /chequeo-piel. Es un endpoint público (no hay login de paciente), así que
+// Guarda los cuestionarios de salud que rellena la paciente en /chequeo-piel y
+// /chequeo-capilar. Es un endpoint público (no hay login de paciente), así que
 // solo acepta lo que necesita y con límites de tamaño: nada de confiar en que
 // el cuerpo venga bien formado.
 
@@ -33,11 +34,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'El cuestionario es demasiado grande' }, { status: 413 })
   }
 
-  let body: { answers?: unknown; signature?: unknown; consent?: unknown; declaracion?: unknown }
+  let body: {
+    form?: unknown
+    answers?: unknown
+    signature?: unknown
+    consent?: unknown
+    declaracion?: unknown
+    optionalConsents?: unknown
+  }
   try {
     body = JSON.parse(raw)
   } catch {
     return NextResponse.json({ error: 'Petición inválida' }, { status: 400 })
+  }
+
+  // Cuál de los dos cuestionarios es
+  const form = isFormKey(body.form) ? body.form : null
+  if (!form) {
+    return NextResponse.json({ error: 'Cuestionario desconocido' }, { status: 400 })
   }
 
   const answers = (body.answers && typeof body.answers === 'object' && !Array.isArray(body.answers)
@@ -48,12 +62,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Faltan las respuestas del cuestionario' }, { status: 400 })
   }
 
-  const name = text(answers.nombre, 200)
+  const firstName = text(answers.nombre, 200)
+  const surname = text(answers.apellidos, 200)
+  const name = [firstName, surname].filter(Boolean).join(' ')
   const email = text(answers.email, 200).toLowerCase()
   const phone = text(answers.telefono, 60)
-  const age = text(answers.edad, 20)
+  const dni = text(answers.dni, 40)
+  const birthDate = text(answers.fecha_nacimiento, 40)
 
-  if (!name) return NextResponse.json({ error: 'Falta el nombre' }, { status: 400 })
+  if (!firstName) return NextResponse.json({ error: 'Falta el nombre' }, { status: 400 })
   if (!isEmail(email)) return NextResponse.json({ error: 'El correo electrónico no es válido' }, { status: 400 })
 
   const signature = typeof body.signature === 'string' ? body.signature : ''
@@ -67,13 +84,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falta confirmar la declaración y la autorización' }, { status: 400 })
   }
 
+  // Las autorizaciones opcionales: lo que no venga marcado cuenta como No
+  const rawOptional = (body.optionalConsents && typeof body.optionalConsents === 'object'
+    ? body.optionalConsents
+    : {}) as Record<string, unknown>
+  const optional: Record<string, boolean> = {}
+  for (const c of CONSENTIMIENTOS_OPCIONALES) {
+    optional[c.id] = rawOptional[c.id] === 'Sí'
+  }
+
   const db = getSupabase()
   if (!db) return NextResponse.json({ error: 'Base de datos no configurada' }, { status: 500 })
 
   // Huella del contenido firmado: si alguien modificara la fila más adelante,
   // el hash dejaría de cuadrar con lo que firmó la paciente
   const contentHash = createHash('sha256')
-    .update(JSON.stringify(answers) + signature)
+    .update(form + JSON.stringify(answers) + signature)
     .digest('hex')
 
   const now = new Date().toISOString()
@@ -81,15 +107,20 @@ export async function POST(req: NextRequest) {
   const ip = forwarded.split(',')[0].trim() || null
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (db as any).from('skin_questionnaires').insert({
+  const { error } = await (db as any).from('health_questionnaires').insert({
+    form,
     patient_name: name,
     patient_email: email,
     patient_phone: phone || null,
-    patient_age: age || null,
+    patient_dni: dni || null,
+    patient_birth_date: birthDate || null,
     answers,
     signature,
     signed_at: now,
     consent: true,
+    consent_photos: optional.fotos ?? false,
+    consent_comms: optional.comunicaciones ?? false,
+    consent_promo: optional.promocion ?? false,
     content_hash: contentHash,
     ip,
     user_agent: (req.headers.get('user-agent') ?? '').slice(0, 400) || null,

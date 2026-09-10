@@ -1,16 +1,24 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { SECTIONS, DECLARACION, CONSENTIMIENTO, type Field } from '@/lib/skinQuestionnaire'
+import {
+  FORMS,
+  CONSENTIMIENTO,
+  CONSENTIMIENTOS_OPCIONALES,
+  RESPONSABLE,
+  FINALIDAD,
+  type Field,
+  type FormKey,
+} from '@/lib/questionnaires'
 
-// Formulario público del cuestionario previo al chequeo de piel.
+// Formulario público de los cuestionarios de salud (piel y tricología).
 // Se usa igual desde el móvil de la paciente en su casa que desde la tablet de
 // la clínica: por pasos, con botones grandes y firma con el dedo.
 
 type Value = string | string[] | Record<string, string>
 type Answers = Record<string, Value>
 
-const STORAGE_KEY = 'quevi-cuestionario-piel'
+const storageKey = (form: FormKey) => `quevi-cuestionario-${form}`
 
 const inputCls =
   'w-full px-4 py-3 rounded-xl border border-cream-400 bg-cream-50 text-[15px] text-carbon-900 ' +
@@ -294,12 +302,18 @@ function SignaturePad({ onChange }: { onChange: (dataUrl: string) => void }) {
 }
 
 // ── Formulario ───────────────────────────────────────────────────────────────
-export default function SkinQuestionnaireForm() {
+export default function QuestionnaireForm({ form }: { form: FormKey }) {
+  const config = FORMS[form]
+  const SECTIONS = config.sections
+  const STORAGE_KEY = storageKey(form)
+
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
   const [signature, setSignature] = useState('')
   const [consent, setConsent] = useState(false)
   const [declaracion, setDeclaracion] = useState(false)
+  // Los opcionales: ninguno viene marcado por defecto
+  const [optionalConsents, setOptionalConsents] = useState<Record<string, string>>({})
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
@@ -370,10 +384,10 @@ export default function SkinQuestionnaireForm() {
     setError('')
     setSending(true)
     try {
-      const res = await fetch('/api/skin-questionnaire', {
+      const res = await fetch('/api/questionnaire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, signature, consent, declaracion }),
+        body: JSON.stringify({ form, answers, signature, consent, declaracion, optionalConsents }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -403,8 +417,8 @@ export default function SkinQuestionnaireForm() {
         </div>
         <h1 className="font-serif text-[28px] text-carbon-900 mb-3">Cuestionario recibido</h1>
         <p className="text-[15px] text-carbon-500 leading-relaxed">
-          Gracias. Tu equipo médico lo revisará antes de tu chequeo de piel. Si necesitamos aclarar algo,
-          te lo preguntaremos en la consulta.
+          Gracias. Tu equipo médico lo revisará antes de tu cita. Si necesitamos aclarar algo, te lo
+          preguntaremos en la consulta.
         </p>
       </div>
     )
@@ -419,7 +433,7 @@ export default function SkinQuestionnaireForm() {
       <div className="text-center mb-8">
         <p className="text-[11px] tracking-[0.28em] uppercase text-carbon-400 mb-2">QUEVI Wellness Clinic</p>
         <h1 className="font-serif text-[26px] sm:text-[30px] text-carbon-900 leading-tight">
-          Cuestionario previo al chequeo de piel
+          {config.title}
         </h1>
       </div>
 
@@ -462,10 +476,34 @@ export default function SkinQuestionnaireForm() {
           </>
         ) : (
           <>
-            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">Declaración y firma</h2>
+            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">Consentimiento, declaración y firma</h2>
+
+            {/* Aviso clínico propio de cada cuestionario */}
+            <div className="rounded-xl border border-terra-200 bg-terra-50 p-4 mb-5">
+              <p className="text-[14px] text-terra-900 leading-relaxed m-0">
+                <strong>Importante:</strong> {config.aviso}
+              </p>
+            </div>
+
+            {/* Información de protección de datos */}
+            <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5 space-y-3">
+              <div>
+                <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">
+                  Responsable del tratamiento
+                </p>
+                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{RESPONSABLE}</p>
+              </div>
+              <div>
+                <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">
+                  Finalidad, base legal y conservación
+                </p>
+                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{FINALIDAD}</p>
+              </div>
+            </div>
 
             <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5">
-              <p className="text-[14px] text-carbon-700 leading-relaxed m-0">{DECLARACION}</p>
+              <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">Declaración</p>
+              <p className="text-[14px] text-carbon-700 leading-relaxed m-0">{config.declaracion}</p>
             </div>
 
             <div className="space-y-3 mb-6">
@@ -506,8 +544,43 @@ export default function SkinQuestionnaireForm() {
                     </svg>
                   )}
                 </span>
-                <span className="text-[14px] text-carbon-700 leading-relaxed">{CONSENTIMIENTO}</span>
+                <span className="text-[14px] text-carbon-700 leading-relaxed">
+                  {CONSENTIMIENTO} <span className="text-carbon-400">(obligatorio para continuar)</span>
+                </span>
               </button>
+            </div>
+
+            {/* Autorizaciones opcionales: ninguna viene marcada por defecto */}
+            <div className="space-y-4 mb-6">
+              <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0">
+                Autorizaciones opcionales
+              </p>
+              {CONSENTIMIENTOS_OPCIONALES.map(c => (
+                <div key={c.id}>
+                  <p className="text-[14px] text-carbon-700 leading-relaxed m-0 mb-2">{c.label}</p>
+                  <div className="flex gap-2">
+                    {['Sí', 'No'].map(opt => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() =>
+                          setOptionalConsents(prev => ({
+                            ...prev,
+                            [c.id]: prev[c.id] === opt ? '' : opt,
+                          }))
+                        }
+                        className={`px-6 py-2.5 rounded-xl border text-[14px] font-medium transition-colors ${
+                          optionalConsents[c.id] === opt
+                            ? 'border-brand-500 bg-brand-600 text-cream-50'
+                            : 'border-cream-400 bg-cream-50 text-carbon-700 hover:border-brand-300'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
 
             <p className="text-[13px] tracking-[0.1em] uppercase text-carbon-400 mb-2">Firma</p>

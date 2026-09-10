@@ -3,9 +3,9 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-// Cuestionarios de piel para el panel. Van por su propio endpoint y no dentro
-// de /api/admin/data porque la firma pesa: el listado se sirve sin ella y solo
-// se pide entera cuando hay que imprimir un cuestionario concreto.
+// Cuestionarios de salud (piel y capilar) para el panel. Van por su propio
+// endpoint y no dentro de /api/admin/data porque la firma pesa: el listado se
+// sirve sin ella y solo se pide entera al imprimir un cuestionario concreto.
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -15,7 +15,8 @@ function getSupabase() {
 }
 
 const LIST_COLUMNS =
-  'id, created_at, patient_name, patient_email, patient_phone, patient_age, answers, signed_at, consent, content_hash'
+  'id, created_at, form, patient_name, patient_email, patient_phone, patient_dni, patient_birth_date, ' +
+  'answers, signed_at, consent, consent_photos, consent_comms, consent_promo, content_hash'
 
 export async function GET(req: NextRequest) {
   const adminPassword = process.env.ADMIN_PASSWORD
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
   if (id) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (db as any)
-      .from('skin_questionnaires')
+      .from('health_questionnaires')
       .select(`${LIST_COLUMNS}, signature, ip, user_agent`)
       .eq('id', id)
       .maybeSingle()
@@ -44,17 +45,17 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (db as any)
-    .from('skin_questionnaires')
+    .from('health_questionnaires')
     .select(LIST_COLUMNS)
     .order('created_at', { ascending: false })
     .limit(200)
 
   if (error) {
-    // Si aún no se ha ejecutado supabase/cuestionario_piel.sql, la tabla no
+    // Si aún no se ha ejecutado supabase/cuestionarios.sql, la tabla no
     // existe: se avisa en vez de romper el panel
     const missingTable = error.message.includes('does not exist') || error.code === '42P01'
     return NextResponse.json(
-      { error: missingTable ? 'Falta ejecutar supabase/cuestionario_piel.sql en Supabase' : error.message },
+      { error: missingTable ? 'Falta ejecutar supabase/cuestionarios.sql en Supabase' : error.message },
       { status: 500 },
     )
   }

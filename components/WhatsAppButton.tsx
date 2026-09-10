@@ -20,7 +20,7 @@ export default function WhatsAppButton() {
   // El panel de administración es para el personal: ahí este botón no pinta
   // nada y el sitio lo ocupa el de "Venta en tienda".
   // Ni en el panel ni sobre el cuestionario médico: taparía campos del formulario
-  if (pathname?.startsWith('/admin') || pathname?.startsWith('/chequeo-piel')) return null
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/chequeo')) return null
 
   return (
     <motion.a
