@@ -13,6 +13,22 @@
 export const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID ?? ''
 export const GOOGLE_ADS_ID = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID ?? ''
 
+/**
+ * Etiqueta de la conversión "Llamadas desde visitas al sitio web", en el mismo
+ * formato `AW-XXXX/YYYY` que las demás.
+ *
+ * Con ella, la etiqueta de Google sustituye el teléfono visible de la web por
+ * un NÚMERO DE REENVÍO propiedad de Google, que reenvía la llamada al teléfono
+ * real de la clínica y de paso la mide. Es la diferencia entre contar el clic
+ * en el enlace `tel:` (que es intención) y contar la conversación (que es la
+ * conversión de verdad).
+ *
+ * Sin esta variable no se toca nada: el número de la clínica se muestra tal
+ * cual y se sigue midiendo solo el clic con `trackPhoneClick`.
+ */
+export const GOOGLE_ADS_CALL_CONVERSION =
+  process.env.NEXT_PUBLIC_GADS_CONV_CALL_WEBSITE ?? ''
+
 /** Etiquetas completas `AW-XXXX/YYYY` de cada conversión. */
 export const CONVERSIONS = {
   lead: process.env.NEXT_PUBLIC_GADS_CONV_LEAD ?? '',
