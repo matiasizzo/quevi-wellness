@@ -1,5 +1,6 @@
 import Script from 'next/script'
-import { GA4_ID, GOOGLE_ADS_ID } from '@/lib/gtag'
+import { SITE } from '@/content'
+import { GA4_ID, GOOGLE_ADS_ID, GOOGLE_ADS_CALL_CONVERSION } from '@/lib/gtag'
 
 /**
  * Google Analytics 4 + etiqueta de Google Ads, con Consent Mode v2.
@@ -18,10 +19,12 @@ import { GA4_ID, GOOGLE_ADS_ID } from '@/lib/gtag'
  * llama "modo de consentimiento avanzado".
  *
  * Variables de entorno (Vercel):
- *   NEXT_PUBLIC_GA4_ID         G-XXXXXXXXXX
- *   NEXT_PUBLIC_GOOGLE_ADS_ID  AW-XXXXXXXXXX
+ *   NEXT_PUBLIC_GA4_ID                   G-XXXXXXXXXX
+ *   NEXT_PUBLIC_GOOGLE_ADS_ID            AW-XXXXXXXXXX
+ *   NEXT_PUBLIC_GADS_CONV_CALL_WEBSITE   AW-XXXXXXXXXX/YYYY  (opcional)
  *
- * Sin ellas, no se carga nada.
+ * Sin las dos primeras no se carga nada. La tercera activa el número de
+ * reenvío de Google para medir las llamadas que salen de la web.
  */
 export default function GoogleTags() {
   if (!GA4_ID && !GOOGLE_ADS_ID) return null
@@ -62,6 +65,17 @@ try {
 gtag('js', new Date());
 ${GA4_ID ? `gtag('config', '${GA4_ID}', { send_page_view: true });` : ''}
 ${GOOGLE_ADS_ID ? `gtag('config', '${GOOGLE_ADS_ID}', { allow_enhanced_conversions: true });` : ''}
+${
+  GOOGLE_ADS_CALL_CONVERSION
+    ? `
+// 3. Número de reenvío: la etiqueta busca este teléfono en la página y lo
+//    sustituye por uno de Google que reenvía la llamada y la mide. El valor
+//    tiene que ser EXACTAMENTE el que se muestra, o no encuentra qué cambiar.
+gtag('config', '${GOOGLE_ADS_CALL_CONVERSION}', {
+  phone_conversion_number: '${SITE.phone}'
+});`
+    : ''
+}
 `.trim()
 
   return (

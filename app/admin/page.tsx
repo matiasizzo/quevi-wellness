@@ -71,6 +71,12 @@ type Booking = {
   message: string | null
   status: string
   created_at: string
+  // Atribución de campaña: de dónde vino la solicitud
+  gclid: string | null
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  source: string | null
 }
 
 type Variant = {
@@ -864,6 +870,33 @@ function VentasTab({
 
 // ── Tab: Citas ────────────────────────────────────────────────────────────────
 
+/**
+ * De dónde vino una solicitud del formulario.
+ *
+ * Un `gclid` significa que la visita se pagó: esa solicitud es candidata a
+ * subirse como conversión offline cuando la paciente asista (ver
+ * supabase/attribution.sql). Sin `gclid` la visita fue orgánica o directa, y
+ * lo único que se sabe es en qué página se rellenó el formulario.
+ */
+function BookingOrigin({ booking }: { booking: Booking }) {
+  const paid = Boolean(booking.gclid)
+  const detail = booking.utm_campaign ?? booking.utm_source ?? booking.source
+
+  if (!paid) {
+    return <span className="text-zinc-400 whitespace-nowrap">{detail ?? '—'}</span>
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5" title={`gclid: ${booking.gclid}`}>
+      <span className="inline-flex items-center gap-1.5 text-[11px] tracking-[0.08em] uppercase text-emerald-300 whitespace-nowrap">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        Google Ads
+      </span>
+      {detail && <span className="text-zinc-400 text-[12px] whitespace-nowrap">{detail}</span>}
+    </div>
+  )
+}
+
 function CitasTab({ appointments, bookings }: { appointments: Appointment[]; bookings: Booking[] }) {
   const [view, setView] = useState<'appointments' | 'bookings'>('appointments')
   const paidAppts = appointments.filter(a => a.status === 'paid')
@@ -935,7 +968,7 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
               <table className="w-full text-[13px]">
                 <thead>
                   <tr className="border-b border-zinc-600/80 bg-zinc-800/80">
-                    {['Fecha', 'Nombre', 'Email', 'Teléfono', 'Servicio', 'Estado'].map(h => (
+                    {['Fecha', 'Nombre', 'Email', 'Teléfono', 'Servicio', 'Origen', 'Estado'].map(h => (
                       <th key={h} className="text-left px-4 py-3 text-[11px] tracking-[0.1em] uppercase text-zinc-400 font-medium whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -948,6 +981,7 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
                       <td className="px-4 py-3 text-zinc-300">{b.email}</td>
                       <td className="px-4 py-3 text-zinc-300">{b.phone ?? '—'}</td>
                       <td className="px-4 py-3 text-zinc-200">{b.service ?? '—'}</td>
+                      <td className="px-4 py-3"><BookingOrigin booking={b} /></td>
                       <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                     </tr>
                   ))}
