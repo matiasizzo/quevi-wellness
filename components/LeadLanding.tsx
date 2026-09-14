@@ -113,57 +113,42 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
       </header>
 
       {/* ─── Oferta + formulario, sin scroll ──────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-16">
-        <div className="grid lg:grid-cols-[1.05fr_1fr] gap-10 lg:gap-16 items-start">
-          {/* Argumento */}
-          <div>
-            <p className="text-[11px] tracking-[0.16em] uppercase text-brand-600 mb-5">
+      <section className="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-16">
+        {/*
+          En movil es una sola columna y el ORDEN DEL DOM manda: gancho,
+          formulario, y el resto del argumento debajo. El formulario tiene que
+          entrar en la primera pantalla; todo el trafico de campana es movil.
+          A partir de lg vuelve a ser la rejilla de dos columnas de siempre,
+          colocando cada bloque con row-start / col-start.
+        */}
+        <div className="flex flex-col gap-10 lg:grid lg:grid-cols-[1.05fr_1fr] lg:gap-x-16 lg:gap-y-10 lg:items-start">
+          {/* Gancho: lo que promete el anuncio, nada mas */}
+          <div className="lg:col-start-1 lg:row-start-1">
+            <p className="text-[11px] tracking-[0.16em] uppercase text-brand-600 mb-3 sm:mb-5">
               {copy.eyebrow}
             </p>
-            <h1 className="font-serif text-[34px] sm:text-[46px] leading-[1.06] font-normal text-carbon-900 text-balance mb-5">
+            <h1 className="font-serif text-[30px] sm:text-[46px] leading-[1.08] font-normal text-carbon-900 text-balance mb-4 sm:mb-5">
               {copy.headline}{' '}
               <em className="italic text-brand-600">{copy.headlineEm}</em>
             </h1>
-            <p className="text-[15px] sm:text-[16px] leading-[1.7] text-carbon-500 max-w-[54ch] mb-7">
+            <p className="text-[15px] sm:text-[16px] leading-[1.65] text-carbon-500 max-w-[54ch] mb-5 sm:mb-7">
               {copy.subheadline}
             </p>
 
             {/* La oferta, en números */}
-            <div className="inline-flex items-baseline gap-3 px-5 py-3 rounded-full bg-brand-600 text-cream-50 mb-8">
+            <div className="inline-flex items-baseline gap-3 px-5 py-2.5 sm:py-3 rounded-full bg-brand-600 text-cream-50 mb-0 sm:mb-8">
               <span className="text-[15px] line-through opacity-60">{copy.offer.was}</span>
               <span className="font-serif text-[22px]">{copy.offer.now}</span>
               <span className="text-[12px] opacity-80 hidden sm:inline">· {copy.offer.note}</span>
             </div>
 
-            <ul className="flex flex-col gap-3 mb-9">
-              {copy.bullets.map((b) => (
-                <li key={b} className="flex items-start gap-3">
-                  <CheckCircle2
-                    size={17}
-                    strokeWidth={1.6}
-                    className="text-brand-500 flex-shrink-0 mt-[3px]"
-                  />
-                  <span className="text-[14px] leading-[1.6] text-carbon-700">{b}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="flex flex-wrap gap-8 pt-7 border-t border-cream-400">
-              {copy.stats.map((s) => (
-                <div key={s.label}>
-                  <p className="font-serif text-[26px] text-brand-600 leading-none mb-1.5">
-                    {s.value}
-                  </p>
-                  <p className="text-[11px] tracking-[0.1em] uppercase text-carbon-400">
-                    {s.label}
-                  </p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Formulario */}
-          <div id="form" className="lg:sticky lg:top-8 scroll-mt-24">
+          {/* Formulario. En movil va justo detras del gancho */}
+          <div
+            id="form"
+            className="lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-8 scroll-mt-24"
+          >
             <div className="bg-cream-100 border border-cream-400 rounded-2xl p-6 sm:p-8 shadow-brand">
               {status === 'sent' ? (
                 <div className="text-center py-6">
@@ -211,6 +196,11 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
                       autoComplete="tel"
                       required
                     />
+                    {/*
+                      El email NO es obligatorio: la promesa es llamar, no
+                      escribir. Cada campo forzoso de mas cuesta conversion en
+                      movil, que es de donde llega todo el trafico de campana.
+                    */}
                     <Field
                       label={copy.form.email}
                       name="email"
@@ -218,7 +208,6 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
                       value={form.email}
                       onChange={handleChange}
                       autoComplete="email"
-                      required
                     />
 
                     <label className="flex flex-col gap-1.5">
@@ -238,15 +227,22 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
                       </select>
                     </label>
 
-                    <label className="flex items-start gap-2.5 mt-1 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={consent}
-                        onChange={(e) => setConsent(e.target.checked)}
-                        required
-                        className="mt-[3px] w-4 h-4 accent-brand-600 cursor-pointer flex-shrink-0"
-                      />
-                      <span className="text-[12px] leading-[1.55] text-carbon-400">
+                    {/*
+                      La casilla se ve de 16px pero el area que responde al dedo
+                      mide 44, que es el minimo que recomiendan iOS y Android.
+                      Es un campo obligatorio: fallar el toque aqui es abandonar.
+                    */}
+                    <label className="flex items-start gap-1 -ml-3 cursor-pointer">
+                      <span className="w-11 h-11 flex items-center justify-center flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={consent}
+                          onChange={(e) => setConsent(e.target.checked)}
+                          required
+                          className="w-[18px] h-[18px] accent-brand-600 cursor-pointer"
+                        />
+                      </span>
+                      <span className="text-[12px] leading-[1.55] text-carbon-400 pt-[13px]">
                         {copy.form.consent}{' '}
                         <Link
                           href="/privacidad"
@@ -278,6 +274,35 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
                   </form>
                 </>
               )}
+            </div>
+          </div>
+
+          {/* Resto del argumento: en movil queda por debajo del formulario */}
+          <div className="lg:col-start-1 lg:row-start-2">
+            <ul className="flex flex-col gap-3 mb-9">
+              {copy.bullets.map((b) => (
+                <li key={b} className="flex items-start gap-3">
+                  <CheckCircle2
+                    size={17}
+                    strokeWidth={1.6}
+                    className="text-brand-500 flex-shrink-0 mt-[3px]"
+                  />
+                  <span className="text-[14px] leading-[1.6] text-carbon-700">{b}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex flex-wrap gap-8 pt-7 border-t border-cream-400">
+              {copy.stats.map((stat) => (
+                <div key={stat.label}>
+                  <p className="font-serif text-[26px] text-brand-600 leading-none mb-1.5">
+                    {stat.value}
+                  </p>
+                  <p className="text-[11px] tracking-[0.1em] uppercase text-carbon-400">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

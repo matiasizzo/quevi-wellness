@@ -36,7 +36,7 @@ export async function GET(request: Request) {
       .limit(200),
 
     db.from('bookings')
-      .select('id, name, email, phone, service, message, status, created_at')
+      .select('id, name, email, phone, service, message, status, created_at, gclid, utm_source, utm_medium, utm_campaign, source')
       .order('created_at', { ascending: false })
       .limit(200),
 
