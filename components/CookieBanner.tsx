@@ -88,7 +88,7 @@ export default function CookieBanner() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6"
+        className="fixed bottom-0 left-0 right-0 z-50 p-2.5 sm:p-6"
         role="dialog"
         aria-label="Preferencias de cookies"
       >
@@ -96,10 +96,10 @@ export default function CookieBanner() {
           className="max-w-[860px] mx-auto rounded-[12px] shadow-2xl overflow-hidden"
           style={{ background: 'rgba(245,242,236,0.97)', backdropFilter: 'blur(16px)', border: '1px solid rgba(53,85,57,0.18)' }}
         >
-          <div className="p-5 sm:p-7">
+          <div className="p-4 sm:p-7">
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-              {/* Icon */}
-              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center">
+              {/* Icon. En movil se oculta: cada pixel de alto aqui tapa el formulario */}
+              <div className="flex-shrink-0 w-9 h-9 rounded-full bg-brand-100 hidden sm:flex items-center justify-center">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#355539" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 16v-4" />
@@ -186,24 +186,29 @@ export default function CookieBanner() {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:justify-end">
+            {/*
+              En movil van en fila y repartiendose el ancho. Apilados sumaban
+              casi cien pixeles de alto sobre la primera pantalla, que es
+              justo donde vive el formulario de la landing de campana.
+            */}
+            <div className="flex flex-row flex-wrap gap-2 mt-3 sm:mt-4 sm:justify-end">
               <button
                 onClick={rejectAll}
-                className="px-5 py-2.5 rounded-full border border-cream-500 text-carbon-600 text-[13px] font-medium transition-all duration-200 hover:border-carbon-400 hover:text-carbon-900 active:scale-[0.97]"
+                className="flex-1 sm:flex-none px-5 py-2.5 rounded-full border border-cream-500 text-carbon-600 text-[13px] font-medium transition-all duration-200 hover:border-carbon-400 hover:text-carbon-900 active:scale-[0.97]"
               >
                 Solo necesarias
               </button>
               {showDetails && (
                 <button
                   onClick={saveSelection}
-                  className="px-5 py-2.5 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-50 active:scale-[0.97]"
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-full border border-brand-600 text-brand-600 text-[13px] font-medium transition-all duration-200 hover:bg-brand-50 active:scale-[0.97]"
                 >
                   Guardar selección
                 </button>
               )}
               <button
                 onClick={acceptAll}
-                className="px-5 py-2.5 rounded-full bg-brand-600 text-cream-50 text-[13px] font-medium transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform"
+                className="flex-1 sm:flex-none px-5 py-2.5 rounded-full bg-brand-600 text-cream-50 text-[13px] font-medium transition-all duration-200 hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.97] will-change-transform"
                 style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
               >
                 Aceptar todas

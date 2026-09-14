@@ -24,8 +24,13 @@ export async function POST(req: Request) {
   const body = await req.json()
   const { name, email, phone, service, message, locale, source } = body
 
-  if (!name || !email) {
-    return NextResponse.json({ error: 'name and email are required' }, { status: 400 })
+  // Con el nombre y una forma de contacto basta. El email dejo de ser
+  // obligatorio en la landing de campana: alli se promete una llamada.
+  if (!name || (!email && !phone)) {
+    return NextResponse.json(
+      { error: 'name and either email or phone are required' },
+      { status: 400 }
+    )
   }
 
   const supabase = createClient<Database>(
@@ -41,7 +46,7 @@ export async function POST(req: Request) {
 
   const { error } = await supabase.from('bookings').insert({
     name: clean(name, 200)!,
-    email: clean(email, 200)!,
+    email: clean(email, 200) ?? '',
     phone: clean(phone, 40),
     service: clean(service, 200),
     message: clean(message, 2000),

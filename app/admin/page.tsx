@@ -986,7 +986,7 @@ function CitasTab({ appointments, bookings }: { appointments: Appointment[]; boo
                     <tr key={b.id} className="hover:bg-zinc-700/20 transition-colors">
                       <td className="px-4 py-3 text-zinc-300 whitespace-nowrap">{fmtDate(b.created_at)}</td>
                       <td className="px-4 py-3 text-zinc-200 font-medium">{b.name}</td>
-                      <td className="px-4 py-3 text-zinc-300">{b.email}</td>
+                      <td className="px-4 py-3 text-zinc-300">{b.email || '—'}</td>
                       <td className="px-4 py-3 text-zinc-300">{b.phone ?? '—'}</td>
                       <td className="px-4 py-3 text-zinc-200">{b.service ?? '—'}</td>
                       <td className="px-4 py-3"><BookingOrigin booking={b} /></td>
