@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, MapPin, Clock, Phone, ArrowRight, Star } from 'lucide-react'
+import { CheckCircle2, MapPin, Clock, Phone, ArrowRight, Star, MessageCircle } from 'lucide-react'
 import { SITE } from '@/content'
 import { getAttribution } from '@/lib/attribution'
 import { trackLead } from '@/lib/gtag'
@@ -38,6 +38,12 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
     copy.locale === 'es'
       ? 'Hola, quiero pedir cita para el diagnóstico de piel.'
       : 'Hello, I would like to book the skin diagnosis.'
+  )}`
+
+  // Quien buscaba un tratamiento concreto y aterrizo aqui: se le abre el chat
+  // con la pregunta ya escrita en vez de dejarle sin salida.
+  const whatsappOtherHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    copy.form.altOtherMessage
   )}`
 
   const handleChange = (
@@ -272,6 +278,43 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
                       {copy.form.disclaimer}
                     </p>
                   </form>
+
+                  {/*
+                    Dos salidas mas, del mismo peso que el formulario. En movil
+                    escribir por WhatsApp es un toque; el formulario son cuatro
+                    campos. Y la segunda recoge a quien venia buscando otra cosa.
+                  */}
+                  <div className="mt-7">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="flex-1 h-px bg-cream-400" />
+                      <span className="text-[11px] tracking-[0.12em] uppercase text-carbon-300">
+                        {copy.form.altDivider}
+                      </span>
+                      <span className="flex-1 h-px bg-cream-400" />
+                    </div>
+
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2.5 w-full py-4 rounded-full border border-brand-600 text-brand-700 text-[13px] tracking-[0.06em] font-medium transition-colors hover:bg-brand-50"
+                    >
+                      <MessageCircle size={16} strokeWidth={1.8} />
+                      {copy.form.altWhatsapp}
+                    </a>
+
+                    <p className="text-[12.5px] leading-[1.6] text-carbon-400 text-center mt-4">
+                      {copy.form.altOther}{' '}
+                      <a
+                        href={whatsappOtherHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-600 underline underline-offset-2 hover:text-brand-700 transition-colors"
+                      >
+                        {copy.form.altOtherCta}
+                      </a>
+                    </p>
+                  </div>
                 </>
               )}
             </div>
