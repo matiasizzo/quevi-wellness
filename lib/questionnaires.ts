@@ -98,6 +98,28 @@ const SKIN_SECTIONS: Section[] = [
         minLabel: 'Nada estresada',
         maxLabel: 'Extremadamente estresada',
       },
+      // Embarazo y lactancia: contraindican buena parte de los tratamientos,
+      // así que el equipo tiene que verlo antes de tocar nada
+      {
+        id: 'embarazo_actual',
+        type: 'radio',
+        label: '¿Estás embarazada actualmente?',
+        options: ['Sí', 'No', 'No lo sé'],
+      },
+      {
+        id: 'lactancia',
+        type: 'radio',
+        label: '¿Estás en período de lactancia?',
+        options: SI_NO,
+      },
+      {
+        id: 'embarazos_previos',
+        type: 'yesno',
+        label: '¿Has estado embarazada alguna vez?',
+        options: SI_NO,
+        detail: '¿Cuántos embarazos?',
+        detailOn: 'Sí',
+      },
       { id: 'menopausia', type: 'radio', label: '¿Estás en perimenopausia o menopausia?', options: ['Sí', 'No', 'No lo sé'] },
       {
         id: 'hormonal',
@@ -663,6 +685,9 @@ function matrixVal(a: Answers, id: string, row: string): string {
 }
 
 const SKIN_FLAGS: FlagRule[] = [
+  { label: 'Embarazada', check: a => val(a, 'embarazo_actual') === 'Sí' },
+  { label: 'Embarazo: no lo sabe', check: a => val(a, 'embarazo_actual') === 'No lo sé' },
+  { label: 'Lactancia', check: a => val(a, 'lactancia') === 'Sí' },
   { label: 'Medicación fotosensible', check: a => val(a, 'fotosensibles') === 'Sí' },
   { label: 'Fotosensibles: no lo sabe', check: a => val(a, 'fotosensibles') === 'No lo sé' },
   { label: 'Alergia a medicamento', check: a => val(a, 'alergia_medicamento') === 'Sí' },
