@@ -449,6 +449,29 @@ const HAIR_SECTIONS: Section[] = [
     id: 'salud_hormonal',
     title: '2 · Salud general y hormonal',
     fields: [
+      // Embarazo y lactancia: aquí pesan aún más que en el cuestionario de
+      // piel, porque el finasteride y el dutasteride son teratógenos y el
+      // minoxidil tampoco se usa durante el embarazo ni la lactancia
+      {
+        id: 'embarazo_actual',
+        type: 'radio',
+        label: '¿Estás embarazada actualmente?',
+        options: ['Sí', 'No', 'No lo sé', 'No aplica'],
+      },
+      {
+        id: 'lactancia',
+        type: 'radio',
+        label: '¿Estás en período de lactancia?',
+        options: ['Sí', 'No', 'No aplica'],
+      },
+      {
+        id: 'embarazos_previos',
+        type: 'yesno',
+        label: '¿Has estado embarazada alguna vez?',
+        options: ['Sí', 'No', 'No aplica'],
+        detail: '¿Cuántos embarazos?',
+        detailOn: 'Sí',
+      },
       { id: 'menopausia_cap', type: 'radio', label: 'Menopausia o perimenopausia', options: ['Sí', 'No', 'No lo sé'] },
       { id: 'andropausia', type: 'radio', label: 'Andropausia o testosterona baja diagnosticada', options: ['Sí', 'No', 'No lo sé'] },
       { id: 'tiroides', type: 'yesno', label: 'Antecedentes de tiroides', options: SI_NO, detail: '¿Cuál?', detailOn: 'Sí' },
@@ -710,6 +733,10 @@ const SKIN_FLAGS: FlagRule[] = [
 // Los mismos puntos que en el cuestionario de tricología en papel iban
 // marcados en color: condicionan qué tratamiento capilar es seguro hoy
 const HAIR_FLAGS: FlagRule[] = [
+  // Delante de todo: el finasteride y el dutasteride son teratógenos
+  { label: 'Embarazada', check: a => val(a, 'embarazo_actual') === 'Sí' },
+  { label: 'Embarazo: no lo sabe', check: a => val(a, 'embarazo_actual') === 'No lo sé' },
+  { label: 'Lactancia', check: a => val(a, 'lactancia') === 'Sí' },
   { label: 'Toma medicación habitual', check: a => val(a, 'med_habitual') === 'Sí' },
   { label: 'Corticoides o esteroides', check: a => val(a, 'corticoides') === 'Sí' },
   { label: 'Terapia hormonal o anticonceptivos', check: a => val(a, 'hormonal_cap') === 'Sí' },
