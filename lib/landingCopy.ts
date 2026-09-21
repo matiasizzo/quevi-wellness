@@ -41,6 +41,18 @@ export type LandingCopy = {
     successBody: string
     whatsapp: string
     disclaimer: string
+    /**
+     * Salidas alternativas al formulario. Casi todo el trafico de campana es
+     * movil, y en movil un WhatsApp es un toque frente a cuatro campos. La
+     * segunda recoge a quien buscaba un tratamiento concreto y aterrizo en
+     * una oferta de diagnostico: en vez de perderlo, se le pregunta cual.
+     */
+    altDivider: string
+    altWhatsapp: string
+    altOther: string
+    altOtherCta: string
+    /** Mensaje con el que se abre WhatsApp al preguntar por otro tratamiento */
+    altOtherMessage: string
   }
   includes: { title: string; items: { n: string; title: string; desc: string }[] }
   testimonialsTitle: string
@@ -109,6 +121,11 @@ export const LANDING_ES: LandingCopy = {
       'Te llamamos en horario de clínica (lunes a viernes, de 9:00 a 20:00) para darte cita. Si prefieres ir más rápido, escríbenos por WhatsApp.',
     whatsapp: 'Escribir por WhatsApp',
     disclaimer: 'Tus datos se usan solo para gestionar tu cita. No enviamos publicidad sin tu permiso.',
+    altDivider: 'o',
+    altWhatsapp: 'Escríbenos por WhatsApp',
+    altOther: '¿Buscas otro tratamiento?',
+    altOtherCta: 'Cuéntanos cuál',
+    altOtherMessage: 'Hola, busco información sobre un tratamiento concreto:',
   },
   includes: {
     title: 'Qué incluye el diagnóstico',
@@ -227,6 +244,11 @@ export const LANDING_EN: LandingCopy = {
       'We will call you during clinic hours (Monday to Friday, 9am to 8pm) to arrange your appointment. If you would rather be quicker, message us on WhatsApp.',
     whatsapp: 'Message us on WhatsApp',
     disclaimer: 'Your details are used only to arrange your appointment. No marketing without your permission.',
+    altDivider: 'or',
+    altWhatsapp: 'Message us on WhatsApp',
+    altOther: 'Looking for a different treatment?',
+    altOtherCta: 'Tell us which one',
+    altOtherMessage: 'Hello, I am looking for information about a specific treatment:',
   },
   includes: {
     title: 'What the diagnosis includes',
