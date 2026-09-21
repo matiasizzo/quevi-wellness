@@ -4,7 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Clock } from 'lucide-react'
-import { RITUALES } from '@/content'
+import { RITUALES_VISIBLES } from '@/content'
 import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
 
@@ -53,7 +53,7 @@ export default function RitualesTeaser() {
           animate={isInView ? 'visible' : 'hidden'}
           className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-4 mb-10"
         >
-          {RITUALES.map((ritual) => (
+          {RITUALES_VISIBLES.map((ritual) => (
             <motion.div key={ritual.id} variants={scaleIn}>
               <Link
                 href="/rituales"

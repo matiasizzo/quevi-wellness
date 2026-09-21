@@ -362,6 +362,11 @@ export interface Ritual {
   priceEur: number
   /** Bono multi-sesión opcional (ej. pack de 10 sesiones) */
   pack?: { sessions: number; priceEur: number }
+  /**
+   * Descatalogado: deja de ofrecerse en la web (listado, home y reservas) pero
+   * se conserva aquí porque puede volver. No borrar la ficha.
+   */
+  discontinued?: boolean
   color: string
   image: string
   results: string[]
@@ -555,6 +560,7 @@ export const RITUALES: Ritual[] = [
   },
   {
     id: 'active-relief',
+    discontinued: true,
     badge: 'Recuperación · Face & Body',
     name: 'D-Active Relief',
     tagline: 'Biohacking muscular de alto rendimiento',
@@ -597,6 +603,7 @@ export const RITUALES: Ritual[] = [
   },
   {
     id: 'bio-lumina',
+    discontinued: true,
     badge: 'Ritual Facial · Glow',
     name: 'Ritual D-Bio Lumina',
     tagline: 'Efecto glow y longevidad',
@@ -673,6 +680,19 @@ export const RITUALES: Ritual[] = [
     ],
   },
 ]
+
+/**
+ * Los rituales que se ofrecen hoy. Es la lista que deben usar el listado de
+ * /rituales, el bloque de la home y el selector de reservas: los
+ * descatalogados siguen en RITUALES para poder recuperarlos, pero no se
+ * muestran ni se pueden reservar.
+ */
+export const RITUALES_VISIBLES: Ritual[] = RITUALES.filter((r) => !r.discontinued)
+
+/** ¿Se puede enlazar a este ritual hoy? */
+export function isRitualVisible(id: string) {
+  return RITUALES_VISIBLES.some((r) => r.id === id)
+}
 
 /**
  * Ritual en el que se recomienda cada producto de la tienda.

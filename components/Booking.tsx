@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Lock,
 } from 'lucide-react'
-import { SITE, RITUALES, TREATMENTS, ritualBookingLabel } from '@/content'
+import { SITE, RITUALES_VISIBLES, TREATMENTS, ritualBookingLabel } from '@/content'
 import { getAttribution } from '@/lib/attribution'
 import { fadeUp, staggerContainer, slideInLeft, slideInRight } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
@@ -24,7 +24,7 @@ const SERVICES_OPTIONS = [
   // Terapias faciales y tecnologías — nombres exactos para los deep-links de las cards
   ...TREATMENTS.flatMap((cat) => cat.items.map((t) => t.name)),
   // Rituales de Firma — reservables con seña de 50 € (el resto se abona en clínica)
-  ...RITUALES.map((r) => ritualBookingLabel(r.name)),
+  ...RITUALES_VISIBLES.map((r) => ritualBookingLabel(r.name)),
 ]
 
 // ─── Time slots ────────────────────────────────────────────────────────────

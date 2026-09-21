@@ -22,13 +22,13 @@ const staggerContainer = {
 
 // ── Fallback product data (Dall'O Skin seed products) ──
 const FALLBACK_PRODUCTS = [
-  { id: 'longevity-mousse',  slug: 'd-longevity-mousse',  name: 'D-LONGEVITY Mousse',   vol: '150 ml', price: 0,   was: null, badge: null,   stripe: '#83a886', tipo: 'limpiador', code: 'D-LON-150',  image_url: null },
-  { id: 'purifying-mousse',  slug: 'd-purifying-mousse',  name: 'D-PURIFYING Mousse',   vol: '150 ml', price: 0,   was: null, badge: null,   stripe: '#83a886', tipo: 'limpiador', code: 'D-PUR-150',  image_url: null },
-  { id: 'senolytic-serum',   slug: 'd-senolytic-serum',   name: 'D-Senolytic Serum',    vol: '20 ml',  price: 0,   was: null, badge: 'best', stripe: '#c4876a', tipo: 'serum',    code: 'D-SEN-20',   image_url: null },
-  { id: 'purifying-serum',   slug: 'd-purifying-serum',   name: 'D-Purifying Serum',    vol: '20 ml',  price: 0,   was: null, badge: null,   stripe: '#c4876a', tipo: 'serum',    code: 'D-PSER-20',  image_url: null },
-  { id: 'evenglow-serum',    slug: 'd-evenglow-serum',    name: 'D-EVENGLOW Serum',     vol: '20 ml',  price: 0,   was: null, badge: 'new',  stripe: '#d49070', tipo: 'serum',    code: 'D-EVG-20',   image_url: null },
-  { id: 'rescue-serum',      slug: 'd-rescue-serum',      name: 'D-RESCUE Serum',       vol: '20 ml',  price: 0,   was: null, badge: null,   stripe: '#c4876a', tipo: 'serum',    code: 'D-RES-20',   image_url: null },
-  { id: 'aox-oil',           slug: 'd-aox-oil',           name: 'D-AOX Oil',            vol: '20 ml',  price: 0,   was: null, badge: 'lim',  stripe: '#2c472f', tipo: 'aceite',   code: 'D-AOX-20',   image_url: null },
+  { id: 'longevity-mousse',  slug: 'd-longevity-mousse',  name: 'D-LONGEVITY Mousse',   vol: '150 ml', price: 0,   was: null, badge: null,   stripe: '#83a886', tipo: 'limpiador', code: 'D-LON-150',  image_url: null, stock: 1 },
+  { id: 'purifying-mousse',  slug: 'd-purifying-mousse',  name: 'D-PURIFYING Mousse',   vol: '150 ml', price: 0,   was: null, badge: null,   stripe: '#83a886', tipo: 'limpiador', code: 'D-PUR-150',  image_url: null, stock: 1 },
+  { id: 'senolytic-serum',   slug: 'd-senolytic-serum',   name: 'D-Senolytic Serum',    vol: '20 ml',  price: 0,   was: null, badge: 'best', stripe: '#c4876a', tipo: 'serum',    code: 'D-SEN-20',   image_url: null, stock: 1 },
+  { id: 'purifying-serum',   slug: 'd-purifying-serum',   name: 'D-Purifying Serum',    vol: '20 ml',  price: 0,   was: null, badge: null,   stripe: '#c4876a', tipo: 'serum',    code: 'D-PSER-20',  image_url: null, stock: 1 },
+  { id: 'evenglow-serum',    slug: 'd-evenglow-serum',    name: 'D-EVENGLOW Serum',     vol: '20 ml',  price: 0,   was: null, badge: 'new',  stripe: '#d49070', tipo: 'serum',    code: 'D-EVG-20',   image_url: null, stock: 1 },
+  { id: 'rescue-serum',      slug: 'd-rescue-serum',      name: 'D-RESCUE Serum',       vol: '20 ml',  price: 0,   was: null, badge: null,   stripe: '#c4876a', tipo: 'serum',    code: 'D-RES-20',   image_url: null, stock: 1 },
+  { id: 'aox-oil',           slug: 'd-aox-oil',           name: 'D-AOX Oil',            vol: '20 ml',  price: 0,   was: null, badge: 'lim',  stripe: '#2c472f', tipo: 'aceite',   code: 'D-AOX-20',   image_url: null, stock: 1 },
 ]
 
 type ShopProduct = {
@@ -43,6 +43,8 @@ type ShopProduct = {
   tipo: string
   code: string
   image_url: string | null
+  /** Unidades disponibles; 0 = agotado, no se puede comprar */
+  stock: number
 }
 
 const TIPO_LABELS: Record<string, string> = {
@@ -327,7 +329,7 @@ function ProductosTab() {
           .from('products')
           .select(`
             id, name, slug, volume_ml, image_url,
-            product_variants (price_cents, compare_at_cents, is_default, active)
+            product_variants (price_cents, compare_at_cents, is_default, active, stock_quantity)
           `)
           .eq('active', true)
           .in('category_id', catIds)
@@ -345,7 +347,7 @@ function ProductosTab() {
           slug: string
           volume_ml: number | null
           image_url: string | null
-          product_variants: Array<{ price_cents: number; compare_at_cents: number | null; is_default: boolean; active: boolean }>
+          product_variants: Array<{ price_cents: number; compare_at_cents: number | null; is_default: boolean; active: boolean; stock_quantity: number }>
         }>).map((p) => {
           const defaultVariant = p.product_variants?.find((v) => v.is_default && v.active)
             ?? p.product_variants?.find((v) => v.active)
@@ -366,6 +368,7 @@ function ProductosTab() {
             tipo,
             code: p.slug.toUpperCase().slice(0, 10),
             image_url: p.image_url ?? null,
+            stock: defaultVariant?.stock_quantity ?? 0,
           }
         })
 
@@ -505,11 +508,15 @@ function ProductosTab() {
                 className="relative overflow-hidden flex items-center justify-center transition-colors duration-300 group-hover/card:bg-cream-300 rounded-t-3xl"
                 style={{ aspectRatio: '1/1', background: '#ede9e0' }}
               >
-                {p.badge && (
+                {p.stock === 0 ? (
+                  <span className="absolute top-[14px] left-[14px] z-[2] px-[11px] py-[5px] rounded-full text-[10px] tracking-[0.12em] uppercase font-semibold bg-carbon-900 text-cream-100">
+                    Agotado
+                  </span>
+                ) : p.badge ? (
                   <span className={`absolute top-[14px] left-[14px] z-[2] px-[11px] py-[5px] rounded-full text-[10px] tracking-[0.12em] uppercase font-semibold ${BADGE_CLASSES[p.badge]}`}>
                     {BADGE_LABELS[p.badge]}
                   </span>
-                )}
+                ) : null}
                 <Link href={`/shop/${p.slug}`} aria-label={`Ver ${p.name}`} className="group-hover/card:-translate-y-1.5 transition-transform duration-500 will-change-transform w-full h-full absolute inset-0 flex items-center justify-center" style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}>
                   {p.image_url ? (
                     <Image
@@ -523,6 +530,7 @@ function ProductosTab() {
                     <PackSVG id={p.id} vol={p.vol} stripe={p.stripe} name={p.name} code={p.code} />
                   )}
                 </Link>
+                {p.stock > 0 && (
                 <button
                   onClick={(e) => {
                     e.preventDefault()
@@ -536,6 +544,7 @@ function ProductosTab() {
                   </svg>
                   Añadir al carrito
                 </button>
+                )}
               </div>
               <div className="pt-4 pb-4 px-6 flex flex-col gap-1">
                 <span className="text-[10px] tracking-[0.18em] uppercase text-carbon-400 font-medium">
@@ -552,7 +561,9 @@ function ProductosTab() {
                     {p.price > 0 ? `${priceFmt(p.price)} €` : 'Consultar precio'}
                     {p.was && p.price > 0 && <span className="font-sans text-[12px] text-carbon-400 line-through ml-1.5">{priceFmt(p.was)} €</span>}
                   </span>
-                  <span className="text-[11px] text-carbon-400 tracking-[0.04em]">{p.vol}</span>
+                  <span className="text-[11px] text-carbon-400 tracking-[0.04em]">
+                    {p.stock === 0 ? 'Sin stock' : p.vol}
+                  </span>
                 </div>
               </div>
             </motion.article>

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Clock, Sparkles } from 'lucide-react'
-import { RITUALES, SELLO_DALLO, ritualBookingLabel } from '@/content'
+import { RITUALES_VISIBLES, SELLO_DALLO, ritualBookingLabel } from '@/content'
 import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations'
 import { useScrollAnimation } from '@/lib/useScrollAnimation'
 import { useCart } from '@/lib/cartContext'
@@ -28,7 +28,7 @@ export default function Rituales() {
     const hash = window.location.hash
     if (!hash.startsWith('#ritual-')) return
     const id = hash.replace('#ritual-', '')
-    if (!RITUALES.some((r) => r.id === id)) return
+    if (!RITUALES_VISIBLES.some((r) => r.id === id)) return
     setOpenId(id)
     setTimeout(() => {
       document.getElementById(`ritual-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -76,7 +76,7 @@ export default function Rituales() {
           animate={isInView ? 'visible' : 'hidden'}
           className="grid sm:grid-cols-2 gap-6 mb-12"
         >
-          {RITUALES.map((ritual) => {
+          {RITUALES_VISIBLES.map((ritual) => {
             const isOpen = openId === ritual.id
             return (
               <motion.div

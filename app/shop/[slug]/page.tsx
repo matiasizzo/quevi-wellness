@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import PackSVG from '@/components/PackSVG'
 import { supabase } from '@/lib/supabase'
 import { useCart } from '@/lib/cartContext'
-import { PRODUCT_RITUAL } from '@/content'
+import { PRODUCT_RITUAL, isRitualVisible } from '@/content'
 
 type ProductDetail = {
   id: string
@@ -29,6 +29,8 @@ type ProductDetail = {
   image_url: string | null
   price: number
   was: number | null
+  /** Unidades disponibles de la variante; 0 = agotado */
+  stock: number
 }
 
 const STRIPE_BY_SLUG = (slug: string) =>
@@ -56,7 +58,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           .from('products')
           .select(`
             *,
-            product_variants (name, price_cents, compare_at_cents, is_default, active)
+            product_variants (name, price_cents, compare_at_cents, is_default, active, stock_quantity)
           `)
           .eq('slug', slug)
           .eq('active', true)
@@ -88,6 +90,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
           image_url: p.image_url,
           price: variant ? variant.price_cents / 100 : 0,
           was: variant?.compare_at_cents ? variant.compare_at_cents / 100 : null,
+          stock: variant?.stock_quantity ?? 0,
         })
       } finally {
         setLoading(false)
@@ -215,6 +218,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
               {/* Add to cart */}
               <div className="flex gap-3 items-stretch pt-2">
+                {product.stock > 0 && (
                 <div className="inline-flex items-center rounded-full border border-cream-500 overflow-hidden">
                   <button
                     onClick={() => setQty(Math.max(1, qty - 1))}
@@ -232,36 +236,46 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                     +
                   </button>
                 </div>
-                <button
-                  onClick={() => {
-                    for (let i = 0; i < qty; i++) {
-                      addItem({
-                        id: product.id,
-                        slug: product.slug,
-                        name: product.name,
-                        price: product.price,
-                        vol,
-                        image_url: product.image_url,
-                        stripe,
-                      })
-                    }
-                  }}
-                  className="flex-1 inline-flex items-center justify-center gap-2 py-4 rounded-full bg-brand-600 text-cream-50 font-medium text-[14px] tracking-[0.02em] transition-all hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.98]"
-                  style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
-                >
-                  Añadir al carrito
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" />
-                  </svg>
-                </button>
+                )}
+                {product.stock > 0 ? (
+                  <button
+                    onClick={() => {
+                      for (let i = 0; i < qty; i++) {
+                        addItem({
+                          id: product.id,
+                          slug: product.slug,
+                          name: product.name,
+                          price: product.price,
+                          vol,
+                          image_url: product.image_url,
+                          stripe,
+                        })
+                      }
+                    }}
+                    className="flex-1 inline-flex items-center justify-center gap-2 py-4 rounded-full bg-brand-600 text-cream-50 font-medium text-[14px] tracking-[0.02em] transition-all hover:bg-brand-700 hover:-translate-y-0.5 active:scale-[0.98]"
+                    style={{ transitionTimingFunction: 'cubic-bezier(0.22,1,0.36,1)' }}
+                  >
+                    Añadir al carrito
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 7h12l-1 13H7L6 7z" /><path d="M9 7a3 3 0 0 1 6 0" />
+                    </svg>
+                  </button>
+                ) : (
+                  <div className="flex-1 inline-flex flex-col items-center justify-center gap-0.5 py-3 rounded-full bg-cream-300 border border-cream-400 text-carbon-500">
+                    <span className="font-medium text-[14px] tracking-[0.02em]">Agotado</span>
+                    <span className="text-[11px]">Escríbenos y te avisamos cuando vuelva</span>
+                  </div>
+                )}
               </div>
 
               <p className="text-[12px] text-carbon-400 m-0">
                 Envío gratuito a partir de 50 € · Devoluciones en 14 días (producto precintado)
               </p>
 
-              {/* Ritual en el que se recomienda este producto */}
-              {PRODUCT_RITUAL[product.slug] && (
+              {/* Ritual en el que se recomienda este producto. Si el ritual está
+                  descatalogado no se enlaza: llevaría a una sección que ya no
+                  existe en /rituales. */}
+              {PRODUCT_RITUAL[product.slug] && isRitualVisible(PRODUCT_RITUAL[product.slug].ritualId) && (
                 <Link
                   href={`/rituales#ritual-${PRODUCT_RITUAL[product.slug].ritualId}`}
                   className="group flex items-center justify-between gap-4 p-4 rounded-2xl border border-brand-300 bg-brand-100/60 transition-all duration-200 hover:border-brand-600 hover:bg-brand-100"
