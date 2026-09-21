@@ -33,8 +33,11 @@ type ProductDetail = {
   stock: number
 }
 
+// Mismo criterio que la tienda: la bruma tiene color propio y no se confunde
+// con los aceites por el "oil-in-mist" del nombre
 const STRIPE_BY_SLUG = (slug: string) =>
-  slug.includes('mousse') || slug.includes('limpi') ? '#83a886'
+  slug.includes('hydrapeptide') || slug.includes('bruma') || slug.includes('mist') ? '#d49070'
+    : slug.includes('mousse') || slug.includes('limpi') ? '#83a886'
     : slug.includes('oil') || slug.includes('aceite') ? '#2c472f'
     : '#c4876a'
 

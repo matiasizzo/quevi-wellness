@@ -48,9 +48,23 @@ type ShopProduct = {
 }
 
 const TIPO_LABELS: Record<string, string> = {
-  serum: 'Sérum', limpiador: 'Limpiador', aceite: 'Aceite',
+  serum: 'Sérum', limpiador: 'Limpiador', aceite: 'Aceite', bruma: 'Bruma',
   crema: 'Crema', protector: 'Protector solar', tonico: 'Tónico',
   ampollas: 'Ampollas', balsamo: 'Bálsamo',
+}
+
+/**
+ * Familia a la que pertenece cada producto, deducida del slug. Es lo que
+ * agrupa los filtros de la tienda. La bruma va primero: es su propia sección
+ * y no debe caer en sérums ni en aceites por llevar "oil-in-mist" en el
+ * nombre.
+ */
+function tipoFromSlug(slug: string): string {
+  const s = slug.toLowerCase()
+  if (s.includes('hydrapeptide') || s.includes('bruma') || s.includes('mist')) return 'bruma'
+  if (s.includes('mousse') || s.includes('limpi')) return 'limpiador'
+  if (s.includes('oil') || s.includes('aceite') || s.includes('relief')) return 'aceite'
+  return 'serum'
 }
 
 const BADGE_LABELS: Record<string, string> = {
@@ -64,6 +78,7 @@ const BADGE_CLASSES: Record<string, string> = {
 
 const STRIPE_BY_TIPO: Record<string, string> = {
   limpiador: '#83a886',
+  bruma: '#d49070',
   serum: '#c4876a',
   aceite: '#2c472f',
   crema: '#d49070',
@@ -353,9 +368,7 @@ function ProductosTab() {
             ?? p.product_variants?.find((v) => v.active)
           const price = defaultVariant ? defaultVariant.price_cents / 100 : 0
           const was = defaultVariant?.compare_at_cents ? defaultVariant.compare_at_cents / 100 : null
-          const tipo = p.slug.includes('mousse') || p.slug.includes('limpi') ? 'limpiador'
-            : p.slug.includes('oil') || p.slug.includes('aceite') || p.slug.includes('relief') ? 'aceite'
-            : 'serum'
+          const tipo = tipoFromSlug(p.slug)
           return {
             id: p.id,
             slug: p.slug,
@@ -422,8 +435,11 @@ function ProductosTab() {
               { filter: '', label: 'Todos' },
               { filter: 'limpiador', label: 'Limpiadores', dot: '#83a886' },
               { filter: 'serum',     label: 'Sérums',      dot: '#c4876a' },
+              { filter: 'bruma',     label: 'Brumas',      dot: '#d49070' },
               { filter: 'aceite',    label: 'Aceites',     dot: '#2c472f' },
-            ].map((chip) => {
+            // Una familia sin productos no pinta nada en la barra de filtros
+            ].filter((chip) => !chip.filter || products.some((p) => p.tipo === chip.filter))
+             .map((chip) => {
               const isOn = activeFormat === chip.filter
               return (
                 <button
