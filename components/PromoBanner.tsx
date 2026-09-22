@@ -39,8 +39,13 @@ const PROMO = {
     'Ácido hialurónico + PDRN, con la valoración médica incluida. ' +
     'Del 21 de septiembre al 21 de octubre.',
 
-  /** Precio de la oferta. En null, el banner no enseña ningún precio. */
+  /**
+   * Precio de la oferta y precio de lista que se tacha. El de lista tiene que
+   * ser el que publica la web (Remodelación de Labios — Dalló Lips, en
+   * content.ts): si no coinciden, la rebaja deja de ser cierta.
+   */
   price: '296 €' as string | null,
+  priceBefore: '350 €' as string | null,
 
   /** Cupón, si lo hay. En null, el banner no enseña ningún código. */
   code: null as string | null,
@@ -271,7 +276,14 @@ export default function PromoBanner() {
                 </h2>
                 <p className="text-[14px] leading-relaxed text-carbon-500 m-0">{PROMO.body}</p>
                 {PROMO.price && (
-                  <p className="font-serif text-[40px] leading-none text-brand-700 m-0">{PROMO.price}</p>
+                  <p className="flex items-baseline gap-3 m-0">
+                    <span className="font-serif text-[40px] leading-none text-brand-700">{PROMO.price}</span>
+                    {PROMO.priceBefore && (
+                      <span className="font-sans text-[18px] text-carbon-400 line-through decoration-carbon-300">
+                        {PROMO.priceBefore}
+                      </span>
+                    )}
+                  </p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 mt-2">
                   {cta}
@@ -317,7 +329,14 @@ export default function PromoBanner() {
                     {PROMO.title}
                   </h2>
                   {PROMO.price && (
-                    <p className="font-serif text-[20px] leading-none text-brand-700 m-0 mt-1">{PROMO.price}</p>
+                    <p className="flex items-baseline gap-2 m-0 mt-1">
+                      <span className="font-serif text-[20px] leading-none text-brand-700">{PROMO.price}</span>
+                      {PROMO.priceBefore && (
+                        <span className="font-sans text-[13px] text-carbon-400 line-through decoration-carbon-300">
+                          {PROMO.priceBefore}
+                        </span>
+                      )}
+                    </p>
                   )}
                 </div>
               </div>
