@@ -6,6 +6,7 @@ import CookieBanner from '@/components/CookieBanner'
 import ClarityAnalytics from '@/components/ClarityAnalytics'
 import GoogleTags from '@/components/GoogleTags'
 import TrackingProvider from '@/components/TrackingProvider'
+import PromoBanner from '@/components/PromoBanner'
 import WhatsAppButton from '@/components/WhatsAppButton'
 import './globals.css'
 
@@ -153,6 +154,7 @@ export default function RootLayout({
           <CookieBanner />
           <ClarityAnalytics />
           <TrackingProvider />
+          <PromoBanner />
           <WhatsAppButton />
         </CartProvider>
       </body>
