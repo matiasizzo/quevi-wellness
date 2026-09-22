@@ -48,13 +48,25 @@ const PROMO = {
   /** Letra pequeña obligatoria en publicidad sanitaria. */
   note: 'Tratamiento sujeto a valoración médica · Nº NICA 70353' as string | null,
 
-  cta: { label: 'Reservar mi cita', href: '/#reservar' },
+  /**
+   * El botón. Con `whatsapp` abre el chat con el mensaje ya escrito, que es lo
+   * que permite al comercial saber de dónde viene cada contacto; con `href`
+   * lleva a una página de la web.
+   */
+  cta: {
+    label: 'Escríbenos por WhatsApp',
+    whatsapp: 'Hola, vengo de la web por la promoción Dalló Lips (296 €). Me gustaría pedir cita.',
+    href: null as string | null,
+  },
 
   image: {
     src: '/images/promo/dallo-lips.jpg',
     alt: 'Resultado de un tratamiento Dalló Lips en QUEVI Wellness Clinic',
   },
 }
+
+// Mismo número que el botón flotante y la landing de campaña
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '34683462705'
 
 /** Páginas donde el banner nunca aparece: son las que tienen que convertir. */
 const NO_PROMO_PATHS = ['/cita', '/en', '/checkout', '/admin', '/chequeo']
@@ -181,16 +193,37 @@ export default function PromoBanner() {
     </button>
   )
 
-  const cta = (
-    <Link
-      href={PROMO.cta.href}
+  const botonCls =
+    'inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-600 ' +
+    'text-cream-50 text-[14px] font-medium hover:bg-brand-700 transition-colors whitespace-nowrap'
+
+  const flecha = (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+    </svg>
+  )
+
+  const cta = PROMO.cta.whatsapp ? (
+    <a
+      href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(PROMO.cta.whatsapp)}`}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={close}
-      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-brand-600 text-cream-50 text-[14px] font-medium hover:bg-brand-700 transition-colors whitespace-nowrap"
+      // El medidor global de la web ya cuenta los clics a WhatsApp; esto solo
+      // le dice de dónde sale, para poder separar esta promo del resto de
+      // salidas en Analytics. Medirlo aquí también duplicaría la conversión.
+      data-track-context="promo-dallo-lips"
+      className={botonCls}
     >
-      {PROMO.cta.label}
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12.004 2.003c-5.514 0-9.997 4.483-9.997 9.997 0 1.763.463 3.483 1.343 4.997L2 22l5.116-1.341a9.955 9.955 0 0 0 4.888 1.342h.004c5.514 0 9.997-4.483 9.997-9.997a9.928 9.928 0 0 0-2.929-7.07 9.928 9.928 0 0 0-7.072-2.931Zm5.468 12.379c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.226 1.36.194 1.873.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347Z" />
       </svg>
+      {PROMO.cta.label}
+    </a>
+  ) : (
+    <Link href={PROMO.cta.href ?? '/'} onClick={close} className={botonCls}>
+      {PROMO.cta.label}
+      {flecha}
     </Link>
   )
 

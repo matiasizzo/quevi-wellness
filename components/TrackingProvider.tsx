@@ -65,10 +65,13 @@ export default function TrackingProvider() {
       const link = target?.closest?.('a')
       if (!link) return
       const href = link.getAttribute('href') ?? ''
+      // Un enlace puede decir de dónde sale (data-track-context). Si no lo
+      // dice, nos quedamos con la página, como hasta ahora.
+      const context = link.getAttribute('data-track-context') ?? window.location.pathname
       if (href.startsWith('tel:')) {
-        trackPhoneClick(window.location.pathname)
+        trackPhoneClick(context)
       } else if (href.includes('wa.me') || href.includes('api.whatsapp.com')) {
-        trackWhatsAppClick(window.location.pathname)
+        trackWhatsAppClick(context)
       }
     }
 
