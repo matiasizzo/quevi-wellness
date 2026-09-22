@@ -25,32 +25,35 @@ import { isPaidTraffic } from '@/lib/attribution'
  * vuelva a mostrarse a quien ya había cerrado la anterior.
  */
 const PROMO = {
-  /**
-   * PENDIENTE: ponlo a true cuando estén confirmados el texto, el precio y la
-   * vigencia de abajo. Mientras sea false, el banner no existe para nadie.
-   */
-  enabled: false,
+  /** A false, el banner no existe para nadie. */
+  enabled: true,
 
-  key: 'quevi-promo-labios-2026',
+  key: 'quevi-promo-dallo-lips-2026',
 
   /** Último día en el que se muestra (incluido), en horario local. */
-  until: '2026-12-31',
+  until: '2026-10-21',
 
-  eyebrow: 'Armonía labial',
-  title: 'Tus labios, con criterio médico',
+  eyebrow: 'Oferta Dalló Lips',
+  title: 'Labios con proporción, hidratación y luz',
   body:
-    'Valoración médica personalizada para definir el perfil, la hidratación y la ' +
-    'proporción de tus labios. Sin compromiso y con plan de tratamiento por escrito.',
+    'Ácido hialurónico + PDRN, con la valoración médica incluida. ' +
+    'Del 21 de septiembre al 21 de octubre.',
 
-  /** Texto del precio. Déjalo en null si la promo no lleva precio público. */
-  price: null as string | null,
+  /** Precio de la oferta. En null, el banner no enseña ningún precio. */
+  price: '296 €' as string | null,
 
   /** Cupón, si lo hay. En null, el banner no enseña ningún código. */
   code: null as string | null,
 
-  cta: { label: 'Pedir mi valoración', href: '/#reservar' },
+  /** Letra pequeña obligatoria en publicidad sanitaria. */
+  note: 'Tratamiento sujeto a valoración médica · Nº NICA 70353' as string | null,
 
-  image: { src: '/images/tratamientos/lips.jpg', alt: 'Tratamiento de labios en QUEVI Wellness Clinic' },
+  cta: { label: 'Reservar mi cita', href: '/#reservar' },
+
+  image: {
+    src: '/images/promo/dallo-lips.jpg',
+    alt: 'Resultado de un tratamiento Dalló Lips en QUEVI Wellness Clinic',
+  },
 }
 
 /** Páginas donde el banner nunca aparece: son las que tienen que convertir. */
@@ -235,12 +238,15 @@ export default function PromoBanner() {
                 </h2>
                 <p className="text-[14px] leading-relaxed text-carbon-500 m-0">{PROMO.body}</p>
                 {PROMO.price && (
-                  <p className="font-serif text-[22px] text-brand-700 m-0">{PROMO.price}</p>
+                  <p className="font-serif text-[40px] leading-none text-brand-700 m-0">{PROMO.price}</p>
                 )}
                 <div className="flex flex-wrap items-center gap-3 mt-2">
                   {cta}
                   {codigo}
                 </div>
+                {PROMO.note && (
+                  <p className="text-[11px] leading-relaxed text-carbon-400 m-0 mt-1">{PROMO.note}</p>
+                )}
               </div>
               <div className="relative bg-cream-300 min-h-[320px]">
                 <Image
@@ -277,13 +283,19 @@ export default function PromoBanner() {
                   <h2 id="promo-title" className="font-serif text-[17px] leading-tight text-carbon-900 m-0 mt-0.5">
                     {PROMO.title}
                   </h2>
-                  {PROMO.price && <p className="text-[13px] text-brand-700 m-0 mt-0.5">{PROMO.price}</p>}
+                  {PROMO.price && (
+                    <p className="font-serif text-[20px] leading-none text-brand-700 m-0 mt-1">{PROMO.price}</p>
+                  )}
                 </div>
               </div>
+              <p className="text-[12px] leading-snug text-carbon-500 m-0 mt-2">{PROMO.body}</p>
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 {cta}
                 {codigo}
               </div>
+              {PROMO.note && (
+                <p className="text-[10px] leading-snug text-carbon-400 m-0 mt-2">{PROMO.note}</p>
+              )}
             </div>
           </motion.div>
         )
