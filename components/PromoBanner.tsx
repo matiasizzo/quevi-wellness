@@ -60,8 +60,8 @@ const PROMO = {
   },
 
   image: {
-    src: '/images/promo/dallo-lips.jpg',
-    alt: 'Resultado de un tratamiento Dalló Lips en QUEVI Wellness Clinic',
+    src: '/images/tratamientos/lips.jpg',
+    alt: 'Tratamiento de labios Dalló Lips en QUEVI Wellness Clinic',
   },
 }
 
