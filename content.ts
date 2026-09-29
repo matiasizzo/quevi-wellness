@@ -12,6 +12,11 @@ export const SITE = {
   phone: '+34 683 462 705',
   email: 'info@queviwellnessclinic.es',
   address: 'Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga',
+  /**
+   * Número de Identificación de Centro de Andalucía: el registro sanitario que
+   * autoriza a la clínica. La publicidad sanitaria tiene que mostrarlo.
+   */
+  nica: '70353',
   bookingUrl: '#booking',
   url: 'https://queviwellnessclinic.es',
 }

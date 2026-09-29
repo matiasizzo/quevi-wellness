@@ -116,6 +116,17 @@ export default function Footer() {
               </li>
               <li className="leading-[1.6]">{SITE.address}</li>
               <li>Lun – Vie · 09:00 – 20:00</li>
+              <li className="pt-1">
+                <span
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px]"
+                  style={{ background: 'rgba(245,242,236,0.08)', color: 'rgba(245,242,236,0.85)' }}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 3 4 6v6c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V6l-8-3Z" /><path d="M9 12l2 2 4-4" />
+                  </svg>
+                  Centro sanitario autorizado · NICA {SITE.nica}
+                </span>
+              </li>
             </ul>
           </div>
         </div>
@@ -142,7 +153,7 @@ export default function Footer() {
         >
           <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
             <span className="text-[11px] tracking-[0.02em]" style={{ color: 'rgba(245,242,236,0.55)' }}>
-              © 2026 QUEVI WELLNESS CLINIC SL · NIF B88657044
+              © 2026 QUEVI WELLNESS CLINIC SL · NIF B88657044 · NICA {SITE.nica}
             </span>
             <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
               {[

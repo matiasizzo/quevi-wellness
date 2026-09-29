@@ -10,10 +10,16 @@ import {
   type Field,
   type FormKey,
 } from '@/lib/questionnaires'
+import { LANGS, isLang, tr, ui, type Lang } from '@/lib/questionnaires.en'
 
 // Formulario público de los cuestionarios de salud (piel y tricología).
 // Se usa igual desde el móvil de la paciente en su casa que desde la tablet de
 // la clínica: por pasos, con botones grandes y firma con el dedo.
+//
+// Se puede rellenar en castellano o en inglés (conmutador arriba, o el enlace
+// con ?lang=en). El idioma solo cambia lo que se lee: las respuestas se guardan
+// siempre con el texto en castellano, para que el panel y los avisos médicos
+// funcionen igual.
 
 type Value = string | string[] | Record<string, string>
 type Answers = Record<string, Value>
@@ -73,16 +79,18 @@ function FieldInput({
   value,
   onChange,
   error,
+  lang,
 }: {
   field: Field
   value: Value | undefined
   onChange: (v: Value) => void
   error?: string
+  lang: Lang
 }) {
   return (
     <div className="space-y-2">
-      <label className="block text-[15px] font-medium text-carbon-900 leading-snug">{field.label}</label>
-      {field.help && <p className="text-[13px] text-carbon-400 leading-relaxed m-0">{field.help}</p>}
+      <label className="block text-[15px] font-medium text-carbon-900 leading-snug">{tr(field.label, lang)}</label>
+      {field.help && <p className="text-[13px] text-carbon-400 leading-relaxed m-0">{tr(field.help, lang)}</p>}
 
       {(field.type === 'text' || field.type === 'number') && (
         <input
@@ -91,7 +99,7 @@ function FieldInput({
           autoComplete={field.id === 'email' ? 'email' : field.id === 'nombre' ? 'name' : field.id === 'telefono' ? 'tel' : 'off'}
           value={typeof value === 'string' ? value : ''}
           onChange={e => onChange(e.target.value)}
-          placeholder={field.placeholder}
+          placeholder={field.placeholder && tr(field.placeholder, lang)}
           className={inputCls}
         />
       )}
@@ -108,7 +116,7 @@ function FieldInput({
       {field.type === 'radio' && (
         <div className="grid gap-2">
           {field.options.map(opt => (
-            <Choice key={opt} label={opt} selected={value === opt} onClick={() => onChange(value === opt ? '' : opt)} />
+            <Choice key={opt} label={tr(opt, lang)} selected={value === opt} onClick={() => onChange(value === opt ? '' : opt)} />
           ))}
         </div>
       )}
@@ -121,7 +129,7 @@ function FieldInput({
             return (
               <Choice
                 key={opt}
-                label={opt}
+                label={tr(opt, lang)}
                 multiple
                 selected={selected}
                 onClick={() => onChange(selected ? list.filter(v => v !== opt) : [...list, opt])}
@@ -144,7 +152,7 @@ function FieldInput({
                   : 'border-cream-400 bg-cream-50 text-carbon-700 hover:border-brand-300'
               }`}
             >
-              {opt}
+              {tr(opt, lang)}
             </button>
           ))}
         </div>
@@ -170,8 +178,8 @@ function FieldInput({
           </div>
           {(field.minLabel || field.maxLabel) && (
             <div className="flex justify-between text-[12px] text-carbon-400 mt-1.5">
-              <span>{field.minLabel}</span>
-              <span>{field.maxLabel}</span>
+              <span>{tr(field.minLabel, lang)}</span>
+              <span>{tr(field.maxLabel, lang)}</span>
             </div>
           )}
         </div>
@@ -185,10 +193,10 @@ function FieldInput({
               <div key={row.id}>
                 {field.groups?.[row.id] && (
                   <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 mt-4 mb-2 m-0">
-                    {field.groups[row.id]}
+                    {tr(field.groups[row.id], lang)}
                   </p>
                 )}
-                <p className="text-[14px] text-carbon-700 leading-snug mb-1.5 m-0">{row.label}</p>
+                <p className="text-[14px] text-carbon-700 leading-snug mb-1.5 m-0">{tr(row.label, lang)}</p>
                 <div className="flex flex-wrap gap-2">
                   {field.options.map(opt => (
                     <button
@@ -203,7 +211,7 @@ function FieldInput({
                           : 'border-cream-400 bg-cream-50 text-carbon-700 hover:border-brand-300'
                       }`}
                     >
-                      {opt}
+                      {tr(opt, lang)}
                     </button>
                   ))}
                 </div>
@@ -219,7 +227,7 @@ function FieldInput({
 }
 
 // ── Firma con el dedo ────────────────────────────────────────────────────────
-function SignaturePad({ onChange }: { onChange: (dataUrl: string) => void }) {
+function SignaturePad({ onChange, lang }: { onChange: (dataUrl: string) => void; lang: Lang }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawing = useRef(false)
   const [hasInk, setHasInk] = useState(false)
@@ -292,9 +300,9 @@ function SignaturePad({ onChange }: { onChange: (dataUrl: string) => void }) {
         className="w-full h-40 rounded-xl border border-cream-400 bg-cream-50 touch-none cursor-crosshair"
       />
       <div className="flex items-center justify-between mt-2">
-        <p className="text-[13px] text-carbon-400 m-0">Firma con el dedo o con el ratón dentro del recuadro</p>
+        <p className="text-[13px] text-carbon-400 m-0">{ui(lang).signatureHint}</p>
         <button type="button" onClick={clear} className="text-[13px] text-carbon-500 underline underline-offset-2">
-          Borrar firma
+          {ui(lang).clearSignature}
         </button>
       </div>
     </div>
@@ -318,9 +326,27 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const [restored, setRestored] = useState(false)
+  const [lang, setLang] = useState<Lang>('es')
+  const t = ui(lang)
 
   const totalSteps = SECTIONS.length + 1 // + la declaración y la firma
   const isLast = step === totalSteps - 1
+
+  // El enlace puede llegar ya con el idioma: /chequeo-piel?lang=en
+  useEffect(() => {
+    const fromUrl = new URLSearchParams(window.location.search).get('lang')
+    if (isLang(fromUrl)) setLang(fromUrl)
+  }, [])
+
+  function changeLang(next: Lang) {
+    setLang(next)
+    setError('')
+    // Se refleja en la dirección para que, si se recarga, siga en el mismo idioma
+    const url = new URL(window.location.href)
+    if (next === 'es') url.searchParams.delete('lang')
+    else url.searchParams.set('lang', next)
+    window.history.replaceState(null, '', url)
+  }
 
   // Recupera lo escrito si se recarga la página o se cierra sin querer
   useEffect(() => {
@@ -354,13 +380,13 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
     if (step === 0) {
       const nombre = typeof answers.nombre === 'string' ? answers.nombre.trim() : ''
       const email = typeof answers.email === 'string' ? answers.email.trim() : ''
-      if (!nombre) return 'Necesitamos tu nombre para saber de quién es el cuestionario'
-      if (!isEmail(email)) return 'Escribe un correo electrónico válido'
+      if (!nombre) return t.errName
+      if (!isEmail(email)) return t.errEmail
     }
     if (isLast) {
-      if (!declaracion) return 'Confirma la declaración para poder enviar el cuestionario'
-      if (!consent) return 'Necesitamos tu autorización para tratar los datos de este cuestionario'
-      if (!signature) return 'Falta tu firma'
+      if (!declaracion) return t.errDeclaration
+      if (!consent) return t.errConsent
+      if (!signature) return t.errSignature
     }
     return ''
   }
@@ -387,11 +413,20 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
       const res = await fetch('/api/questionnaire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ form, answers, signature, consent, declaracion, optionalConsents }),
+        // __lang: en qué idioma lo leyó la paciente (las respuestas van en castellano)
+        body: JSON.stringify({
+          form,
+          answers: { ...answers, __lang: lang },
+          signature,
+          consent,
+          declaracion,
+          optionalConsents,
+        }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(json.error ?? 'No se pudo enviar el cuestionario. Inténtalo de nuevo.')
+        // Los errores del servidor vienen en castellano
+        setError(lang === 'es' && json.error ? json.error : t.errSend)
         return
       }
       try {
@@ -401,7 +436,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
       }
       setSent(true)
     } catch {
-      setError('No hay conexión. Comprueba la red e inténtalo otra vez.')
+      setError(t.errNetwork)
     } finally {
       setSending(false)
     }
@@ -409,17 +444,14 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
 
   if (sent) {
     return (
-      <div className="max-w-[560px] mx-auto px-5 py-24 text-center">
+      <div lang={lang} className="max-w-[560px] mx-auto px-5 py-24 text-center">
         <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 6 9 17l-5-5" />
           </svg>
         </div>
-        <h1 className="font-serif text-[28px] text-carbon-900 mb-3">Cuestionario recibido</h1>
-        <p className="text-[15px] text-carbon-500 leading-relaxed">
-          Gracias. Tu equipo médico lo revisará antes de tu cita. Si necesitamos aclarar algo, te lo
-          preguntaremos en la consulta.
-        </p>
+        <h1 className="font-serif text-[28px] text-carbon-900 mb-3">{t.sentTitle}</h1>
+        <p className="text-[15px] text-carbon-500 leading-relaxed">{t.sentBody}</p>
       </div>
     )
   }
@@ -428,12 +460,32 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
   const progreso = Math.round(((step + 1) / totalSteps) * 100)
 
   return (
-    <div className="max-w-[680px] mx-auto px-5 py-10 sm:py-14">
+    <div lang={lang} className="max-w-[680px] mx-auto px-5 py-10 sm:py-14">
+      {/* Idioma */}
+      <div className="flex justify-end mb-4">
+        <div role="group" aria-label={t.langLabel} className="inline-flex rounded-full border border-cream-400 bg-cream-50 p-0.5">
+          {LANGS.map(l => (
+            <button
+              key={l}
+              type="button"
+              lang={l}
+              onClick={() => changeLang(l)}
+              aria-pressed={lang === l}
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium tracking-[0.08em] transition-colors ${
+                lang === l ? 'bg-brand-600 text-cream-50' : 'text-carbon-500 hover:text-carbon-900'
+              }`}
+            >
+              {l === 'es' ? 'ES · Español' : 'EN · English'}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Cabecera */}
       <div className="text-center mb-8">
         <p className="text-[11px] tracking-[0.28em] uppercase text-carbon-400 mb-2">QUEVI Wellness Clinic</p>
         <h1 className="font-serif text-[26px] sm:text-[30px] text-carbon-900 leading-tight">
-          {config.title}
+          {tr(config.title, lang)}
         </h1>
       </div>
 
@@ -443,7 +495,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
           <div className="h-full bg-brand-600 transition-all duration-300" style={{ width: `${progreso}%` }} />
         </div>
         <p className="text-[12px] text-carbon-400 mt-2 text-center">
-          Paso {step + 1} de {totalSteps}
+          {t.step(step + 1, totalSteps)}
         </p>
       </div>
 
@@ -451,20 +503,20 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
         {section ? (
           <>
             <h2 className={`font-serif text-[21px] text-carbon-900 ${section.intro ? 'mb-1' : 'mb-6'}`}>
-              {section.title}
+              {tr(section.title, lang)}
             </h2>
             {section.intro && (
-              <p className="text-[14px] text-carbon-500 leading-relaxed mb-6">{section.intro}</p>
+              <p className="text-[14px] text-carbon-500 leading-relaxed mb-6">{tr(section.intro, lang)}</p>
             )}
             <div className="space-y-7">
               {section.fields.map(field => (
                 <div key={field.id}>
-                  <FieldInput field={field} value={answers[field.id]} onChange={v => setValue(field.id, v)} />
+                  <FieldInput field={field} value={answers[field.id]} onChange={v => setValue(field.id, v)} lang={lang} />
                   {/* Campo de detalle asociado a la respuesta */}
                   {field.type === 'yesno' && field.detail && answers[field.id] === (field.detailOn ?? 'Sí') && (
                     <input
                       type="text"
-                      placeholder={field.detail}
+                      placeholder={tr(field.detail, lang)}
                       value={typeof answers[`${field.id}_detalle`] === 'string' ? (answers[`${field.id}_detalle`] as string) : ''}
                       onChange={e => setValue(`${field.id}_detalle`, e.target.value)}
                       className={`${inputCls} mt-2`}
@@ -476,12 +528,12 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
           </>
         ) : (
           <>
-            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">Consentimiento, declaración y firma</h2>
+            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">{t.finalTitle}</h2>
 
             {/* Aviso clínico propio de cada cuestionario */}
             <div className="rounded-xl border border-terra-200 bg-terra-50 p-4 mb-5">
               <p className="text-[14px] text-terra-900 leading-relaxed m-0">
-                <strong>Importante:</strong> {config.aviso}
+                <strong>{t.important}</strong> {tr(config.aviso, lang)}
               </p>
             </div>
 
@@ -489,21 +541,21 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
             <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5 space-y-3">
               <div>
                 <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">
-                  Responsable del tratamiento
+                  {t.responsable}
                 </p>
-                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{RESPONSABLE}</p>
+                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{tr(RESPONSABLE, lang)}</p>
               </div>
               <div>
                 <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">
-                  Finalidad, base legal y conservación
+                  {t.finalidad}
                 </p>
-                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{FINALIDAD}</p>
+                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{tr(FINALIDAD, lang)}</p>
               </div>
             </div>
 
             <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5">
-              <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">Declaración</p>
-              <p className="text-[14px] text-carbon-700 leading-relaxed m-0">{config.declaracion}</p>
+              <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">{t.declaration}</p>
+              <p className="text-[14px] text-carbon-700 leading-relaxed m-0">{tr(config.declaracion, lang)}</p>
             </div>
 
             <div className="space-y-3 mb-6">
@@ -524,7 +576,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
                   )}
                 </span>
                 <span className="text-[14px] text-carbon-700 leading-relaxed">
-                  Confirmo la declaración anterior.
+                  {t.confirmDeclaration}
                 </span>
               </button>
 
@@ -545,7 +597,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
                   )}
                 </span>
                 <span className="text-[14px] text-carbon-700 leading-relaxed">
-                  {CONSENTIMIENTO} <span className="text-carbon-400">(obligatorio para continuar)</span>
+                  {tr(CONSENTIMIENTO, lang)} <span className="text-carbon-400">{t.requiredToContinue}</span>
                 </span>
               </button>
             </div>
@@ -553,11 +605,11 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
             {/* Autorizaciones opcionales: ninguna viene marcada por defecto */}
             <div className="space-y-4 mb-6">
               <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0">
-                Autorizaciones opcionales
+                {t.optionalConsents}
               </p>
               {CONSENTIMIENTOS_OPCIONALES.map(c => (
                 <div key={c.id}>
-                  <p className="text-[14px] text-carbon-700 leading-relaxed m-0 mb-2">{c.label}</p>
+                  <p className="text-[14px] text-carbon-700 leading-relaxed m-0 mb-2">{tr(c.label, lang)}</p>
                   <div className="flex gap-2">
                     {['Sí', 'No'].map(opt => (
                       <button
@@ -575,7 +627,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
                             : 'border-cream-400 bg-cream-50 text-carbon-700 hover:border-brand-300'
                         }`}
                       >
-                        {opt}
+                        {opt === 'Sí' ? t.yes : t.no}
                       </button>
                     ))}
                   </div>
@@ -583,8 +635,8 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
               ))}
             </div>
 
-            <p className="text-[13px] tracking-[0.1em] uppercase text-carbon-400 mb-2">Firma</p>
-            <SignaturePad onChange={setSignature} />
+            <p className="text-[13px] tracking-[0.1em] uppercase text-carbon-400 mb-2">{t.signature}</p>
+            <SignaturePad onChange={setSignature} lang={lang} />
           </>
         )}
 
@@ -602,7 +654,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
             disabled={step === 0}
             className="px-5 py-3 rounded-full border border-cream-400 text-[14px] text-carbon-500 hover:text-carbon-900 transition-colors disabled:opacity-40"
           >
-            Atrás
+            {t.back}
           </button>
 
           {isLast ? (
@@ -612,7 +664,7 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
               disabled={sending}
               className="px-7 py-3 rounded-full bg-brand-600 text-cream-50 text-[14px] font-medium hover:bg-brand-700 transition-colors disabled:opacity-50"
             >
-              {sending ? 'Enviando…' : 'Firmar y enviar'}
+              {sending ? t.sending : t.submit}
             </button>
           ) : (
             <button
@@ -620,15 +672,14 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
               onClick={next}
               className="px-7 py-3 rounded-full bg-brand-600 text-cream-50 text-[14px] font-medium hover:bg-brand-700 transition-colors"
             >
-              Continuar
+              {t.continue}
             </button>
           )}
         </div>
       </div>
 
       <p className="text-[12px] text-carbon-400 text-center mt-6 leading-relaxed">
-        Tus respuestas solo las ve el equipo médico de la clínica. Lo que escribes se conserva en este
-        dispositivo hasta que envías el cuestionario, por si se te cierra la página.
+        {t.footer}
       </p>
     </div>
   )

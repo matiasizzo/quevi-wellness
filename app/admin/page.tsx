@@ -444,7 +444,7 @@ function VentasTab({
       </div>
       <div class="foot">
         <p class="pi">${esc(o.stripe_payment_intent_id ?? '')}</p>
-        <p>QUEVI Wellness Clinic SL · NIF B88657044 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
+        <p>QUEVI Wellness Clinic SL · NIF B88657044 · NICA 70353 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
       </div>
       <script>window.onload = function () { setTimeout(function () { window.print() }, 400) }</script>
       </body></html>`
@@ -533,7 +533,7 @@ function VentasTab({
       ${s.notes ? `<p class="muted">${esc(s.notes)}</p>` : ''}
       <div class="foot">
         <p class="pi">${esc(s.id)}</p>
-        <p>QUEVI Wellness Clinic SL · NIF B88657044 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
+        <p>QUEVI Wellness Clinic SL · NIF B88657044 · NICA 70353 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
       </div>
       <script>window.onload = function () { setTimeout(function () { window.print() }, 400) }</script>
       </body></html>`
@@ -2069,6 +2069,14 @@ function CuestionariosTab({ pw }: { pw: string }) {
                     >
                       {FORMS[form].label}
                     </span>
+                    {r.answers?.__lang === 'en' && (
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] bg-zinc-500/20 text-zinc-200 border-zinc-500/40"
+                        title="Lo rellenó en inglés (las respuestas se guardan en castellano)"
+                      >
+                        EN
+                      </span>
+                    )}
                     <span className="text-zinc-300 text-[12px] flex-1 min-w-[180px]">{r.patient_email}</span>
                     <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(r.created_at)}</span>
                     {flags.length > 0 ? (
@@ -2127,6 +2135,9 @@ function CuestionariosTab({ pw }: { pw: string }) {
                       </div>
                       <div className="text-zinc-300">
                         Firmado: <span className="text-zinc-200">{r.signed_at ? fmtDate(r.signed_at) : '—'}</span>
+                      </div>
+                      <div className="text-zinc-300">
+                        Idioma: <span className="text-zinc-200">{r.answers?.__lang === 'en' ? 'inglés' : 'castellano'}</span>
                       </div>
                       <div className="text-zinc-300">
                         Datos de salud: <span className="text-zinc-200">{r.consent ? 'autorizado' : 'no'}</span>
@@ -2253,12 +2264,12 @@ function printQuestionnaire(q: Questionnaire) {
           ${q.signature ? `<img src="${q.signature}" alt="Firma" />` : ''}
           <div class="line">Firma de la paciente</div>
         </div>
-        <div class="line">Fecha: ${esc(q.signed_at ? fmtDate(q.signed_at) : fmtDate(q.created_at))}</div>
+        <div class="line">Fecha: ${esc(q.signed_at ? fmtDate(q.signed_at) : fmtDate(q.created_at))}${q.answers?.__lang === 'en' ? ' · Cumplimentado y firmado en inglés' : ''}</div>
       </div>
     </div>
     <div class="foot">
       <p class="hash">Huella del documento firmado (sha-256): ${esc(q.content_hash ?? '')}</p>
-      <p>QUEVI Wellness Clinic SL · NIF B88657044 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
+      <p>QUEVI Wellness Clinic SL · NIF B88657044 · NICA 70353 · Calle Gibraltar 2, Local Bajo, 29680 Estepona, Málaga · queviwellnessclinic.es</p>
     </div>
     </body></html>`
 

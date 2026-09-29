@@ -460,6 +460,9 @@ export default function LeadLanding({ copy }: { copy: LandingCopy }) {
 
       <footer className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-carbon-300">
         <span>© {new Date().getFullYear()} {SITE.name}</span>
+        <span>
+          {copy.locale === 'es' ? 'Centro sanitario autorizado' : 'Licensed healthcare centre'} · NICA {SITE.nica}
+        </span>
         <Link href="/aviso-legal" className="hover:text-carbon-500 transition-colors">Aviso legal</Link>
         <Link href="/privacidad" className="hover:text-carbon-500 transition-colors">Privacidad</Link>
         <Link href="/politica-cookies" className="hover:text-carbon-500 transition-colors">Cookies</Link>
