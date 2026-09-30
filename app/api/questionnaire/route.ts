@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHash } from 'crypto'
-import { isFormKey, CONSENTIMIENTOS_OPCIONALES } from '@/lib/questionnaires'
+import { isDocKey, CONSENTIMIENTOS_OPCIONALES } from '@/lib/questionnaires'
 
 export const dynamic = 'force-dynamic'
 
-// Guarda los cuestionarios de salud que rellena la paciente en /chequeo-piel y
-// /chequeo-capilar. Es un endpoint público (no hay login de paciente), así que
+// Guarda los documentos que firma la paciente: la protección de datos
+// (/proteccion-datos) y los cuestionarios de salud (/chequeo-piel y
+// /chequeo-capilar). Cada documento llega y se guarda por separado, con su
+// propia firma. Es un endpoint público (no hay login de paciente), así que
 // solo acepta lo que necesita y con límites de tamaño: nada de confiar en que
 // el cuerpo venga bien formado.
 
@@ -48,8 +50,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Petición inválida' }, { status: 400 })
   }
 
-  // Cuál de los dos cuestionarios es
-  const form = isFormKey(body.form) ? body.form : null
+  // Qué documento es: 'datos', 'piel' o 'capilar'
+  const form = isDocKey(body.form) ? body.form : null
   if (!form) {
     return NextResponse.json({ error: 'Cuestionario desconocido' }, { status: 400 })
   }
@@ -78,11 +80,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Falta la firma o no se pudo leer' }, { status: 400 })
   }
 
-  // El consentimiento para tratar datos de salud es obligatorio: sin él no hay
-  // base legal para guardar nada
-  if (body.consent !== true || body.declaracion !== true) {
-    return NextResponse.json({ error: 'Falta confirmar la declaración y la autorización' }, { status: 400 })
+  // La protección de datos exige la autorización para tratar datos de salud;
+  // un cuestionario, la declaración de que lo que cuenta es cierto. (Los
+  // cuestionarios firmados antes de separar los documentos traían las dos.)
+  if (form === 'datos' && body.consent !== true) {
+    return NextResponse.json({ error: 'Falta la autorización para tratar tus datos' }, { status: 400 })
   }
+  if (form !== 'datos' && body.declaracion !== true) {
+    return NextResponse.json({ error: 'Falta confirmar la declaración' }, { status: 400 })
+  }
+  const consent = body.consent === true
 
   // Las autorizaciones opcionales: lo que no venga marcado cuenta como No
   const rawOptional = (body.optionalConsents && typeof body.optionalConsents === 'object'
@@ -117,10 +124,12 @@ export async function POST(req: NextRequest) {
     answers,
     signature,
     signed_at: now,
-    consent: true,
-    consent_photos: optional.fotos ?? false,
-    consent_comms: optional.comunicaciones ?? false,
-    consent_promo: optional.promocion ?? false,
+    // En un cuestionario sin protección de datos incluida, esto queda en false:
+    // la autorización está en su propio documento
+    consent,
+    consent_photos: consent && (optional.fotos ?? false),
+    consent_comms: consent && (optional.comunicaciones ?? false),
+    consent_promo: consent && (optional.promocion ?? false),
     content_hash: contentHash,
     ip,
     user_agent: (req.headers.get('user-agent') ?? '').slice(0, 400) || null,

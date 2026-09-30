@@ -579,6 +579,19 @@ const EN: Record<string, string> = {
     "Not stressed at all",
   "Extremadamente estresada":
     "Extremely stressed",
+  // Protección de datos como documento aparte
+  "Protección de datos":
+    "Data protection",
+  "Protección de datos y consentimiento":
+    "Data protection and consent",
+  "Cuestionario de piel":
+    "Skin questionnaire",
+  "Cuestionario de tricología":
+    "Trichology questionnaire",
+  "Estos datos identifican a quién pertenece tu historia clínica. El nombre y el correo son obligatorios; el resto nos ayuda a tenerte bien identificada.":
+    "These details identify whose medical record this is. Your name and email are required; the rest helps us identify you correctly.",
+  "El tratamiento de tus datos se rige por el documento de protección de datos y consentimiento de QUEVI Wellness Clinic. Puedes ejercer tus derechos escribiendo a pacientes@queviwellnessclinic.es.":
+    "Your data is processed in accordance with the QUEVI Wellness Clinic data protection and consent document. You can exercise your rights by writing to pacientes@queviwellnessclinic.es.",
 }
 
 /** Traduce un texto del cuestionario al idioma elegido. */
@@ -617,11 +630,19 @@ const UI = {
     errName: 'Necesitamos tu nombre para saber de quién es el cuestionario',
     errEmail: 'Escribe un correo electrónico válido',
     errDeclaration: 'Confirma la declaración para poder enviar el cuestionario',
-    errConsent: 'Necesitamos tu autorización para tratar los datos de este cuestionario',
+    errConsent: 'Necesitamos tu autorización para tratar tus datos',
     errSignature: 'Falta tu firma',
     errSend: 'No se pudo enviar el cuestionario. Inténtalo de nuevo.',
     errNetwork: 'No hay conexión. Comprueba la red e inténtalo otra vez.',
     langLabel: 'Idioma',
+    finalTitleDatos: 'Consentimiento y firma',
+    finalTitleForm: 'Declaración y firma',
+    docStep: (n: number, total: number) => `Documento ${n} de ${total}`,
+    signedDatos: 'Protección de datos firmada. Ahora completa el cuestionario.',
+    fillingAs: (name: string) => `Rellenando como ${name}.`,
+    notYou: '¿No eres tú? Empezar de nuevo',
+    sentTitleDatos: 'Documento firmado',
+    sentBodyDatos: 'Gracias. Lo hemos guardado en tu historia clínica.',
   },
   en: {
     step: (n: number, total: number) => `Step ${n} of ${total}`,
@@ -650,11 +671,19 @@ const UI = {
     errName: 'We need your name to know who this questionnaire belongs to',
     errEmail: 'Please enter a valid email address',
     errDeclaration: 'Please confirm the declaration to submit the questionnaire',
-    errConsent: 'We need your authorisation to process the data in this questionnaire',
+    errConsent: 'We need your authorisation to process your data',
     errSignature: 'Your signature is missing',
     errSend: 'The questionnaire could not be sent. Please try again.',
     errNetwork: 'No connection. Check your network and try again.',
     langLabel: 'Language',
+    finalTitleDatos: 'Consent and signature',
+    finalTitleForm: 'Declaration and signature',
+    docStep: (n: number, total: number) => `Document ${n} of ${total}`,
+    signedDatos: 'Data protection signed. Now please complete the questionnaire.',
+    fillingAs: (name: string) => `Filling in as ${name}.`,
+    notYou: 'Not you? Start again',
+    sentTitleDatos: 'Document signed',
+    sentBodyDatos: 'Thank you. It has been saved to your medical record.',
   },
 }
 

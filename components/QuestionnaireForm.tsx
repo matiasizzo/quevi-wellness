@@ -2,19 +2,28 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  DOCS,
   FORMS,
+  IDENTITY_FIELDS,
   CONSENTIMIENTO,
   CONSENTIMIENTOS_OPCIONALES,
+  NOTA_PROTECCION_DATOS,
   RESPONSABLE,
   FINALIDAD,
+  isFormKey,
+  type DocKey,
   type Field,
-  type FormKey,
 } from '@/lib/questionnaires'
-import { LANGS, isLang, tr, ui, type Lang } from '@/lib/questionnaires.en'
+import { LANGS, tr, ui, type Lang } from '@/lib/questionnaires.en'
 
-// Formulario público de los cuestionarios de salud (piel y tricología).
-// Se usa igual desde el móvil de la paciente en su casa que desde la tablet de
-// la clínica: por pasos, con botones grandes y firma con el dedo.
+// Formulario público de los documentos que firma la paciente: la protección de
+// datos y los cuestionarios de salud (piel y tricología). Se usa igual desde el
+// móvil de la paciente en su casa que desde la tablet de la clínica: por pasos,
+// con botones grandes y firma con el dedo.
+//
+// Un enlace puede llevar varios documentos seguidos (primero la protección de
+// datos y después el cuestionario): cada uno se firma y se guarda por separado,
+// y los datos de la paciente no se vuelven a pedir en el segundo.
 //
 // Se puede rellenar en castellano o en inglés (conmutador arriba, o el enlace
 // con ?lang=en). El idioma solo cambia lo que se lee: las respuestas se guardan
@@ -24,7 +33,7 @@ import { LANGS, isLang, tr, ui, type Lang } from '@/lib/questionnaires.en'
 type Value = string | string[] | Record<string, string>
 type Answers = Record<string, Value>
 
-const storageKey = (form: FormKey) => `quevi-cuestionario-${form}`
+const storageKey = (doc: DocKey) => `quevi-cuestionario-${doc}`
 
 const inputCls =
   'w-full px-4 py-3 rounded-xl border border-cream-400 bg-cream-50 text-[15px] text-carbon-900 ' +
@@ -309,11 +318,44 @@ function SignaturePad({ onChange, lang }: { onChange: (dataUrl: string) => void;
   )
 }
 
-// ── Formulario ───────────────────────────────────────────────────────────────
-export default function QuestionnaireForm({ form }: { form: FormKey }) {
-  const config = FORMS[form]
-  const SECTIONS = config.sections
-  const STORAGE_KEY = storageKey(form)
+// ── Casilla de confirmación ──────────────────────────────────────────────────
+function Check({ checked, onClick, children }: { checked: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className="flex items-start gap-3 text-left w-full">
+      <span
+        className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center ${
+          checked ? 'border-brand-600 bg-brand-600 text-cream-50' : 'border-carbon-300 bg-white'
+        }`}
+      >
+        {checked && (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        )}
+      </span>
+      <span className="text-[14px] text-carbon-700 leading-relaxed">{children}</span>
+    </button>
+  )
+}
+
+// ── Un documento: sus pasos, su firma y su envío ─────────────────────────────
+function DocumentForm({
+  doc,
+  lang,
+  identity,
+  onSigned,
+}: {
+  doc: DocKey
+  lang: Lang
+  /** Datos de la paciente que ya dio en el documento anterior: no se vuelven a pedir */
+  identity: Answers | null
+  onSigned: (answers: Answers) => void
+}) {
+  const t = ui(lang)
+  const config = DOCS[doc]
+  const form = isFormKey(doc) ? FORMS[doc] : null
+  const SECTIONS = identity ? config.sections.filter(s => s.id !== 'datos') : config.sections
+  const STORAGE_KEY = storageKey(doc)
 
   const [step, setStep] = useState(0)
   const [answers, setAnswers] = useState<Answers>({})
@@ -323,30 +365,11 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
   // Los opcionales: ninguno viene marcado por defecto
   const [optionalConsents, setOptionalConsents] = useState<Record<string, string>>({})
   const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const [restored, setRestored] = useState(false)
-  const [lang, setLang] = useState<Lang>('es')
-  const t = ui(lang)
 
-  const totalSteps = SECTIONS.length + 1 // + la declaración y la firma
+  const totalSteps = SECTIONS.length + 1 // + la firma
   const isLast = step === totalSteps - 1
-
-  // El enlace puede llegar ya con el idioma: /chequeo-piel?lang=en
-  useEffect(() => {
-    const fromUrl = new URLSearchParams(window.location.search).get('lang')
-    if (isLang(fromUrl)) setLang(fromUrl)
-  }, [])
-
-  function changeLang(next: Lang) {
-    setLang(next)
-    setError('')
-    // Se refleja en la dirección para que, si se recarga, siga en el mismo idioma
-    const url = new URL(window.location.href)
-    if (next === 'es') url.searchParams.delete('lang')
-    else url.searchParams.set('lang', next)
-    window.history.replaceState(null, '', url)
-  }
 
   // Recupera lo escrito si se recarga la página o se cierra sin querer
   useEffect(() => {
@@ -372,20 +395,25 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [step])
 
+  // Al cambiar de idioma, el error que hubiera se queda en el idioma anterior
+  useEffect(() => setError(''), [lang])
+
   const setValue = useCallback((id: string, v: Value) => {
     setAnswers(prev => ({ ...prev, [id]: v }))
   }, [])
 
+  const section = step < SECTIONS.length ? SECTIONS[step] : null
+
   function validateStep(): string {
-    if (step === 0) {
+    if (section?.id === 'datos') {
       const nombre = typeof answers.nombre === 'string' ? answers.nombre.trim() : ''
       const email = typeof answers.email === 'string' ? answers.email.trim() : ''
       if (!nombre) return t.errName
       if (!isEmail(email)) return t.errEmail
     }
     if (isLast) {
-      if (!declaracion) return t.errDeclaration
-      if (!consent) return t.errConsent
+      if (form && !declaracion) return t.errDeclaration
+      if (!form && !consent) return t.errConsent
       if (!signature) return t.errSignature
     }
     return ''
@@ -409,18 +437,18 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
     }
     setError('')
     setSending(true)
+    // Los datos del documento anterior mandan: son los que ya firmó
+    const signedAnswers: Answers = identity ? { ...answers, ...identity } : answers
     try {
       const res = await fetch('/api/questionnaire', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // __lang: en qué idioma lo leyó la paciente (las respuestas van en castellano)
         body: JSON.stringify({
-          form,
-          answers: { ...answers, __lang: lang },
+          form: doc,
+          answers: { ...signedAnswers, __lang: lang },
           signature,
-          consent,
-          declaracion,
-          optionalConsents,
+          ...(form ? { declaracion } : { consent, optionalConsents }),
         }),
       })
       const json = await res.json().catch(() => ({}))
@@ -432,9 +460,9 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
       try {
         localStorage.removeItem(STORAGE_KEY)
       } catch {
-        // da igual: el cuestionario ya está guardado
+        // da igual: el documento ya está guardado
       }
-      setSent(true)
+      onSigned(signedAnswers)
     } catch {
       setError(t.errNetwork)
     } finally {
@@ -442,61 +470,16 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
     }
   }
 
-  if (sent) {
-    return (
-      <div lang={lang} className="max-w-[560px] mx-auto px-5 py-24 text-center">
-        <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
-        </div>
-        <h1 className="font-serif text-[28px] text-carbon-900 mb-3">{t.sentTitle}</h1>
-        <p className="text-[15px] text-carbon-500 leading-relaxed">{t.sentBody}</p>
-      </div>
-    )
-  }
-
-  const section = step < SECTIONS.length ? SECTIONS[step] : null
   const progreso = Math.round(((step + 1) / totalSteps) * 100)
 
   return (
-    <div lang={lang} className="max-w-[680px] mx-auto px-5 py-10 sm:py-14">
-      {/* Idioma */}
-      <div className="flex justify-end mb-4">
-        <div role="group" aria-label={t.langLabel} className="inline-flex rounded-full border border-cream-400 bg-cream-50 p-0.5">
-          {LANGS.map(l => (
-            <button
-              key={l}
-              type="button"
-              lang={l}
-              onClick={() => changeLang(l)}
-              aria-pressed={lang === l}
-              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium tracking-[0.08em] transition-colors ${
-                lang === l ? 'bg-brand-600 text-cream-50' : 'text-carbon-500 hover:text-carbon-900'
-              }`}
-            >
-              {l === 'es' ? 'ES · Español' : 'EN · English'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Cabecera */}
-      <div className="text-center mb-8">
-        <p className="text-[11px] tracking-[0.28em] uppercase text-carbon-400 mb-2">QUEVI Wellness Clinic</p>
-        <h1 className="font-serif text-[26px] sm:text-[30px] text-carbon-900 leading-tight">
-          {tr(config.title, lang)}
-        </h1>
-      </div>
-
-      {/* Progreso */}
+    <>
+      {/* Progreso dentro del documento */}
       <div className="mb-8">
         <div className="h-1.5 rounded-full bg-cream-300 overflow-hidden">
           <div className="h-full bg-brand-600 transition-all duration-300" style={{ width: `${progreso}%` }} />
         </div>
-        <p className="text-[12px] text-carbon-400 mt-2 text-center">
-          {t.step(step + 1, totalSteps)}
-        </p>
+        <p className="text-[12px] text-carbon-400 mt-2 text-center">{t.step(step + 1, totalSteps)}</p>
       </div>
 
       <div className="rounded-2xl border border-cream-400 bg-cream-100 p-5 sm:p-7">
@@ -526,87 +509,58 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
               ))}
             </div>
           </>
-        ) : (
+        ) : form ? (
+          // ── Cierre de un cuestionario: aviso, declaración y firma ──
           <>
-            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">{t.finalTitle}</h2>
+            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">{t.finalTitleForm}</h2>
 
-            {/* Aviso clínico propio de cada cuestionario */}
             <div className="rounded-xl border border-terra-200 bg-terra-50 p-4 mb-5">
               <p className="text-[14px] text-terra-900 leading-relaxed m-0">
-                <strong>{t.important}</strong> {tr(config.aviso, lang)}
+                <strong>{t.important}</strong> {tr(form.aviso, lang)}
               </p>
-            </div>
-
-            {/* Información de protección de datos */}
-            <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5 space-y-3">
-              <div>
-                <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">
-                  {t.responsable}
-                </p>
-                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{tr(RESPONSABLE, lang)}</p>
-              </div>
-              <div>
-                <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">
-                  {t.finalidad}
-                </p>
-                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{tr(FINALIDAD, lang)}</p>
-              </div>
             </div>
 
             <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5">
               <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">{t.declaration}</p>
-              <p className="text-[14px] text-carbon-700 leading-relaxed m-0">{tr(config.declaracion, lang)}</p>
+              <p className="text-[14px] text-carbon-700 leading-relaxed m-0">{tr(form.declaracion, lang)}</p>
             </div>
 
-            <div className="space-y-3 mb-6">
-              <button
-                type="button"
-                onClick={() => setDeclaracion(v => !v)}
-                className="flex items-start gap-3 text-left w-full"
-              >
-                <span
-                  className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center ${
-                    declaracion ? 'border-brand-600 bg-brand-600 text-cream-50' : 'border-carbon-300 bg-white'
-                  }`}
-                >
-                  {declaracion && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  )}
-                </span>
-                <span className="text-[14px] text-carbon-700 leading-relaxed">
-                  {t.confirmDeclaration}
-                </span>
-              </button>
+            <div className="mb-5">
+              <Check checked={declaracion} onClick={() => setDeclaracion(v => !v)}>
+                {t.confirmDeclaration}
+              </Check>
+            </div>
 
-              <button
-                type="button"
-                onClick={() => setConsent(v => !v)}
-                className="flex items-start gap-3 text-left w-full"
-              >
-                <span
-                  className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center ${
-                    consent ? 'border-brand-600 bg-brand-600 text-cream-50' : 'border-carbon-300 bg-white'
-                  }`}
-                >
-                  {consent && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  )}
-                </span>
-                <span className="text-[14px] text-carbon-700 leading-relaxed">
-                  {tr(CONSENTIMIENTO, lang)} <span className="text-carbon-400">{t.requiredToContinue}</span>
-                </span>
-              </button>
+            <p className="text-[12px] text-carbon-400 leading-relaxed mb-6">{tr(NOTA_PROTECCION_DATOS, lang)}</p>
+
+            <p className="text-[13px] tracking-[0.1em] uppercase text-carbon-400 mb-2">{t.signature}</p>
+            <SignaturePad onChange={setSignature} lang={lang} />
+          </>
+        ) : (
+          // ── Cierre de la protección de datos: información, autorizaciones y firma ──
+          <>
+            <h2 className="font-serif text-[21px] text-carbon-900 mb-4">{t.finalTitleDatos}</h2>
+
+            <div className="rounded-xl border border-cream-400 bg-cream-50 p-4 mb-5 space-y-3">
+              <div>
+                <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">{t.responsable}</p>
+                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{tr(RESPONSABLE, lang)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0 mb-1">{t.finalidad}</p>
+                <p className="text-[13px] text-carbon-700 leading-relaxed m-0">{tr(FINALIDAD, lang)}</p>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <Check checked={consent} onClick={() => setConsent(v => !v)}>
+                {tr(CONSENTIMIENTO, lang)} <span className="text-carbon-400">{t.requiredToContinue}</span>
+              </Check>
             </div>
 
             {/* Autorizaciones opcionales: ninguna viene marcada por defecto */}
             <div className="space-y-4 mb-6">
-              <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0">
-                {t.optionalConsents}
-              </p>
+              <p className="text-[11px] tracking-[0.14em] uppercase text-carbon-400 m-0">{t.optionalConsents}</p>
               {CONSENTIMIENTOS_OPCIONALES.map(c => (
                 <div key={c.id}>
                   <p className="text-[14px] text-carbon-700 leading-relaxed m-0 mb-2">{tr(c.label, lang)}</p>
@@ -677,10 +631,189 @@ export default function QuestionnaireForm({ form }: { form: FormKey }) {
           )}
         </div>
       </div>
+    </>
+  )
+}
 
-      <p className="text-[12px] text-carbon-400 text-center mt-6 leading-relaxed">
-        {t.footer}
-      </p>
+// ── El enlace completo: uno o varios documentos seguidos ─────────────────────
+// Por dónde va la paciente se guarda en el dispositivo, para que si recarga
+// después de firmar la protección de datos no se la vuelva a pedir. Caduca
+// pronto: en la tablet de la clínica, la siguiente paciente no debe heredarlo.
+const FLOW_TTL = 2 * 60 * 60 * 1000
+
+type FlowState = { index: number; identity: Answers; at: number }
+
+export default function QuestionnaireFlow({ docs, initialLang = 'es' }: { docs: DocKey[]; initialLang?: Lang }) {
+  const [lang, setLang] = useState<Lang>(initialLang)
+  const [index, setIndex] = useState(0)
+  const [identity, setIdentity] = useState<Answers | null>(null)
+  const [finished, setFinished] = useState(false)
+  const t = ui(lang)
+  const FLOW_KEY = `quevi-documentos-${docs.join('-')}`
+
+  useEffect(() => {
+    if (docs.length < 2) return
+    try {
+      const saved = JSON.parse(localStorage.getItem(FLOW_KEY) ?? 'null') as FlowState | null
+      if (saved && Date.now() - saved.at < FLOW_TTL && saved.index > 0 && saved.index < docs.length) {
+        setIndex(saved.index)
+        setIdentity(saved.identity)
+      }
+    } catch {
+      // sin acceso al almacenamiento: se empieza por el primero
+    }
+  }, [])
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [index])
+
+  function changeLang(next: Lang) {
+    setLang(next)
+    // Se refleja en la dirección para que, si se recarga, siga en el mismo idioma
+    const url = new URL(window.location.href)
+    if (next === 'es') url.searchParams.delete('lang')
+    else url.searchParams.set('lang', next)
+    window.history.replaceState(null, '', url)
+  }
+
+  function forgetFlow() {
+    try {
+      localStorage.removeItem(FLOW_KEY)
+    } catch {
+      // nada que limpiar
+    }
+  }
+
+  function handleSigned(answers: Answers) {
+    const who: Answers =
+      identity ?? Object.fromEntries(IDENTITY_FIELDS.filter(id => answers[id] !== undefined).map(id => [id, answers[id]]))
+    const next = index + 1
+    if (next >= docs.length) {
+      forgetFlow()
+      setFinished(true)
+      return
+    }
+    try {
+      localStorage.setItem(FLOW_KEY, JSON.stringify({ index: next, identity: who, at: Date.now() } satisfies FlowState))
+    } catch {
+      // si no se puede guardar, solo se pierde la recuperación al recargar
+    }
+    setIdentity(who)
+    setIndex(next)
+  }
+
+  function restart() {
+    forgetFlow()
+    // Lo que hubiera a medias es de la otra persona
+    try {
+      for (const d of docs) localStorage.removeItem(storageKey(d))
+    } catch {
+      // nada que limpiar
+    }
+    setIdentity(null)
+    setIndex(0)
+  }
+
+  const onlyDatos = docs.every(d => d === 'datos')
+
+  if (finished) {
+    return (
+      <div lang={lang} className="max-w-[560px] mx-auto px-5 py-24 text-center">
+        <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+        </div>
+        <h1 className="font-serif text-[28px] text-carbon-900 mb-3">{onlyDatos ? t.sentTitleDatos : t.sentTitle}</h1>
+        <p className="text-[15px] text-carbon-500 leading-relaxed">{onlyDatos ? t.sentBodyDatos : t.sentBody}</p>
+      </div>
+    )
+  }
+
+  const doc = docs[index]
+  const nombre = identity
+    ? [identity.nombre, identity.apellidos].filter(v => typeof v === 'string' && v.trim()).join(' ')
+    : ''
+
+  return (
+    <div lang={lang} className="max-w-[680px] mx-auto px-5 py-10 sm:py-14">
+      {/* Idioma */}
+      <div className="flex justify-end mb-4">
+        <div role="group" aria-label={t.langLabel} className="inline-flex rounded-full border border-cream-400 bg-cream-50 p-0.5">
+          {LANGS.map(l => (
+            <button
+              key={l}
+              type="button"
+              lang={l}
+              onClick={() => changeLang(l)}
+              aria-pressed={lang === l}
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium tracking-[0.08em] transition-colors ${
+                lang === l ? 'bg-brand-600 text-cream-50' : 'text-carbon-500 hover:text-carbon-900'
+              }`}
+            >
+              {l === 'es' ? 'ES · Español' : 'EN · English'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cabecera */}
+      <div className="text-center mb-8">
+        <p className="text-[11px] tracking-[0.28em] uppercase text-carbon-400 mb-2">QUEVI Wellness Clinic</p>
+        <h1 className="font-serif text-[26px] sm:text-[30px] text-carbon-900 leading-tight">
+          {tr(DOCS[doc].title, lang)}
+        </h1>
+      </div>
+
+      {/* Qué documentos incluye el enlace y por cuál va */}
+      {docs.length > 1 && (
+        <div className="mb-8">
+          <p className="text-[12px] text-carbon-400 text-center mb-3">{t.docStep(index + 1, docs.length)}</p>
+          <ol className="flex flex-wrap justify-center gap-2 list-none p-0 m-0">
+            {docs.map((d, i) => (
+              <li
+                key={d}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-[13px] ${
+                  i === index
+                    ? 'border-brand-500 bg-brand-50 text-brand-800 font-medium'
+                    : i < index
+                      ? 'border-cream-400 bg-cream-50 text-carbon-500'
+                      : 'border-cream-400 text-carbon-400'
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] ${
+                    i < index ? 'bg-brand-600 text-cream-50' : i === index ? 'bg-brand-600 text-cream-50' : 'bg-cream-300 text-carbon-500'
+                  }`}
+                >
+                  {i < index ? '✓' : i + 1}
+                </span>
+                {tr(DOCS[d].name, lang)}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {/* Viene de firmar el documento anterior */}
+      {identity && (
+        <div className="rounded-xl border border-brand-200 bg-brand-50 px-4 py-3 mb-6 text-[14px] text-brand-800 leading-relaxed">
+          <p className="m-0">✓ {t.signedDatos}</p>
+          {nombre && (
+            <p className="m-0 mt-1 text-[13px] text-carbon-500">
+              {t.fillingAs(nombre)}{' '}
+              <button type="button" onClick={restart} className="underline underline-offset-2 hover:text-carbon-900">
+                {t.notYou}
+              </button>
+            </p>
+          )}
+        </div>
+      )}
+
+      <DocumentForm key={doc} doc={doc} lang={lang} identity={identity} onSigned={handleSigned} />
+
+      <p className="text-[12px] text-carbon-400 text-center mt-6 leading-relaxed">{t.footer}</p>
     </div>
   )
 }

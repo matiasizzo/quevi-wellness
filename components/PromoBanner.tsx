@@ -74,7 +74,7 @@ const PROMO = {
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '34683462705'
 
 /** Páginas donde el banner nunca aparece: son las que tienen que convertir. */
-const NO_PROMO_PATHS = ['/cita', '/en', '/checkout', '/admin', '/chequeo']
+const NO_PROMO_PATHS = ['/cita', '/en', '/checkout', '/admin', '/chequeo', '/proteccion-datos']
 
 /** ¿Sigue viva la promo? Se apaga sola al pasar la fecha. */
 function isLive() {

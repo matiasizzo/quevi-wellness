@@ -2,14 +2,23 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
+  DOCS,
+  DOC_KEYS,
   FORMS,
   FORM_KEYS,
   medicalFlags,
+  isDocKey,
   isFormKey,
+  CONSENTIMIENTO,
   CONSENTIMIENTOS_OPCIONALES,
+  RESPONSABLE,
+  FINALIDAD,
+  type DocKey,
   type Field,
   type FormKey,
 } from '@/lib/questionnaires'
+import { linkFor } from '@/lib/questionnaireLinks'
+import type { Lang } from '@/lib/questionnaires.en'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -1852,12 +1861,12 @@ function BancoTab({ pw }: { pw: string }) {
   )
 }
 
-// ── Tab: Cuestionarios de piel ────────────────────────────────────────────────
+// ── Tab: Cuestionarios (protección de datos, piel y tricología) ──────────────
 
 type Questionnaire = {
   id: string
   created_at: string
-  // 'piel' | 'capilar'
+  // 'datos' | 'piel' | 'capilar'
   form: string
   patient_name: string
   patient_email: string
@@ -1877,9 +1886,183 @@ type Questionnaire = {
   user_agent?: string | null
 }
 
-// De qué cuestionario es la fila; las guardadas antes del capilar son de piel
-function formOf(q: { form?: string }): FormKey {
-  return isFormKey(q.form) ? q.form : 'piel'
+// De qué documento es la fila; las guardadas antes del capilar son de piel
+function formOf(q: { form?: string }): DocKey {
+  return isDocKey(q.form) ? q.form : 'piel'
+}
+
+// Los avisos médicos solo existen en los cuestionarios
+function flagsOf(q: Questionnaire): string[] {
+  const form = formOf(q)
+  return isFormKey(form) ? medicalFlags(form, q.answers ?? {}) : []
+}
+
+// Dónde consta la protección de datos de un cuestionario: en el propio
+// documento (los firmados antes de separarlos) o en uno aparte de la misma
+// paciente, identificada por su email
+type RgpdSource = { kind: 'incluida' | 'aparte'; row: Questionnaire } | null
+
+function rgpdFor(q: Questionnaire, datosByEmail: Map<string, Questionnaire>): RgpdSource {
+  if (formOf(q) === 'datos') return { kind: 'incluida', row: q }
+  if (q.consent) return { kind: 'incluida', row: q }
+  const row = datosByEmail.get((q.patient_email ?? '').toLowerCase())
+  return row ? { kind: 'aparte', row } : null
+}
+
+const BADGE_CLS: Record<DocKey, string> = {
+  datos: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+  piel: 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+  capilar: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+}
+
+// ── Enviar documentos: se marca qué tiene que firmar y sale el enlace ────────
+function EnviarDocumentos() {
+  const [datos, setDatos] = useState(true)
+  const [cuestionario, setCuestionario] = useState(true)
+  const [form, setForm] = useState<FormKey>('piel')
+  const [lang, setLang] = useState<Lang>('es')
+  const [phone, setPhone] = useState('')
+  const [copied, setCopied] = useState<'' | 'link' | 'msg'>('')
+
+  const path = linkFor({ datos, form: cuestionario ? form : null, lang })
+  const url = path ? `${window.location.origin}${path}` : ''
+
+  const nombreCuestionario = lang === 'es'
+    ? (form === 'piel' ? 'el cuestionario de piel' : 'el cuestionario de tricología')
+    : (form === 'piel' ? 'the skin questionnaire' : 'the trichology questionnaire')
+  const lista = lang === 'es'
+    ? (datos && cuestionario ? `la protección de datos y ${nombreCuestionario}` : datos ? 'el documento de protección de datos' : nombreCuestionario)
+    : (datos && cuestionario ? `the data protection form and ${nombreCuestionario}` : datos ? 'the data protection form' : nombreCuestionario)
+  const mensaje = lang === 'es'
+    ? `Hola, te envío ${lista} para completar antes de tu cita en QUEVI Wellness Clinic: ${url}`
+    : `Hi, here is ${lista} to complete before your appointment at QUEVI Wellness Clinic: ${url}`
+
+  // Un móvil español sin prefijo (9 cifras) se completa con el 34
+  const digits = phone.replace(/\D/g, '')
+  const waNumber = digits.length === 9 ? `34${digits}` : digits
+  const waHref = `https://wa.me/${waNumber}?text=${encodeURIComponent(mensaje)}`
+
+  async function copy(what: 'link' | 'msg') {
+    try {
+      await navigator.clipboard.writeText(what === 'link' ? url : mensaje)
+      setCopied(what)
+      setTimeout(() => setCopied(''), 2000)
+    } catch {
+      // sin permiso de portapapeles: el enlace sigue a la vista para copiarlo a mano
+    }
+  }
+
+  const casilla = (checked: boolean, onClick: () => void, label: React.ReactNode) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={checked}
+      className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg border text-[13px] text-left transition-colors ${
+        checked ? 'border-emerald-500/50 bg-emerald-500/10 text-zinc-100' : 'border-zinc-600 text-zinc-300 hover:border-zinc-500'
+      }`}
+    >
+      <span
+        className={`flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center text-[10px] ${
+          checked ? 'bg-emerald-500 border-emerald-500 text-zinc-900' : 'border-zinc-500'
+        }`}
+      >
+        {checked ? '✓' : ''}
+      </span>
+      {label}
+    </button>
+  )
+
+  const segmento = <T extends string>(value: T, current: T, set: (v: T) => void, label: string) => (
+    <button
+      key={value}
+      type="button"
+      onClick={() => set(value)}
+      className={`px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors ${
+        current === value ? 'bg-zinc-100 text-zinc-900' : 'text-zinc-300 hover:text-zinc-100'
+      }`}
+    >
+      {label}
+    </button>
+  )
+
+  return (
+    <div className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 p-4 sm:p-5 space-y-4">
+      <div>
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400 m-0">Enviar documentos a una paciente</p>
+        <p className="text-[13px] text-zinc-400 mt-1 mb-0">
+          Marca qué tiene que firmar. Si marcas los dos, primero firma la protección de datos y al terminar pasa sola
+          al cuestionario, sin volver a escribir sus datos.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {casilla(datos, () => setDatos(v => !v), <>1 · Protección de datos</>)}
+        {casilla(cuestionario, () => setCuestionario(v => !v), <>2 · {DOCS[form].name}</>)}
+        <div className="inline-flex rounded-lg border border-zinc-600 p-0.5">
+          {segmento<FormKey>('piel', form, setForm, 'Piel')}
+          {segmento<FormKey>('capilar', form, setForm, 'Tricología')}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-[12px] text-zinc-400">Idioma</span>
+        <div className="inline-flex rounded-lg border border-zinc-600 p-0.5">
+          {segmento<Lang>('es', lang, setLang, 'Español')}
+          {segmento<Lang>('en', lang, setLang, 'English')}
+        </div>
+        <input
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+          placeholder="Teléfono para WhatsApp (opcional)"
+          inputMode="tel"
+          className="flex-1 min-w-[200px] bg-zinc-900/40 border border-zinc-600 rounded-lg px-3 py-2 text-[13px] text-zinc-200 placeholder:text-zinc-500 outline-none focus:border-zinc-500"
+        />
+      </div>
+
+      {url ? (
+        <div className="space-y-3">
+          <p className="font-mono text-[12px] text-zinc-200 bg-zinc-900/50 border border-zinc-700 rounded-lg px-3 py-2 m-0 break-all">
+            {url}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-lg bg-emerald-600 text-white text-[13px] font-medium hover:bg-emerald-500 transition-colors"
+            >
+              Enviar por WhatsApp
+            </a>
+            <button
+              type="button"
+              onClick={() => copy('link')}
+              className="px-4 py-2 rounded-lg border border-zinc-600 text-[13px] text-zinc-200 hover:border-zinc-500 transition-colors"
+            >
+              {copied === 'link' ? '✓ Copiado' : 'Copiar enlace'}
+            </button>
+            <button
+              type="button"
+              onClick={() => copy('msg')}
+              className="px-4 py-2 rounded-lg border border-zinc-600 text-[13px] text-zinc-200 hover:border-zinc-500 transition-colors"
+            >
+              {copied === 'msg' ? '✓ Copiado' : 'Copiar mensaje (email)'}
+            </button>
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-lg border border-zinc-600 text-[13px] text-zinc-200 hover:border-zinc-500 transition-colors"
+              title="Para rellenarlo aquí mismo, en la tablet de la clínica"
+            >
+              Abrir aquí (tablet)
+            </a>
+          </div>
+        </div>
+      ) : (
+        <p className="text-[13px] text-amber-300 m-0">Marca al menos un documento.</p>
+      )}
+    </div>
+  )
 }
 
 // Una respuesta, en el formato en el que se puede leer de un vistazo
@@ -1916,7 +2099,7 @@ function CuestionariosTab({ pw }: { pw: string }) {
   const [error, setError] = useState('')
   const [openId, setOpenId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
-  const [formFilter, setFormFilter] = useState<'todos' | FormKey>('todos')
+  const [formFilter, setFormFilter] = useState<'todos' | DocKey>('todos')
   const [printing, setPrinting] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -1940,7 +2123,7 @@ function CuestionariosTab({ pw }: { pw: string }) {
   useEffect(() => { load() }, [load])
 
   // La firma no viaja en el listado: se pide solo al imprimir
-  async function printOne(id: string) {
+  async function printOne(id: string, rgpd: RgpdSource) {
     setPrinting(id)
     try {
       const res = await fetch(`/api/admin/questionnaires?id=${encodeURIComponent(id)}`, {
@@ -1951,7 +2134,7 @@ function CuestionariosTab({ pw }: { pw: string }) {
         setError(json.error ?? 'No se pudo abrir el cuestionario')
         return
       }
-      printQuestionnaire(json.questionnaire as Questionnaire)
+      printQuestionnaire(json.questionnaire as Questionnaire, rgpd)
     } catch {
       setError('Error de red')
     } finally {
@@ -1960,6 +2143,14 @@ function CuestionariosTab({ pw }: { pw: string }) {
   }
 
   const byForm = formFilter === 'todos' ? rows : rows.filter(r => formOf(r) === formFilter)
+
+  // La protección de datos más reciente de cada paciente (las filas vienen de
+  // la más nueva a la más antigua)
+  const datosByEmail = new Map<string, Questionnaire>()
+  for (const r of rows) {
+    const email = (r.patient_email ?? '').toLowerCase()
+    if (formOf(r) === 'datos' && !datosByEmail.has(email)) datosByEmail.set(email, r)
+  }
 
   const q = query.trim().toLowerCase()
   const filtered = q
@@ -1975,33 +2166,26 @@ function CuestionariosTab({ pw }: { pw: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Cuestionarios de piel</p>
+        <p className="text-[11px] tracking-[0.14em] uppercase text-zinc-400">Cuestionarios y protección de datos</p>
         <p className="text-[13px] text-zinc-400 mt-0.5">
-          Los que las pacientes rellenan y firman. Pásales el enlace por WhatsApp o email, o abre esa
-          página en la tablet de la clínica:
+          Los documentos que las pacientes rellenan y firman. Cada uno se guarda por separado, con su firma.
         </p>
-        <div className="flex flex-wrap gap-x-6 gap-y-1 mt-2">
-          {FORM_KEYS.map(k => (
-            <span key={k} className="text-[13px] text-zinc-300">
-              <span className="text-zinc-400">{FORMS[k].label}:</span>{' '}
-              <span className="text-zinc-100">queviwellnessclinic.es{FORMS[k].slug}</span>
-            </span>
-          ))}
-        </div>
       </div>
+
+      <EnviarDocumentos />
 
       {error && (
         <p className="text-[13px] text-red-400 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">{error}</p>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <StatCard label="Cuestionarios" value={rows.length} />
-        {FORM_KEYS.map(k => (
-          <StatCard key={k} label={FORMS[k].label} value={rows.filter(r => formOf(r) === k).length} />
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <StatCard label="Documentos" value={rows.length} />
+        {DOC_KEYS.map(k => (
+          <StatCard key={k} label={DOCS[k].label} value={rows.filter(r => formOf(r) === k).length} />
         ))}
         <StatCard
           label="Con avisos médicos"
-          value={rows.filter(r => medicalFlags(formOf(r), r.answers ?? {}).length > 0).length}
+          value={rows.filter(r => flagsOf(r).length > 0).length}
           sub="alergias, medicación…"
         />
       </div>
@@ -2009,7 +2193,7 @@ function CuestionariosTab({ pw }: { pw: string }) {
       <div className="flex flex-wrap gap-2">
         {([
           { id: 'todos' as const, label: `Todos (${rows.length})` },
-          ...FORM_KEYS.map(k => ({ id: k, label: `${FORMS[k].label} (${rows.filter(r => formOf(r) === k).length})` })),
+          ...DOC_KEYS.map(k => ({ id: k, label: `${DOCS[k].label} (${rows.filter(r => formOf(r) === k).length})` })),
         ]).map(f => (
           <button
             key={f.id}
@@ -2044,13 +2228,15 @@ function CuestionariosTab({ pw }: { pw: string }) {
       </div>
 
       {filtered.length === 0 ? (
-        <Empty label={query ? 'Sin resultados' : 'Todavía no hay cuestionarios completados'} />
+        <Empty label={query ? 'Sin resultados' : 'Todavía no hay documentos firmados'} />
       ) : (
         <div className="space-y-2">
           {filtered.map(r => {
             const isOpen = openId === r.id
             const form = formOf(r)
-            const flags = medicalFlags(form, r.answers ?? {})
+            const isDatos = form === 'datos'
+            const flags = flagsOf(r)
+            const rgpd = rgpdFor(r, datosByEmail)
             return (
               <div key={r.id} className="rounded-xl border border-zinc-600/80 bg-zinc-800/50 overflow-hidden">
                 <div className="flex items-stretch">
@@ -2060,14 +2246,10 @@ function CuestionariosTab({ pw }: { pw: string }) {
                   >
                     <span className="text-zinc-200 font-medium min-w-[160px]">{r.patient_name}</span>
                     <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase ${
-                        form === 'capilar'
-                          ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
-                          : 'bg-violet-500/20 text-violet-300 border-violet-500/30'
-                      }`}
-                      title={FORMS[form].title}
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase ${BADGE_CLS[form]}`}
+                      title={DOCS[form].title}
                     >
-                      {FORMS[form].label}
+                      {DOCS[form].label}
                     </span>
                     {r.answers?.__lang === 'en' && (
                       <span
@@ -2079,7 +2261,15 @@ function CuestionariosTab({ pw }: { pw: string }) {
                     )}
                     <span className="text-zinc-300 text-[12px] flex-1 min-w-[180px]">{r.patient_email}</span>
                     <span className="text-zinc-300 text-[12px] whitespace-nowrap">{fmtDate(r.created_at)}</span>
-                    {flags.length > 0 ? (
+                    {!isDatos && !rgpd && (
+                      <span
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-red-500/15 text-red-300 border-red-500/30"
+                        title="No hay una protección de datos firmada con este email"
+                      >
+                        sin protección de datos
+                      </span>
+                    )}
+                    {isDatos ? null : flags.length > 0 ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border tracking-[0.06em] uppercase bg-amber-500/20 text-amber-300 border-amber-500/30">
                         {flags.length} {flags.length === 1 ? 'aviso' : 'avisos'}
                       </span>
@@ -2091,9 +2281,9 @@ function CuestionariosTab({ pw }: { pw: string }) {
                     <span className={`text-zinc-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}>▾</span>
                   </button>
                   <button
-                    onClick={() => printOne(r.id)}
+                    onClick={() => printOne(r.id, rgpd)}
                     disabled={printing === r.id}
-                    title="Imprimir el cuestionario firmado"
+                    title="Imprimir el documento firmado"
                     className="flex-shrink-0 px-4 flex items-center gap-1.5 border-l border-zinc-600/80 text-[12px] font-medium text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -2122,7 +2312,7 @@ function CuestionariosTab({ pw }: { pw: string }) {
 
                     <div className="grid gap-1.5 text-[13px] sm:grid-cols-2">
                       <div className="text-zinc-300">
-                        Cuestionario: <span className="text-zinc-200">{FORMS[form].title}</span>
+                        Documento: <span className="text-zinc-200">{DOCS[form].title}</span>
                       </div>
                       <div className="text-zinc-300">
                         Teléfono: <span className="text-zinc-200">{r.patient_phone || '—'}</span>
@@ -2139,17 +2329,31 @@ function CuestionariosTab({ pw }: { pw: string }) {
                       <div className="text-zinc-300">
                         Idioma: <span className="text-zinc-200">{r.answers?.__lang === 'en' ? 'inglés' : 'castellano'}</span>
                       </div>
-                      <div className="text-zinc-300">
-                        Datos de salud: <span className="text-zinc-200">{r.consent ? 'autorizado' : 'no'}</span>
-                      </div>
+                      {isDatos ? (
+                        <div className="text-zinc-300">
+                          Datos de salud: <span className="text-zinc-200">{r.consent ? 'autorizado' : 'no'}</span>
+                        </div>
+                      ) : (
+                        <div className="text-zinc-300">
+                          Protección de datos:{' '}
+                          {rgpd?.kind === 'incluida' ? (
+                            <span className="text-zinc-200">incluida en este documento</span>
+                          ) : rgpd ? (
+                            <span className="text-zinc-200">firmada aparte el {fmtDate(rgpd.row.signed_at ?? rgpd.row.created_at)}</span>
+                          ) : (
+                            <span className="text-red-300">no consta — envíale el documento de protección de datos</span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Autorizaciones opcionales: saber si se le pueden hacer fotos o escribirle */}
+                    {rgpd && (
                     <div className="flex flex-wrap gap-2">
                       {[
-                        { label: 'Fotos y vídeos médicos', ok: r.consent_photos },
-                        { label: 'Comunicaciones (WhatsApp, email, SMS)', ok: r.consent_comms },
-                        { label: 'Uso de fotos con fines docentes', ok: r.consent_promo },
+                        { label: 'Fotos y vídeos médicos', ok: rgpd.row.consent_photos },
+                        { label: 'Comunicaciones (WhatsApp, email, SMS)', ok: rgpd.row.consent_comms },
+                        { label: 'Uso de fotos con fines docentes', ok: rgpd.row.consent_promo },
                       ].map(c => (
                         <span
                           key={c.label}
@@ -2163,8 +2367,9 @@ function CuestionariosTab({ pw }: { pw: string }) {
                         </span>
                       ))}
                     </div>
+                    )}
 
-                    {FORMS[form].sections.filter(s => s.id !== 'datos').map(section => (
+                    {DOCS[form].sections.filter(s => isDatos || s.id !== 'datos').map(section => (
                       <div key={section.id}>
                         <p className="text-[11px] tracking-[0.1em] uppercase text-zinc-400 mb-2">{section.title}</p>
                         <div className="rounded-xl border border-zinc-600/60 divide-y divide-zinc-700/70">
@@ -2194,14 +2399,46 @@ function CuestionariosTab({ pw }: { pw: string }) {
   )
 }
 
-// Hoja imprimible del cuestionario, con la firma, para la historia clínica
-function printQuestionnaire(q: Questionnaire) {
+// Hoja imprimible del documento, con la firma, para la historia clínica
+function printQuestionnaire(q: Questionnaire, rgpd: RgpdSource) {
   const esc = (s: unknown) => String(s ?? '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c] as string))
   const form = formOf(q)
-  const config = FORMS[form]
-  const flags = medicalFlags(form, q.answers ?? {})
+  const config = DOCS[form]
+  const cuestionario = isFormKey(form) ? FORMS[form] : null
+  const flags = flagsOf(q)
 
-  const secciones = config.sections.filter(s => s.id !== 'datos').map(section => {
+  // Las autorizaciones, tal como las marcó la paciente
+  const autorizaciones = (r: Questionnaire) =>
+    CONSENTIMIENTOS_OPCIONALES.map(c => {
+      const ok = c.id === 'fotos' ? r.consent_photos : c.id === 'comunicaciones' ? r.consent_comms : r.consent_promo
+      return `<tr><td class="q">${esc(c.label)}</td><td class="a">${ok ? 'SÍ' : 'NO'}</td></tr>`
+    }).join('')
+
+  // Cierre del documento: en la protección de datos, el texto legal y las
+  // autorizaciones; en un cuestionario, la declaración y dónde consta la
+  // protección de datos
+  const cierre = cuestionario
+    ? `<p style="margin:0 0 8px;">${esc(cuestionario.declaracion)}</p>
+       <p style="margin:0 0 8px;font-size:11px;color:#5c6158;">
+         ${q.consent
+           ? `Autorizaciones: datos de salud SÍ · ${CONSENTIMIENTOS_OPCIONALES.map(c => {
+               const ok = c.id === 'fotos' ? q.consent_photos : c.id === 'comunicaciones' ? q.consent_comms : q.consent_promo
+               const nombre = c.id === 'fotos' ? 'fotos médicas' : c.id === 'comunicaciones' ? 'comunicaciones' : 'fotos docentes'
+               return `${nombre} ${ok ? 'SÍ' : 'NO'}`
+             }).join(' · ')}`
+           : rgpd
+             ? `Protección de datos y consentimiento: firmado en documento aparte el ${esc(fmtDate(rgpd.row.signed_at ?? rgpd.row.created_at))}.`
+             : 'Protección de datos y consentimiento: no consta firmado.'}
+       </p>`
+    : `<h2>Responsable del tratamiento</h2><p style="margin:0 0 8px;">${esc(RESPONSABLE)}</p>
+       <h2>Finalidad, base legal y conservación</h2><p style="margin:0 0 8px;">${esc(FINALIDAD)}</p>
+       <h2>Autorizaciones</h2>
+       <table>
+         <tr><td class="q">${esc(CONSENTIMIENTO)}</td><td class="a">${q.consent ? 'SÍ' : 'NO'}</td></tr>
+         ${autorizaciones(q)}
+       </table>`
+
+  const secciones = config.sections.filter(s => !cuestionario || s.id !== 'datos').map(section => {
     const filas = section.fields
       .flatMap(field => answerLines(field, q.answers ?? {}))
       .map(l => `<tr><td class="q">${esc(l.label)}</td><td class="a">${esc(l.value)}</td></tr>`)
@@ -2250,15 +2487,7 @@ function printQuestionnaire(q: Questionnaire) {
     ${flags.length ? `<div class="flags"><h3>Revisar antes del tratamiento</h3>${flags.map(f => `<span>${esc(f)}</span>`).join('')}</div>` : ''}
     ${secciones}
     <div class="decl">
-      <p style="margin:0 0 8px;">${esc(config.declaracion)}</p>
-      <p style="margin:0 0 8px;font-size:11px;color:#5c6158;">
-        Autorizaciones: datos de salud ${q.consent ? 'SÍ' : 'NO'} ·
-        ${CONSENTIMIENTOS_OPCIONALES.map(c => {
-          const ok = c.id === 'fotos' ? q.consent_photos : c.id === 'comunicaciones' ? q.consent_comms : q.consent_promo
-          const nombre = c.id === 'fotos' ? 'fotos médicas' : c.id === 'comunicaciones' ? 'comunicaciones' : 'fotos docentes'
-          return `${nombre} ${ok ? 'SÍ' : 'NO'}`
-        }).join(' · ')}
-      </p>
+      ${cierre}
       <div class="sign">
         <div>
           ${q.signature ? `<img src="${q.signature}" alt="Firma" />` : ''}

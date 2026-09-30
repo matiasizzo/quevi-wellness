@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
-// Cuestionarios de salud (piel y capilar) para el panel. Van por su propio
+// Documentos firmados (protección de datos, piel y capilar) para el panel. Van por su propio
 // endpoint y no dentro de /api/admin/data porque la firma pesa: el listado se
 // sirve sin ella y solo se pide entera al imprimir un cuestionario concreto.
 
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     .from('health_questionnaires')
     .select(LIST_COLUMNS)
     .order('created_at', { ascending: false })
-    .limit(200)
+    .limit(500) // cada paciente suele tener dos: protección de datos y cuestionario
 
   if (error) {
     // Si aún no se ha ejecutado supabase/cuestionarios.sql, la tabla no

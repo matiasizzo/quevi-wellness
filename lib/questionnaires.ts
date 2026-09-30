@@ -1,9 +1,14 @@
-// Cuestionarios de salud — definición única de los dos formularios.
+// Cuestionarios de salud — definición única de los documentos que firma la
+// paciente: la protección de datos y los dos cuestionarios (piel y tricología).
 //
-// Los formularios públicos (/chequeo-piel y /chequeo-capilar) y el panel de
-// administración leen de aquí, para que la pregunta que firma la paciente y la
-// que lee el equipo médico sean literalmente la misma. Si hay que cambiar una
-// pregunta, se cambia aquí y cambia en los dos sitios a la vez.
+// Los formularios públicos (/proteccion-datos, /chequeo-piel y /chequeo-capilar)
+// y el panel de administración leen de aquí, para que la pregunta que firma la
+// paciente y la que lee el equipo médico sean literalmente la misma. Si hay que
+// cambiar una pregunta, se cambia aquí y cambia en los dos sitios a la vez.
+//
+// Protección de datos y cuestionario son documentos separados, cada uno con su
+// firma. El enlace de un cuestionario pide primero la protección de datos y
+// después el cuestionario; con ?solo=cuestionario, solo el cuestionario.
 
 type BaseField = { id: string; label: string; help?: string }
 
@@ -50,7 +55,7 @@ function tratamiento(id: string, label: string, detail: string): Field {
 }
 
 // ── Identificación y contacto ────────────────────────────────────────────────
-// Común a los dos cuestionarios. Son los campos que pide el documento de
+// Común a todos los documentos. Son los campos que pide el documento de
 // consentimiento, para que la ficha sirva como parte de la historia clínica.
 const SECCION_DATOS: Section = {
   id: 'datos',
@@ -70,6 +75,18 @@ const SECCION_DATOS: Section = {
     { id: 'ciudad', type: 'text', label: 'Ciudad', placeholder: 'Estepona' },
     { id: 'provincia', type: 'text', label: 'Provincia', placeholder: 'Málaga' },
   ],
+}
+
+// Los campos que identifican a la paciente: cuando firma la protección de datos
+// y sigue con el cuestionario, pasan de un documento al otro sin repetirlos
+export const IDENTITY_FIELDS: string[] = SECCION_DATOS.fields.map(f => f.id)
+
+// En el documento de protección de datos, la misma sección con su propio texto
+const SECCION_DATOS_RGPD: Section = {
+  ...SECCION_DATOS,
+  intro:
+    'Estos datos identifican a quién pertenece tu historia clínica. ' +
+    'El nombre y el correo son obligatorios; el resto nos ayuda a tenerte bien identificada.',
 }
 
 const SKIN_SECTIONS: Section[] = [
@@ -639,8 +656,8 @@ const HAIR_SECTIONS: Section[] = [
 ]
 
 // ── Consentimiento informado y protección de datos ───────────────────────────
-// Texto acordado con la clínica; se muestra igual en los dos cuestionarios,
-// justo antes de la firma.
+// Texto acordado con la clínica; forma el documento de protección de datos,
+// que se firma aparte de los cuestionarios.
 export const RESPONSABLE =
   'Quevi Wellness Clinic (NIF B88657044), NICA 70353, centro autorizado por la Junta de Andalucía. ' +
   'Calle Gibraltar 2, Bajos, 29680 Estepona, Málaga. Contacto: pacientes@queviwellnessclinic.es'
@@ -678,6 +695,11 @@ export const CONSENTIMIENTOS_OPCIONALES: OptionalConsent[] = [
       'anonimizando mis rasgos siempre que sea posible.',
   },
 ]
+
+// Recordatorio al firmar un cuestionario: la base legal está en el otro documento
+export const NOTA_PROTECCION_DATOS =
+  'El tratamiento de tus datos se rige por el documento de protección de datos y consentimiento de ' +
+  'QUEVI Wellness Clinic. Puedes ejercer tus derechos escribiendo a pacientes@queviwellnessclinic.es.'
 
 export const DECLARACION_PIEL =
   'Confirmo que la información aportada en este cuestionario es veraz y completa según mi conocimiento actual, ' +
@@ -750,20 +772,29 @@ const HAIR_FLAGS: FlagRule[] = [
   { label: 'Antecedentes de tiroides', check: a => val(a, 'tiroides') === 'Sí' },
 ]
 
-// ── Los dos formularios ──────────────────────────────────────────────────────
+// ── Los documentos ───────────────────────────────────────────────────────────
+/** Los cuestionarios de salud */
 export type FormKey = 'piel' | 'capilar'
+/** Todo lo que se firma: los cuestionarios y la protección de datos */
+export type DocKey = FormKey | 'datos'
 
-export type QuestionnaireForm = {
-  key: FormKey
+export type DocumentDef = {
+  key: DocKey
   /** Ruta pública donde se rellena */
   slug: string
   /** Nombre corto, para las etiquetas del panel */
   label: string
+  /** Cómo se nombra el documento ante la paciente y al enviarle el enlace */
+  name: string
   title: string
+  sections: Section[]
+}
+
+export type QuestionnaireForm = DocumentDef & {
+  key: FormKey
   declaracion: string
   /** Aviso que se muestra antes de firmar */
   aviso: string
-  sections: Section[]
   flags: FlagRule[]
 }
 
@@ -772,6 +803,7 @@ export const FORMS: Record<FormKey, QuestionnaireForm> = {
     key: 'piel',
     slug: '/chequeo-piel',
     label: 'Piel',
+    name: 'Cuestionario de piel',
     title: 'Cuestionario previo al chequeo de piel',
     declaracion: DECLARACION_PIEL,
     aviso:
@@ -785,6 +817,7 @@ export const FORMS: Record<FormKey, QuestionnaireForm> = {
     key: 'capilar',
     slug: '/chequeo-capilar',
     label: 'Capilar',
+    name: 'Cuestionario de tricología',
     title: 'Cuestionario previo a tratamientos de tricología',
     declaracion: DECLARACION_CAPILAR,
     aviso:
@@ -799,6 +832,27 @@ export const FORM_KEYS: FormKey[] = ['piel', 'capilar']
 
 export function isFormKey(value: unknown): value is FormKey {
   return value === 'piel' || value === 'capilar'
+}
+
+export const PROTECCION_DATOS: DocumentDef = {
+  key: 'datos',
+  slug: '/proteccion-datos',
+  label: 'Protección de datos',
+  name: 'Protección de datos',
+  title: 'Protección de datos y consentimiento',
+  sections: [SECCION_DATOS_RGPD],
+}
+
+export const DOCS: Record<DocKey, DocumentDef> = {
+  datos: PROTECCION_DATOS,
+  piel: FORMS.piel,
+  capilar: FORMS.capilar,
+}
+
+export const DOC_KEYS: DocKey[] = ['datos', 'piel', 'capilar']
+
+export function isDocKey(value: unknown): value is DocKey {
+  return value === 'datos' || isFormKey(value)
 }
 
 export function medicalFlags(form: FormKey, answers: Answers): string[] {
