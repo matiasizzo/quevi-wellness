@@ -26,7 +26,7 @@ import { isPaidTraffic } from '@/lib/attribution'
  */
 const PROMO = {
   /** A false, el banner no existe para nadie. */
-  enabled: true,
+  enabled: false,
 
   key: 'quevi-promo-dallo-lips-2026',
 

@@ -1,7 +1,26 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isMaintenanceBlocked, MAINTENANCE_HTML } from '@/lib/maintenance'
 
 export async function middleware(request: NextRequest) {
+  // Modo mantenimiento (lib/maintenance.ts): la página se sirve en la propia
+  // URL, sin redirigir, para que cada una quede como "temporalmente cerrada"
+  if (isMaintenanceBlocked(request.nextUrl.pathname)) {
+    return new NextResponse(MAINTENANCE_HTML, {
+      status: 503,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Retry-After': '86400',
+        // Sin caché en la CDN: al reabrir la web, el cambio es inmediato
+        'Cache-Control': 'no-store',
+      },
+    })
+  }
+
+  if (!request.nextUrl.pathname.startsWith('/cuenta')) {
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -49,5 +68,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/cuenta/:path*'],
+  // Todo menos los recursos que necesitan las páginas que siguen abiertas
+  matcher: ['/((?!_next/static|_next/image|images/|favicon.ico).*)'],
 }
